@@ -2538,7 +2538,10 @@ var IC = {
   roster: '<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
   tiers: '<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
   qapills: '<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
-  dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
+  dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>',
+  arches: '<path d="M2 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/><path d="M5.8 13V5.8a2.2 2.2 0 0 1 4.4 0V13z"/><path d="M9.6 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/>',
+  chapters: '<rect x="1.8" y="2.5" width="12.4" height="7.8" rx="1.2"/><path d="M2 12.8h3.5M6.3 12.8h3.5M10.6 12.8h3.4" stroke-linecap="round"/>',
+  slotpicker: '<rect x="1.8" y="3" width="6.8" height="3.2" rx=".8"/><rect x="1.8" y="7.6" width="6.8" height="3.2" rx=".8" opacity=".55"/><rect x="10" y="3" width="4.2" height="10" rx="1"/>'
 };
 var svg = (n, s = 14, cls = "") => `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ""}</svg>`;
 var ICONS = [
@@ -4158,6 +4161,9 @@ var KIND = {
   tiers: "currency tiers",
   qapills: "question pills",
   dockbar: "docked intake bar",
+  arches: "fanned arches",
+  chapters: "chapter frame",
+  slotpicker: "slot configurator",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -5474,6 +5480,190 @@ var DOCKBAR_JS = `<script>
 })();
 <\/script>
 `;
+var ARCHES_CSS = `.pagecraft-arches{width:100%;padding:14px 0 32px}
+.pagecraft-arches-list{list-style:none;margin:0 auto;padding:0;max-width:1080px;display:flex;align-items:flex-end;justify-content:center}
+.pagecraft-arches-item{margin:0 -10px;width:clamp(140px,18vw,212px);flex:0 1 auto;border-radius:999px 999px 14px 14px;overflow:hidden;border:3px solid var(--ar-frame,#FAF7F2);background:var(--ar-bg,#DCD3C6);box-shadow:0 22px 46px rgba(24,21,18,.15);transition:transform .34s cubic-bezier(.22,1,.36,1)}
+.pagecraft-arches-item:nth-child(1){transform:translateY(26px) rotate(-7deg);z-index:1}
+.pagecraft-arches-item:nth-child(2){transform:translateY(8px) rotate(-3.5deg);z-index:2}
+.pagecraft-arches-item:nth-child(3){transform:translateY(-6px) rotate(0deg);z-index:4;width:clamp(154px,19.5vw,228px)}
+.pagecraft-arches-item:nth-child(4){transform:translateY(8px) rotate(3.5deg);z-index:2}
+.pagecraft-arches-item:nth-child(5){transform:translateY(26px) rotate(7deg);z-index:1}
+.pagecraft-arches-item:hover{z-index:5;transform:translateY(-10px) rotate(0deg)}
+.pagecraft-arches-img{display:block;width:100%;height:auto;aspect-ratio:2 / 3;object-fit:cover}
+@media (max-width:860px){
+  .pagecraft-arches{padding:4px 0 12px}
+  .pagecraft-arches-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .pagecraft-arches-item,.pagecraft-arches-item:nth-child(n){margin:0;width:calc(33.333% - 7px);transform:none;border-width:2px}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-arches-item{transition:none}}`;
+var CHAPTERS_CSS = `.pagecraft-chapters{width:100%;display:flex;flex-direction:column;gap:22px}
+.pagecraft-chapters-stage{position:relative;display:grid;border-radius:var(--ch-radius,14px);overflow:hidden;background:#161311;border:1px solid var(--ch-line,rgba(244,239,232,.14))}
+.pagecraft-chapters-slide{grid-area:1 / 1;position:relative;margin:0;opacity:0;visibility:hidden;transition:opacity .38s cubic-bezier(.22,1,.36,1),visibility .38s ease}
+.pagecraft-chapters-slide[data-active="1"]{opacity:1;visibility:visible}
+.pagecraft-chapters-img{display:block;width:100%;height:auto;aspect-ratio:var(--ch-ratio,16 / 9);object-fit:cover}
+.pagecraft-chapters-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,15,13,.04) 38%,rgba(18,15,13,.82) 100%);display:flex;align-items:flex-end;padding:32px 36px}
+.pagecraft-chapters-overlay{margin:0;font-size:clamp(18px,2vw,24px);line-height:1.4;font-weight:500;color:#FAF7F2;max-width:46ch}
+.pagecraft-chapters-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:20px}
+.pagecraft-chapters-btn{appearance:none;margin:0;padding:0;border:0;background:transparent;text-align:left;color:var(--ch-ink,#FAF7F2);font-family:inherit;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+.pagecraft-chapters-btn:focus-visible{outline:2px solid var(--ch-accent,#DF9E68);outline-offset:4px;border-radius:4px}
+.pagecraft-chapters-bar{display:block;width:100%;height:2px;background:var(--ch-line,rgba(244,239,232,.2));overflow:hidden;border-radius:999px}
+.pagecraft-chapters-fill{display:block;width:100%;height:100%;background:var(--ch-accent,#DF9E68);transform:scaleX(0);transform-origin:left center;transition:transform .3s ease}
+.pagecraft-chapters-btn[aria-selected="true"] .pagecraft-chapters-fill{transform:scaleX(1)}
+.pagecraft-chapters-title{font-size:16px;line-height:1.38;font-weight:600;color:var(--ch-ink,#FAF7F2)}
+.pagecraft-chapters-btn[aria-selected="false"] .pagecraft-chapters-title{opacity:.76}
+.pagecraft-chapters-sub{font-size:13.5px;line-height:1.48;color:var(--ch-muted,#C8BDB0)}
+@media (max-width:860px){.pagecraft-chapters-scrim{padding:18px 20px}.pagecraft-chapters-nav{gap:14px}}
+@media (prefers-reduced-motion:reduce){.pagecraft-chapters-slide,.pagecraft-chapters-fill{transition:none}}`;
+var CHAPTERS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-chapters[data-chapters]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ch-ready'))return;
+    root.setAttribute('data-pc-ch-ready','1');
+    var btns=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-chapters-btn[data-ch-btn]'));
+    var slides=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-chapters-slide[data-ch-slide]'));
+    if(!btns.length||!slides.length)return;
+    var cur=0;
+    function select(idx,focusBtn){
+      cur=idx;
+      btns.forEach(function(b,i){
+        var on=i===idx;
+        b.setAttribute('aria-selected',on?'true':'false');
+        b.setAttribute('tabindex',on?'0':'-1');
+        if(on&&focusBtn)b.focus();
+      });
+      slides.forEach(function(s,i){
+        var on=i===idx;
+        s.setAttribute('data-active',on?'1':'0');
+        s.setAttribute('aria-hidden',on?'false':'true');
+      });
+    }
+    var offs=[];
+    btns.forEach(function(btn,idx){
+      function onClick(){select(idx,false);resetTimer();}
+      function onKey(e){
+        var n=btns.length;
+        if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();select((idx+1)%n,true);resetTimer();}
+        else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();select((idx-1+n)%n,true);resetTimer();}
+      }
+      btn.addEventListener('click',onClick);
+      btn.addEventListener('keydown',onKey);
+      offs.push(function(){
+        btn.removeEventListener('click',onClick);
+        btn.removeEventListener('keydown',onKey);
+      });
+    });
+    var sec=parseFloat(root.getAttribute('data-auto')||'0');
+    var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var timer=null;
+    function resetTimer(){
+      if(timer){clearInterval(timer);timer=null;}
+      if(sec>0&&!reduced&&btns.length>1){
+        timer=setInterval(function(){if(!document.hidden)select((cur+1)%btns.length,false);},sec*1000);
+      }
+    }
+    resetTimer();
+    disposers.push(function(){
+      if(timer)clearInterval(timer);
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-ch-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:36px;align-items:start}
+.pagecraft-sp-steps{display:flex;flex-direction:column;gap:26px}
+.pagecraft-sp-group{display:flex;flex-direction:column;gap:12px}
+.pagecraft-sp-step-h{margin:0;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
+.pagecraft-sp-passes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.pagecraft-sp-pass{appearance:none;margin:0;padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;font-family:inherit;background:var(--sp-surface,#FAF7F2);border:1px solid var(--sp-line,#DCD3C6);border-radius:var(--sp-radius,10px);color:var(--sp-ink,#181512);cursor:pointer;transition:border-color .16s ease,background-color .16s ease}
+.pagecraft-sp-pass[aria-pressed="true"]{border-color:var(--sp-accent,#8F3D22);box-shadow:inset 0 0 0 1px var(--sp-accent,#8F3D22);background:color-mix(in srgb,var(--sp-accent,#8F3D22) 6%,var(--sp-surface,#FAF7F2))}
+.pagecraft-sp-pass-name{font-size:15px;line-height:1.38;font-weight:600;color:var(--sp-ink,#181512)}
+.pagecraft-sp-pass-meta{font-size:13px;line-height:1.45;color:var(--sp-muted,#5E5349)}
+.pagecraft-sp-pass-price{font-size:14px;line-height:1.35;font-weight:700;color:var(--sp-accent,#8F3D22);margin-top:2px}
+.pagecraft-sp-pills{display:flex;flex-wrap:wrap;gap:10px}
+.pagecraft-sp-pill{appearance:none;margin:0;padding:10px 18px;min-height:42px;font-family:inherit;font-size:14px;line-height:1.35;font-weight:600;background:var(--sp-surface,#FAF7F2);color:var(--sp-ink,#181512);border:1px solid var(--sp-line,#DCD3C6);border-radius:999px;cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
+.pagecraft-sp-pill[aria-pressed="true"]{background:var(--sp-accent,#8F3D22);border-color:var(--sp-accent,#8F3D22);color:#FFFFFF}
+.pagecraft-sp-pass:focus-visible,.pagecraft-sp-pill:focus-visible{outline:2px solid var(--sp-accent,#8F3D22);outline-offset:2px}
+.pagecraft-sp-summary{padding:28px;background:var(--sp-surface,#FAF7F2);border:1px solid var(--sp-line,#DCD3C6);border-radius:var(--sp-radius,10px);display:flex;flex-direction:column;gap:16px}
+.pagecraft-sp-sum-title{margin:0;font-size:20px;line-height:1.35;font-weight:600;color:var(--sp-ink,#181512)}
+.pagecraft-sp-rows{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--sp-line,#DCD3C6)}
+.pagecraft-sp-row{padding:11px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid var(--sp-line,#DCD3C6);font-size:14px;line-height:1.45;color:var(--sp-muted,#5E5349)}
+.pagecraft-sp-row strong{color:var(--sp-ink,#181512);font-weight:600;text-align:right}
+.pagecraft-sp-total-row{padding-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
+.pagecraft-sp-total{font-size:28px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sp-accent,#8F3D22)}
+.pagecraft-sp-confirm{padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:#FFFFFF;border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
+.pagecraft-sp-confirm:hover,.pagecraft-sp-confirm:focus-visible{opacity:.9}
+.pagecraft-sp-note{margin:0;font-size:13px;line-height:1.5;color:var(--sp-muted,#5E5349)}
+@media (max-width:860px){.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
+@media (prefers-reduced-motion:reduce){.pagecraft-sp-pass,.pagecraft-sp-pill,.pagecraft-sp-confirm{transition:none}}`;
+var SLOTPICKER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-slotpicker[data-slotpicker]').forEach(function(root){
+    if(root.hasAttribute('data-pc-sp-ready'))return;
+    root.setAttribute('data-pc-sp-ready','1');
+    var sym=root.getAttribute('data-sym')||'\u20AC';
+    var passes=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pass[data-sp-pass]'));
+    var guests=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-guests]'));
+    var slots=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-slot]'));
+    var outPass=root.querySelector('[data-sp-pass-out]');
+    var outGuest=root.querySelector('[data-sp-guest-out]');
+    var outSlot=root.querySelector('[data-sp-slot-out]');
+    var outTotal=root.querySelector('[data-sp-total]');
+    var pIdx=0,gCnt=1,sIdx=0;
+    function sync(){
+      passes.forEach(function(b,i){b.setAttribute('aria-pressed',i===pIdx?'true':'false');});
+      guests.forEach(function(b){b.setAttribute('aria-pressed',parseInt(b.getAttribute('data-sp-guests')||'1',10)===gCnt?'true':'false');});
+      slots.forEach(function(b,i){b.setAttribute('aria-pressed',i===sIdx?'true':'false');});
+      var pEl=passes[pIdx];
+      if(pEl){
+        var nm=pEl.getAttribute('data-name')||'';
+        var unit=parseFloat(pEl.getAttribute('data-price')||'0');
+        var fixed=pEl.getAttribute('data-fixed')==='1';
+        var total=fixed?unit:unit*gCnt;
+        if(outPass)outPass.textContent=nm;
+        if(outTotal)outTotal.textContent=sym+Math.round(total);
+      }
+      if(outGuest)outGuest.textContent=gCnt+(gCnt===1?' Guest':' Guests');
+      if(slots[sIdx]&&outSlot)outSlot.textContent=slots[sIdx].getAttribute('data-sp-slot')||'';
+    }
+    var offs=[];
+    passes.forEach(function(b,i){
+      function fn(){pIdx=i;sync();}
+      b.addEventListener('click',fn);
+      offs.push(function(){b.removeEventListener('click',fn);});
+    });
+    guests.forEach(function(b){
+      function fn(){gCnt=parseInt(b.getAttribute('data-sp-guests')||'1',10);sync();}
+      b.addEventListener('click',fn);
+      offs.push(function(){b.removeEventListener('click',fn);});
+    });
+    slots.forEach(function(b,i){
+      function fn(){sIdx=i;sync();}
+      b.addEventListener('click',fn);
+      offs.push(function(){b.removeEventListener('click',fn);});
+    });
+    sync();
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-sp-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -5504,7 +5694,8 @@ function mediaReferences(document) {
     const props = node.props;
     const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
-    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if (node.type === "chapters" && Array.isArray(props.chapters)) props.chapters.forEach((item, j) => scan(item?.src, [...base, "props", "chapters", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -7965,6 +8156,165 @@ var DEF = {
         { t: "unit", c: "--db-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  arches: {
+    label: "Fanned arches",
+    icon: "arches",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        archSpread: "fan",
+        items: [
+          { src: "", alt: "Linen & mineral oil", caption: "" },
+          { src: "", alt: "Stoneware tea ritual", caption: "" },
+          { src: "", alt: "Morning studio stillness", caption: "" },
+          { src: "", alt: "Treatment sanctuary", caption: "" },
+          { src: "", alt: "Warm flax rest", caption: "" }
+        ]
+      },
+      css: {
+        d: { width: "100%", "--ar-frame": cvar("surface"), "--ar-bg": cvar("line") },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "qa",
+          k: "items",
+          label: "Arch frames (up to 5)",
+          addLabel: "Add arch",
+          rowFields: [
+            { k: "src", label: "Image URL or asset", ph: "asset:arch-1", def: "" },
+            { k: "alt", label: "Alt text", ph: "Describe image", def: "Arch frame" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ar-frame", label: "Frame border", r: 1, layout: "inline" },
+        { t: "color", c: "--ar-bg", label: "Placeholder fill", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  chapters: {
+    label: "Chapter frame",
+    icon: "chapters",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        frameRatio: "16 / 9",
+        autoSeconds: "6",
+        chapters: [
+          { chapterTitle: "Caldarium \xB7 40\xB0C", chapterSub: "Geothermal mineral buoyancy", overlayText: "Artesian spring water rises through volcanic basalt without chlorine.", src: "", alt: "Caldarium basin" },
+          { chapterTitle: "Hinoki Vault \xB7 88\xB0C", chapterSub: "Mountain pine vapor", overlayText: "Kiln-cured Japanese cedar dome infused every half hour with wild hydrosols.", src: "", alt: "Hinoki steam vault" },
+          { chapterTitle: "Glacial Plunge \xB7 8\xB0C", chapterSub: "90-second vagal reset", overlayText: "Gravity-chilled silent channel restoring vascular tone between warm cycles.", src: "", alt: "Cold plunge channel" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ch-accent": cvar("brand"),
+          "--ch-ink": "#FAF7F2",
+          "--ch-muted": "#C8BDB0",
+          "--ch-line": "rgba(244,239,232,0.2)",
+          "--ch-radius": "14px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "frameRatio", label: "Frame ratio", opts: [["16 / 9", "16:9"], ["21 / 9", "21:9"], ["3 / 2", "3:2"]] },
+        { t: "text", k: "autoSeconds", label: "Auto-advance (seconds, 0=off)", ph: "6" },
+        {
+          t: "qa",
+          k: "chapters",
+          label: "Chapters",
+          addLabel: "Add chapter",
+          rowFields: [
+            { k: "chapterTitle", label: "Chapter title", ph: "Caldarium \xB7 40\xB0C", def: "New chapter" },
+            { k: "chapterSub", label: "Subtitle", ph: "Geothermal buoyancy", def: "" },
+            { k: "src", label: "Frame image URL or asset", ph: "asset:chapter", def: "" },
+            { k: "alt", label: "Alt text", ph: "Describe chapter scene", def: "" },
+            { k: "overlayText", label: "Frame caption", ph: "One sentence overlaid on the frame", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ch-accent", label: "Progress accent", r: 1, layout: "inline" },
+        { t: "color", c: "--ch-ink", label: "Title colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ch-muted", label: "Subtitle colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ch-line", label: "Track & border", r: 1, layout: "inline" },
+        { t: "unit", c: "--ch-radius", label: "Frame radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  slotpicker: {
+    label: "Slot picker",
+    icon: "slotpicker",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        currencySymbol: "\u20AC",
+        timeSlots: "06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Candlelight",
+        summaryTitle: "Your sanctuary hold",
+        confirmLabel: "Continue to Guest Details \u2192",
+        confirmHref: "#soak-desk",
+        phoneNote: "Free rescheduling up to 24 hours ahead of arrival.",
+        passes: [
+          { passName: "90-Min Contrast Circuit", passMeta: "4 chambers \xB7 flax robe included", unitPrice: "95", fixedTotal: 0 },
+          { passName: "Twilight Candlelight Pass", passMeta: "2 hours \xB7 beeswax & pine steam", unitPrice: "115", fixedTotal: 0 },
+          { passName: "Private Basalt Suite (Two)", passMeta: "Private spring tub \xB7 up to 2 guests", unitPrice: "240", fixedTotal: 1 }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sp-accent": cvar("brand"),
+          "--sp-surface": cvar("surface"),
+          "--sp-ink": cvar("ink"),
+          "--sp-muted": cvar("muted"),
+          "--sp-line": cvar("line"),
+          "--sp-radius": "10px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
+        { t: "text", k: "timeSlots", label: "Time slots (comma-separated)", ph: "09:00, 12:00, 16:00" },
+        { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your sanctuary hold" },
+        { t: "text", k: "confirmLabel", label: "Confirm button", ph: "Continue \u2192" },
+        { t: "link", k: "confirmHref", label: "Confirm link" },
+        { t: "text", k: "phoneNote", label: "Policy note", ph: "Free 24h rescheduling" },
+        {
+          t: "qa",
+          k: "passes",
+          label: "Passes / services",
+          addLabel: "Add pass",
+          rowFields: [
+            { k: "passName", label: "Pass name", ph: "90-Min Circuit", def: "New pass" },
+            { k: "passMeta", label: "Included note", ph: "90 min \xB7 robes included", def: "" },
+            { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--sp-accent", label: "Selected accent", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -8460,6 +8810,9 @@ var nameOf = (n) => {
   if (n.type === "tiers") return `Tiers \xB7 ${(n.props.items || []).length} plan${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "qapills") return `Q&A pills \xB7 ${(n.props.items || []).length} item${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "dockbar") return `Docked bar \xB7 ${(n.props.items || []).length} field${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "arches") return `Arches \xB7 ${(n.props.items || []).length} frame${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "chapters") return `Chapters \xB7 ${(n.props.chapters || []).length} scene${(n.props.chapters || []).length === 1 ? "" : "s"}`;
+  if (n.type === "slotpicker") return `Slot picker \xB7 ${(n.props.passes || []).length} pass${(n.props.passes || []).length === 1 ? "" : "es"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -11071,7 +11424,10 @@ var TEXT_SLOTS = {
   roster: [["items", "name", "role", "seat", "credential", "quote", "linkLabel", "alt"]],
   tiers: ["usdLabel", "eurLabel", "gbpLabel", ["items", "tierName", "badge", "priceUsd", "priceEur", "priceGbp", "period", "summary", "features", "ctaText"]],
   qapills: [["items", "q", "a", "note", "linkLabel"]],
-  dockbar: ["submitLabel", "ariaLabel", ["items", "fieldLabel", "ph", "choices"]]
+  dockbar: ["submitLabel", "ariaLabel", ["items", "fieldLabel", "ph", "choices"]],
+  arches: [["items", "alt", "caption"]],
+  chapters: [["chapters", "chapterTitle", "chapterSub", "overlayText", "alt"]],
+  slotpicker: ["currencySymbol", "timeSlots", "confirmLabel", "summaryTitle", "phoneNote", ["passes", "passName", "passMeta", "unitPrice"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -11136,7 +11492,18 @@ var SLOT_LABEL = {
   submitLabel: "Submit label",
   ariaLabel: "Accessible label",
   fieldLabel: "Field label",
-  choices: "Choices"
+  choices: "Choices",
+  chapterTitle: "Chapter title",
+  chapterSub: "Chapter subtitle",
+  overlayText: "Overlay text",
+  currencySymbol: "Currency",
+  timeSlots: "Time slots",
+  confirmLabel: "Confirm label",
+  summaryTitle: "Summary title",
+  phoneNote: "Note",
+  passName: "Pass name",
+  passMeta: "Pass details",
+  unitPrice: "Price"
 };
 var ASSET_SLOTS = {
   image: ["src"],
@@ -11150,7 +11517,9 @@ var ASSET_SLOTS = {
   exhibit: [["items", "src"]],
   scrolly: [["items", "src"]],
   clocks: [["items", "src"]],
-  roster: [["items", "src"]]
+  roster: [["items", "src"]],
+  arches: [["items", "src"]],
+  chapters: [["chapters", "src"]]
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
@@ -15060,7 +15429,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -15081,9 +15450,12 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "tiers") tiers = true;
     else if (node.type === "qapills") qapills = true;
     else if (node.type === "dockbar") dockbar = true;
+    else if (node.type === "arches") arches = true;
+    else if (node.type === "chapters") chapters = true;
+    else if (node.type === "slotpicker") slotpicker = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -15104,7 +15476,10 @@ ${CLOCKS_CSS}` : "") + (used.roster ? `
 ${ROSTER_CSS}` : "") + (used.tiers ? `
 ${TIERS_CSS}` : "") + (used.qapills ? `
 ${QAPILLS_CSS}` : "") + (used.dockbar ? `
-${DOCKBAR_CSS}` : "") + (used.videoLightbox ? `
+${DOCKBAR_CSS}` : "") + (used.arches ? `
+${ARCHES_CSS}` : "") + (used.chapters ? `
+${CHAPTERS_CSS}` : "") + (used.slotpicker ? `
+${SLOTPICKER_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -15147,6 +15522,9 @@ ${ANIM_CALM}` : "")),
       tiers: pageExtra.tiers && !globalExtra.tiers,
       qapills: pageExtra.qapills && !globalExtra.qapills,
       dockbar: pageExtra.dockbar && !globalExtra.dockbar,
+      arches: pageExtra.arches && !globalExtra.arches,
+      chapters: pageExtra.chapters && !globalExtra.chapters,
+      slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -16618,6 +16996,63 @@ function renderNode(n, o) {
       const btn = dest ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>` : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
       return `<div ${at()} ${cx("pagecraft-dockbar")} data-dockbar><form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form></div>`;
     }
+    case "arches": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean).slice(0, 5);
+      const frames = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || `Arch ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        return `<li class="pagecraft-arches-item"><img class="pagecraft-arches-img" src="${src}" alt="${alt}"${dim} decoding="async"></li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-arches")} data-arches><ul class="pagecraft-arches-list">${frames}</ul></div>`;
+    }
+    case "chapters": {
+      const ratio = cssRatio(p.frameRatio);
+      const ratioStyle = ratio ? ` style="--ch-ratio:${esc(ratio)}"` : "";
+      const autoSec = parseFloat(String(p.autoSeconds ?? "6"));
+      const autoAttr = Number.isFinite(autoSec) && autoSec > 0 ? String(autoSec) : "0";
+      const items = (Array.isArray(p.chapters) ? p.chapters : []).filter(Boolean);
+      const baseId = String(n.id || "pc");
+      const slides = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.chapterTitle || `Chapter ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const ov = String(it.overlayText || "");
+        return `<figure class="pagecraft-chapters-slide" id="${esc(baseId)}-ch-p-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">` + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : "") + `</figure>`;
+      }).join("");
+      const btns = items.map((it, i) => {
+        const t = String(it.chapterTitle || `Chapter ${i + 1}`);
+        const sub = String(it.chapterSub || "");
+        return `<button type="button" class="pagecraft-chapters-btn" id="${esc(baseId)}-ch-b-${i}" role="tab" aria-controls="${esc(baseId)}-ch-p-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-ch-btn="${i}"><span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span><span class="pagecraft-chapters-title">${esc(t)}</span>` + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : "") + `</button>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-chapters")} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}><div class="pagecraft-chapters-stage">${slides}</div><div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div></div>`;
+    }
+    case "slotpicker": {
+      const sym = String(p.currencySymbol || "\u20AC");
+      const slots = String(p.timeSlots || "09:00, 12:00, 16:00").split(",").map((x) => x.trim()).filter(Boolean);
+      const sumTitle = String(p.summaryTitle || "Your reservation");
+      const confLbl = String(p.confirmLabel || "Confirm window \u2192");
+      const rawHref = safeUrl(String(p.confirmHref || "").trim());
+      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : "#";
+      const note = String(p.phoneNote || "");
+      const items = (Array.isArray(p.passes) ? p.passes : []).filter(Boolean);
+      const first = items[0] || { passName: "Session", unitPrice: "95", fixedTotal: 0 };
+      const passBtns = items.map((it, i) => {
+        const nm = String(it.passName || `Pass ${i + 1}`);
+        const mt = String(it.passMeta || "");
+        const pr = parseFloat(String(it.unitPrice || "0")) || 0;
+        const fx = Number(it.fixedTotal) === 1 ? "1" : "0";
+        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? "true" : "false"}"><span class="pagecraft-sp-pass-name">${esc(nm)}</span>` + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : "") + `<span class="pagecraft-sp-pass-price">${esc(sym)}${Math.round(pr)}${fx === "1" ? " flat" : " / guest"}</span></button>`;
+      }).join("");
+      const guestBtns = [1, 2].map(
+        (g) => `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? "true" : "false"}">${g} ${g === 1 ? "Guest" : "Guests"}</button>`
+      ).join("");
+      const slotBtns = slots.map(
+        (sl, i) => `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? "true" : "false"}">${esc(sl)}</button>`
+      ).join("");
+      const initPrice = Math.round(parseFloat(String(first.unitPrice || "0")) || 0);
+      return `<div ${at()} ${cx("pagecraft-slotpicker")} data-slotpicker data-sym="${esc(sym)}"><div class="pagecraft-sp-steps"><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Choose immersion pass</p><div class="pagecraft-sp-passes">${passBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Guests in party</p><div class="pagecraft-sp-pills">${guestBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Preferred arrival window</p><div class="pagecraft-sp-pills">${slotBtns}</div></div></div><aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}"><h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3><div class="pagecraft-sp-rows"><div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || "Session"))}</strong></div><div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div><div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || "")}</strong></div></div><div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div><a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : "") + `</aside></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -17132,7 +17567,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-dockbar/.test(body) ? DOCKBAR_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-dockbar/.test(body) ? DOCKBAR_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -17608,6 +18043,7 @@ var __CORE = {
   ANIM_NAMES,
   ANIM_PFX,
   ANIM_SHA,
+  ARCHES_CSS,
   ASSET_SLOTS,
   AUDIO_CSS,
   AUDIO_JS,
@@ -17616,6 +18052,8 @@ var __CORE = {
   BIND_CTL,
   BOX,
   BP_CHAIN,
+  CHAPTERS_CSS,
+  CHAPTERS_JS,
   CLOCKS_CSS,
   CLOCKS_JS,
   CODE_JS,
@@ -17696,6 +18134,8 @@ var __CORE = {
   SHARED_HEADER_END,
   SHARED_HEADER_START,
   SLIDE_JS,
+  SLOTPICKER_CSS,
+  SLOTPICKER_JS,
   SLOT_LABEL,
   SRCSET_W,
   STATES,
@@ -24042,6 +24482,7 @@ var PC_UI = (() => {
         ["hotspot", "Image hotspots"],
         ["strips", "Expanding strips"],
         ["exhibit", "Exhibit index"],
+        ["arches", "Fanned arches"],
         ["video", "Video"],
         ["audio", "Audio"],
         ["timeline", "Timeline"],
@@ -24067,6 +24508,8 @@ var PC_UI = (() => {
         ["tiers", "Currency tiers"],
         ["qapills", "Question pills"],
         ["dockbar", "Docked intake bar"],
+        ["chapters", "Chapter frame"],
+        ["slotpicker", "Slot picker"],
         ["countdown", "Countdown"],
         ["filter", "Tag filter"],
         ["embed", "Embed"]
@@ -24117,6 +24560,9 @@ var PC_UI = (() => {
     tiers: "pricing plans retainers currency switcher usd eur gbp rates",
     qapills: "faq questions pills answers selector help desk",
     dockbar: "search bar intake booking filter horizontal hero dock",
+    arches: "fanned arc collage arch showcase triptych wellness hero",
+    chapters: "cinematic frame chapters story progress showcase",
+    slotpicker: "booking appointment session time slot summary configurator",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -31830,7 +32276,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     roster: '<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
     tiers: '<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
     qapills: '<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
-    dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
+    dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>',
+    arches: '<path d="M2 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/><path d="M5.8 13V5.8a2.2 2.2 0 0 1 4.4 0V13z"/><path d="M9.6 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/>',
+    chapters: '<rect x="1.8" y="2.5" width="12.4" height="7.8" rx="1.2"/><path d="M2 12.8h3.5M6.3 12.8h3.5M10.6 12.8h3.4" stroke-linecap="round"/>',
+    slotpicker: '<rect x="1.8" y="3" width="6.8" height="3.2" rx=".8"/><rect x="1.8" y="7.6" width="6.8" height="3.2" rx=".8" opacity=".55"/><rect x="10" y="3" width="4.2" height="10" rx="1"/>'
   };
   var ICONS = [
     ["Interface", [
@@ -34077,6 +34526,165 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "color", c: "--db-muted", label: "Placeholder colour", r: 1, layout: "inline" },
           { t: "color", c: "--db-line", label: "Divider line", r: 1, layout: "inline" },
           { t: "unit", c: "--db-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    arches: {
+      label: "Fanned arches",
+      icon: "arches",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          archSpread: "fan",
+          items: [
+            { src: "", alt: "Linen & mineral oil", caption: "" },
+            { src: "", alt: "Stoneware tea ritual", caption: "" },
+            { src: "", alt: "Morning studio stillness", caption: "" },
+            { src: "", alt: "Treatment sanctuary", caption: "" },
+            { src: "", alt: "Warm flax rest", caption: "" }
+          ]
+        },
+        css: {
+          d: { width: "100%", "--ar-frame": cvar("surface"), "--ar-bg": cvar("line") },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "qa",
+            k: "items",
+            label: "Arch frames (up to 5)",
+            addLabel: "Add arch",
+            rowFields: [
+              { k: "src", label: "Image URL or asset", ph: "asset:arch-1", def: "" },
+              { k: "alt", label: "Alt text", ph: "Describe image", def: "Arch frame" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ar-frame", label: "Frame border", r: 1, layout: "inline" },
+          { t: "color", c: "--ar-bg", label: "Placeholder fill", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    chapters: {
+      label: "Chapter frame",
+      icon: "chapters",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          frameRatio: "16 / 9",
+          autoSeconds: "6",
+          chapters: [
+            { chapterTitle: "Caldarium \xB7 40\xB0C", chapterSub: "Geothermal mineral buoyancy", overlayText: "Artesian spring water rises through volcanic basalt without chlorine.", src: "", alt: "Caldarium basin" },
+            { chapterTitle: "Hinoki Vault \xB7 88\xB0C", chapterSub: "Mountain pine vapor", overlayText: "Kiln-cured Japanese cedar dome infused every half hour with wild hydrosols.", src: "", alt: "Hinoki steam vault" },
+            { chapterTitle: "Glacial Plunge \xB7 8\xB0C", chapterSub: "90-second vagal reset", overlayText: "Gravity-chilled silent channel restoring vascular tone between warm cycles.", src: "", alt: "Cold plunge channel" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ch-accent": cvar("brand"),
+            "--ch-ink": "#FAF7F2",
+            "--ch-muted": "#C8BDB0",
+            "--ch-line": "rgba(244,239,232,0.2)",
+            "--ch-radius": "14px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "frameRatio", label: "Frame ratio", opts: [["16 / 9", "16:9"], ["21 / 9", "21:9"], ["3 / 2", "3:2"]] },
+          { t: "text", k: "autoSeconds", label: "Auto-advance (seconds, 0=off)", ph: "6" },
+          {
+            t: "qa",
+            k: "chapters",
+            label: "Chapters",
+            addLabel: "Add chapter",
+            rowFields: [
+              { k: "chapterTitle", label: "Chapter title", ph: "Caldarium \xB7 40\xB0C", def: "New chapter" },
+              { k: "chapterSub", label: "Subtitle", ph: "Geothermal buoyancy", def: "" },
+              { k: "src", label: "Frame image URL or asset", ph: "asset:chapter", def: "" },
+              { k: "alt", label: "Alt text", ph: "Describe chapter scene", def: "" },
+              { k: "overlayText", label: "Frame caption", ph: "One sentence overlaid on the frame", def: "", area: 1 }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ch-accent", label: "Progress accent", r: 1, layout: "inline" },
+          { t: "color", c: "--ch-ink", label: "Title colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ch-muted", label: "Subtitle colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ch-line", label: "Track & border", r: 1, layout: "inline" },
+          { t: "unit", c: "--ch-radius", label: "Frame radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    slotpicker: {
+      label: "Slot picker",
+      icon: "slotpicker",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          currencySymbol: "\u20AC",
+          timeSlots: "06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Candlelight",
+          summaryTitle: "Your sanctuary hold",
+          confirmLabel: "Continue to Guest Details \u2192",
+          confirmHref: "#soak-desk",
+          phoneNote: "Free rescheduling up to 24 hours ahead of arrival.",
+          passes: [
+            { passName: "90-Min Contrast Circuit", passMeta: "4 chambers \xB7 flax robe included", unitPrice: "95", fixedTotal: 0 },
+            { passName: "Twilight Candlelight Pass", passMeta: "2 hours \xB7 beeswax & pine steam", unitPrice: "115", fixedTotal: 0 },
+            { passName: "Private Basalt Suite (Two)", passMeta: "Private spring tub \xB7 up to 2 guests", unitPrice: "240", fixedTotal: 1 }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--sp-accent": cvar("brand"),
+            "--sp-surface": cvar("surface"),
+            "--sp-ink": cvar("ink"),
+            "--sp-muted": cvar("muted"),
+            "--sp-line": cvar("line"),
+            "--sp-radius": "10px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
+          { t: "text", k: "timeSlots", label: "Time slots (comma-separated)", ph: "09:00, 12:00, 16:00" },
+          { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your sanctuary hold" },
+          { t: "text", k: "confirmLabel", label: "Confirm button", ph: "Continue \u2192" },
+          { t: "link", k: "confirmHref", label: "Confirm link" },
+          { t: "text", k: "phoneNote", label: "Policy note", ph: "Free 24h rescheduling" },
+          {
+            t: "qa",
+            k: "passes",
+            label: "Passes / services",
+            addLabel: "Add pass",
+            rowFields: [
+              { k: "passName", label: "Pass name", ph: "90-Min Circuit", def: "New pass" },
+              { k: "passMeta", label: "Included note", ph: "90 min \xB7 robes included", def: "" },
+              { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--sp-accent", label: "Selected accent", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-surface", label: "Card surface", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-ink", label: "Text colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
     }
@@ -37836,6 +38444,8 @@ function runPreviewRuntime(html, editing = false) {
     [/data-tiers/.test(html), TIERS_JS],
     [/data-qapills/.test(html), QAPILLS_JS],
     [/data-dockbar/.test(html), DOCKBAR_JS],
+    [/data-chapters/.test(html), CHAPTERS_JS],
+    [/data-slotpicker/.test(html), SLOTPICKER_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

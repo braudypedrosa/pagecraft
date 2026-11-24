@@ -101,7 +101,10 @@ const IC: Record<string, string> = {
   roster:'<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
   tiers:'<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
   qapills:'<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
-  dockbar:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
+  dockbar:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>',
+  arches:'<path d="M2 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/><path d="M5.8 13V5.8a2.2 2.2 0 0 1 4.4 0V13z"/><path d="M9.6 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/>',
+  chapters:'<rect x="1.8" y="2.5" width="12.4" height="7.8" rx="1.2"/><path d="M2 12.8h3.5M6.3 12.8h3.5M10.6 12.8h3.4" stroke-linecap="round"/>',
+  slotpicker:'<rect x="1.8" y="3" width="6.8" height="3.2" rx=".8"/><rect x="1.8" y="7.6" width="6.8" height="3.2" rx=".8" opacity=".55"/><rect x="10" y="3" width="4.2" height="10" rx="1"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -289,6 +289,11 @@ export interface QapillsItem { q?: string; a?: string; note?: string; href?: str
 export interface QapillsProps { pillAlign?: string; items?: QapillsItem[] }
 export interface DockbarItem { fieldLabel?: string; fieldType?: string; ph?: string; choices?: string }
 export interface DockbarProps { submitLabel?: string; destHref?: string; ariaLabel?: string; items?: DockbarItem[] }
+export interface ArchesProps { archSpread?: string; items?: GalleryTile[] }
+export interface ChaptersItem { chapterTitle?: string; chapterSub?: string; overlayText?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface ChaptersProps { frameRatio?: string; autoSeconds?: string; chapters?: ChaptersItem[] }
+export interface SlotpickerItem { passName?: string; passMeta?: string; unitPrice?: string; fixedTotal?: number }
+export interface SlotpickerProps { currencySymbol?: string; timeSlots?: string; confirmLabel?: string; confirmHref?: string; summaryTitle?: string; phoneNote?: string; passes?: SlotpickerItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -299,7 +304,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

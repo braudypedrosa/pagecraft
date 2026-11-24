@@ -571,7 +571,7 @@ test('the signed golden artifact exercises the complete connected component cont
     nav: 'pagecraft-nav-menu', form: 'pagecraft-form', accordion: 'pagecraft-accordion',
     countdown: 'pagecraft-countdown', marquee: 'pagecraft-marquee', filter: 'pagecraft-filter',
     compare: 'pagecraft-compare', timeline: 'pagecraft-timeline', progress: 'pagecraft-progress', hotspot: 'pagecraft-hotspot',
-    strips: 'pagecraft-strips', switcher: 'pagecraft-switcher', exhibit: 'pagecraft-exhibit', scrolly: 'pagecraft-scrolly', clocks: 'pagecraft-clocks', roster: 'pagecraft-roster', tiers: 'pagecraft-tiers', qapills: 'pagecraft-qapills', dockbar: 'pagecraft-dockbar',
+    strips: 'pagecraft-strips', switcher: 'pagecraft-switcher', exhibit: 'pagecraft-exhibit', scrolly: 'pagecraft-scrolly', clocks: 'pagecraft-clocks', roster: 'pagecraft-roster', tiers: 'pagecraft-tiers', qapills: 'pagecraft-qapills', dockbar: 'pagecraft-dockbar', arches: 'pagecraft-arches', chapters: 'pagecraft-chapters', slotpicker: 'pagecraft-slotpicker',
     embed: 'pagecraft-embed', spacer: 'pagecraft-spacer', divider: 'pagecraft-divider'
   };
   for (const type of MATRIX_WIDGETS) {

@@ -39,7 +39,7 @@ describe('Add element discovery', () => {
     expect(commonLabels()).toEqual([]);
     expect(r.$('.addContext')).toBeNull();
     expect(r.$$('.pc-add-category').map(group => group.querySelector('.gh')?.textContent)).toEqual([
-      'Layout10', 'Content16', 'Interactive16', 'Spacing2'
+      'Layout10', 'Content17', 'Interactive18', 'Spacing2'
     ]);
     expect(r.$$('.pc-add-category').every(group => group.querySelector('.gh')?.getAttribute('aria-expanded') === 'true')).toBe(false);
     expect(r.$('.pc-add-guide')?.textContent).toBe('Browse starter sections');

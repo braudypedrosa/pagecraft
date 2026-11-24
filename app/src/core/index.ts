@@ -36,7 +36,8 @@ import {
   MARQUEE_CSS, FILTER_CSS, FILTER_JS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS,
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
-  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS
+  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS,
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2042,6 +2043,141 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--db-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+
+  arches: {
+    label: 'Fanned arches', icon: 'arches', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        archSpread: 'fan',
+        items: [
+          { src: '', alt: 'Linen & mineral oil', caption: '' },
+          { src: '', alt: 'Stoneware tea ritual', caption: '' },
+          { src: '', alt: 'Morning studio stillness', caption: '' },
+          { src: '', alt: 'Treatment sanctuary', caption: '' },
+          { src: '', alt: 'Warm flax rest', caption: '' }
+        ]
+      },
+      css: {
+        d: { width: '100%', '--ar-frame': cvar('surface'), '--ar-bg': cvar('line') },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Arch frames (up to 5)', addLabel: 'Add arch',
+          rowFields: [
+            { k: 'src', label: 'Image URL or asset', ph: 'asset:arch-1', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: 'Arch frame' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ar-frame', label: 'Frame border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ar-bg', label: 'Placeholder fill', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  chapters: {
+    label: 'Chapter frame', icon: 'chapters', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        frameRatio: '16 / 9', autoSeconds: '6',
+        chapters: [
+          { chapterTitle: 'Caldarium · 40°C', chapterSub: 'Geothermal mineral buoyancy', overlayText: 'Artesian spring water rises through volcanic basalt without chlorine.', src: '', alt: 'Caldarium basin' },
+          { chapterTitle: 'Hinoki Vault · 88°C', chapterSub: 'Mountain pine vapor', overlayText: 'Kiln-cured Japanese cedar dome infused every half hour with wild hydrosols.', src: '', alt: 'Hinoki steam vault' },
+          { chapterTitle: 'Glacial Plunge · 8°C', chapterSub: '90-second vagal reset', overlayText: 'Gravity-chilled silent channel restoring vascular tone between warm cycles.', src: '', alt: 'Cold plunge channel' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ch-accent': cvar('brand'), '--ch-ink': '#FAF7F2',
+          '--ch-muted': '#C8BDB0', '--ch-line': 'rgba(244,239,232,0.2)', '--ch-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'frameRatio', label: 'Frame ratio', opts: [['16 / 9', '16:9'], ['21 / 9', '21:9'], ['3 / 2', '3:2']] },
+        { t: 'text', k: 'autoSeconds', label: 'Auto-advance (seconds, 0=off)', ph: '6' },
+        {
+          t: 'qa', k: 'chapters', label: 'Chapters', addLabel: 'Add chapter',
+          rowFields: [
+            { k: 'chapterTitle', label: 'Chapter title', ph: 'Caldarium · 40°C', def: 'New chapter' },
+            { k: 'chapterSub', label: 'Subtitle', ph: 'Geothermal buoyancy', def: '' },
+            { k: 'src', label: 'Frame image URL or asset', ph: 'asset:chapter', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Describe chapter scene', def: '' },
+            { k: 'overlayText', label: 'Frame caption', ph: 'One sentence overlaid on the frame', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ch-accent', label: 'Progress accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-muted', label: 'Subtitle colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-line', label: 'Track & border', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ch-radius', label: 'Frame radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  slotpicker: {
+    label: 'Slot picker', icon: 'slotpicker', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        currencySymbol: '€',
+        timeSlots: '06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Candlelight',
+        summaryTitle: 'Your sanctuary hold',
+        confirmLabel: 'Continue to Guest Details →',
+        confirmHref: '#soak-desk',
+        phoneNote: 'Free rescheduling up to 24 hours ahead of arrival.',
+        passes: [
+          { passName: '90-Min Contrast Circuit', passMeta: '4 chambers · flax robe included', unitPrice: '95', fixedTotal: 0 },
+          { passName: 'Twilight Candlelight Pass', passMeta: '2 hours · beeswax & pine steam', unitPrice: '115', fixedTotal: 0 },
+          { passName: 'Private Basalt Suite (Two)', passMeta: 'Private spring tub · up to 2 guests', unitPrice: '240', fixedTotal: 1 }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sp-accent': cvar('brand'), '--sp-surface': cvar('surface'),
+          '--sp-ink': cvar('ink'), '--sp-muted': cvar('muted'), '--sp-line': cvar('line'),
+          '--sp-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
+        { t: 'text', k: 'timeSlots', label: 'Time slots (comma-separated)', ph: '09:00, 12:00, 16:00' },
+        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your sanctuary hold' },
+        { t: 'text', k: 'confirmLabel', label: 'Confirm button', ph: 'Continue →' },
+        { t: 'link', k: 'confirmHref', label: 'Confirm link' },
+        { t: 'text', k: 'phoneNote', label: 'Policy note', ph: 'Free 24h rescheduling' },
+        {
+          t: 'qa', k: 'passes', label: 'Passes / services', addLabel: 'Add pass',
+          rowFields: [
+            { k: 'passName', label: 'Pass name', ph: '90-Min Circuit', def: 'New pass' },
+            { k: 'passMeta', label: 'Included note', ph: '90 min · robes included', def: '' },
+            { k: 'unitPrice', label: 'Numeric price', ph: '95', def: '95' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sp-accent', label: 'Selected accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -2636,6 +2772,9 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'tiers') return `Tiers · ${((n.props.items as any[]) || []).length} plan${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'qapills') return `Q&A pills · ${((n.props.items as any[]) || []).length} item${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'dockbar') return `Docked bar · ${((n.props.items as any[]) || []).length} field${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'slotpicker') return `Slot picker · ${((n.props.passes as any[]) || []).length} pass${((n.props.passes as any[]) || []).length === 1 ? '' : 'es'}`;
   return d.label;
 };
 
@@ -5775,7 +5914,10 @@ const TEXT_SLOTS = {
   roster: [['items', 'name', 'role', 'seat', 'credential', 'quote', 'linkLabel', 'alt']],
   tiers: ['usdLabel', 'eurLabel', 'gbpLabel', ['items', 'tierName', 'badge', 'priceUsd', 'priceEur', 'priceGbp', 'period', 'summary', 'features', 'ctaText']],
   qapills: [['items', 'q', 'a', 'note', 'linkLabel']],
-  dockbar: ['submitLabel', 'ariaLabel', ['items', 'fieldLabel', 'ph', 'choices']]
+  dockbar: ['submitLabel', 'ariaLabel', ['items', 'fieldLabel', 'ph', 'choices']],
+  arches: [['items', 'alt', 'caption']],
+  chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
+  slotpicker: ['currencySymbol', 'timeSlots', 'confirmLabel', 'summaryTitle', 'phoneNote', ['passes', 'passName', 'passMeta', 'unitPrice']]
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -5799,7 +5941,10 @@ const SLOT_LABEL = {
   usdLabel: 'USD label', eurLabel: 'EUR label', gbpLabel: 'GBP label',
   tierName: 'Tier name', badge: 'Badge', priceUsd: 'USD price', priceEur: 'EUR price', priceGbp: 'GBP price',
   period: 'Period', summary: 'Summary', features: 'Features', ctaText: 'Button text', note: 'Note',
-  submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices'
+  submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices',
+  chapterTitle: 'Chapter title', chapterSub: 'Chapter subtitle', overlayText: 'Overlay text',
+  currencySymbol: 'Currency', timeSlots: 'Time slots', confirmLabel: 'Confirm label', summaryTitle: 'Summary title',
+  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -5824,7 +5969,9 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   exhibit: [['items', 'src']],
   scrolly: [['items', 'src']],
   clocks: [['items', 'src']],
-  roster: [['items', 'src']]
+  roster: [['items', 'src']],
+  arches: [['items', 'src']],
+  chapters: [['chapters', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -10237,7 +10384,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10258,14 +10405,17 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'tiers') tiers = true;
     else if (node.type === 'qapills') qapills = true;
     else if (node.type === 'dockbar') dockbar = true;
+    else if (node.type === 'arches') arches = true;
+    else if (node.type === 'chapters') chapters = true;
+    else if (node.type === 'slotpicker') slotpicker = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10285,6 +10435,9 @@ function extraWidgetCss(used: {
     + (used.tiers ? `\n${TIERS_CSS}` : '')
     + (used.qapills ? `\n${QAPILLS_CSS}` : '')
     + (used.dockbar ? `\n${DOCKBAR_CSS}` : '')
+    + (used.arches ? `\n${ARCHES_CSS}` : '')
+    + (used.chapters ? `\n${CHAPTERS_CSS}` : '')
+    + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10332,6 +10485,9 @@ function wordpressStylesFor(pg: Page) {
         tiers: pageExtra.tiers && !globalExtra.tiers,
         qapills: pageExtra.qapills && !globalExtra.qapills,
         dockbar: pageExtra.dockbar && !globalExtra.dockbar,
+        arches: pageExtra.arches && !globalExtra.arches,
+        chapters: pageExtra.chapters && !globalExtra.chapters,
+        slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -12265,6 +12421,93 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form>`
         + `</div>`;
     }
+    case 'arches': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean).slice(0, 5);
+      const frames = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || `Arch ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<li class="pagecraft-arches-item"><img class="pagecraft-arches-img" src="${src}" alt="${alt}"${dim} decoding="async"></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-arches')} data-arches><ul class="pagecraft-arches-list">${frames}</ul></div>`;
+    }
+    case 'chapters': {
+      const ratio = cssRatio(p.frameRatio);
+      const ratioStyle = ratio ? ` style="--ch-ratio:${esc(ratio)}"` : '';
+      const autoSec = parseFloat(String(p.autoSeconds ?? '6'));
+      const autoAttr = Number.isFinite(autoSec) && autoSec > 0 ? String(autoSec) : '0';
+      const items = (Array.isArray(p.chapters) ? p.chapters as any[] : []).filter(Boolean);
+      const baseId = String(n.id || 'pc');
+      const slides = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.chapterTitle || `Chapter ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const ov = String(it.overlayText || '');
+        return `<figure class="pagecraft-chapters-slide" id="${esc(baseId)}-ch-p-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : '')
+          + `</figure>`;
+      }).join('');
+      const btns = items.map((it, i) => {
+        const t = String(it.chapterTitle || `Chapter ${i + 1}`);
+        const sub = String(it.chapterSub || '');
+        return `<button type="button" class="pagecraft-chapters-btn" id="${esc(baseId)}-ch-b-${i}" role="tab" aria-controls="${esc(baseId)}-ch-p-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-ch-btn="${i}">`
+          + `<span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span>`
+          + `<span class="pagecraft-chapters-title">${esc(t)}</span>`
+          + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : '')
+          + `</button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-chapters')} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}>`
+        + `<div class="pagecraft-chapters-stage">${slides}</div>`
+        + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
+        + `</div>`;
+    }
+    case 'slotpicker': {
+      const sym = String(p.currencySymbol || '€');
+      const slots = String(p.timeSlots || '09:00, 12:00, 16:00').split(',').map(x => x.trim()).filter(Boolean);
+      const sumTitle = String(p.summaryTitle || 'Your reservation');
+      const confLbl = String(p.confirmLabel || 'Confirm window →');
+      const rawHref = safeUrl(String(p.confirmHref || '').trim());
+      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+      const note = String(p.phoneNote || '');
+      const items = (Array.isArray(p.passes) ? p.passes as any[] : []).filter(Boolean);
+      const first = items[0] || { passName: 'Session', unitPrice: '95', fixedTotal: 0 };
+      const passBtns = items.map((it, i) => {
+        const nm = String(it.passName || `Pass ${i + 1}`);
+        const mt = String(it.passMeta || '');
+        const pr = parseFloat(String(it.unitPrice || '0')) || 0;
+        const fx = Number(it.fixedTotal) === 1 ? '1' : '0';
+        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? 'true' : 'false'}">`
+          + `<span class="pagecraft-sp-pass-name">${esc(nm)}</span>`
+          + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : '')
+          + `<span class="pagecraft-sp-pass-price">${esc(sym)}${Math.round(pr)}${fx === '1' ? ' flat' : ' / guest'}</span>`
+          + `</button>`;
+      }).join('');
+      const guestBtns = [1, 2].map(g =>
+        `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? 'true' : 'false'}">${g} ${g === 1 ? 'Guest' : 'Guests'}</button>`
+      ).join('');
+      const slotBtns = slots.map((sl, i) =>
+        `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(sl)}</button>`
+      ).join('');
+      const initPrice = Math.round(parseFloat(String(first.unitPrice || '0')) || 0);
+      return `<div ${at()} ${cx('pagecraft-slotpicker')} data-slotpicker data-sym="${esc(sym)}">`
+        + `<div class="pagecraft-sp-steps">`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Choose immersion pass</p><div class="pagecraft-sp-passes">${passBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Guests in party</p><div class="pagecraft-sp-pills">${guestBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Preferred arrival window</p><div class="pagecraft-sp-pills">${slotBtns}</div></div>`
+        + `</div>`
+        + `<aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}">`
+        + `<h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3>`
+        + `<div class="pagecraft-sp-rows">`
+        + `<div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || 'Session'))}</strong></div>`
+        + `<div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div>`
+        + `<div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || '')}</strong></div>`
+        + `</div>`
+        + `<div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>`
+        + `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>`
+        + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : '')
+        + `</aside></div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -12886,7 +13129,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-dockbar/.test(body) ? DOCKBAR_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-dockbar/.test(body) ? DOCKBAR_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -13395,7 +13638,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

@@ -226,6 +226,9 @@ test('all 34 module renderers emit their representative authored value', () => {
     tiers: { expected: /data-tiers/, configure: n => { n.props.items = [{ tierName: 'Retainer', priceUsd: '$6,400', priceEur: '€5,800', priceGbp: '£4,950', period: '/mo', summary: 'Counsel', features: 'Partner access', ctaText: 'Engage', href: 'https://example.com/go', featured: 1 }]; } },
     qapills: { expected: /data-qapills/, configure: n => { n.props.items = [{ q: 'Question?', a: 'Answer.', note: 'Rule 1.7' }]; } },
     dockbar: { expected: /data-dockbar/, configure: n => { n.props.items = [{ fieldLabel: 'Entity', fieldType: 'text', ph: 'Helios' }]; } },
+    arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
+    chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
+    slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -290,7 +293,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(145);
+  expect(declarations).toHaveLength(153);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -338,7 +341,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(259);
+  expect(declarations).toHaveLength(272);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

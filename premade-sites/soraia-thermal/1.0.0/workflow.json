@@ -3,7 +3,7 @@
   "id": "soraia-thermal",
   "version": "1.0.0",
   "sampleName": "SORAIA — Thermal Basalt Reserve",
-  "packageSha256": "e8d6366653fa1ba2189338d18a605aa359a5c1b837c3fedea0012ca093cfc642",
+  "packageSha256": "025fdb524482b0b8aabb90afbe233872518ffc92ce638c55c97d8bd9171966eb",
   "customCssPolicy": "native-only",
   "gates": {
     "packageValidation": "passed",

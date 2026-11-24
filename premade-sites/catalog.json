@@ -1719,7 +1719,7 @@
       "version": "1.0.0",
       "name": "SORAIA",
       "sampleName": "SORAIA — Thermal Basalt Reserve",
-      "description": "Four-page Nordic-Iberian subterranean basalt bathhouse and thermal sanctuary site featuring a dark translucent floating header over a 100dvh centered cinema stage, lightbox sanctuary film trigger, interactive 4-chamber architectural floorplan hotspots, artesian mineral progress bars, subterranean vault slider, material gallery, etiquette accordion, and reservation desk.",
+      "description": "Four-page Iberian mountain bathhouse and geothermal travertine sanctuary featuring a fanned five-arch editorial hero, obsidian chapter-progress sanctuary frame, sanctuary film lightbox, categorised bathhouse ritual menu, borehole hydrochemical assay, architectural chamber slideshow, material swatch gallery, interactive session slot configurator, and etiquette host desk.",
       "categories": [
         "Wellness & Hospitality",
         "Architecture"
@@ -1737,7 +1737,7 @@
         },
         {
           "id": "sra-page-architecture",
-          "name": "Architecture & Film",
+          "name": "Architecture",
           "slug": "architecture"
         },
         {
@@ -1747,10 +1747,10 @@
         }
       ],
       "packageFile": "site.pagecraft-site.zip",
-      "packageSha256": "e8d6366653fa1ba2189338d18a605aa359a5c1b837c3fedea0012ca093cfc642",
+      "packageSha256": "025fdb524482b0b8aabb90afbe233872518ffc92ce638c55c97d8bd9171966eb",
       "previewPage": "index.html",
-      "assetCount": 12,
-      "assetBytes": 915330
+      "assetCount": 25,
+      "assetBytes": 2307376
     },
     {
       "format": "pagecraft.site-template.v1",

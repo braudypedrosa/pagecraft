@@ -421,7 +421,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(C.U.len).toContain('svh');
     expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
 
-    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar'] as const) {
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker'] as const) {
       expect(C.DEF[type]).toBeTruthy();
       expect(C.DEF[type].caps).toContain('spacing');
       expect(C.DEF[type].caps).toContain('animation');
@@ -441,7 +441,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const scNode = C.N('scrolly', { items: [{ title: 'Step 1', src: 'asset:scrolly-photo', alt: 'Scrolly' }] });
     const ckNode = C.N('clocks', { items: [{ city: 'London', tz: 'Europe/London', src: 'asset:clock-office', alt: 'London' }] });
     const rsNode = C.N('roster', { items: [{ name: 'Claire', src: 'asset:roster-partner', alt: 'Claire' }] });
-    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode])])])];
+    const arNode = C.N('arches', { items: [{ src: 'asset:arch-frame', alt: 'Arch' }] });
+    const chNode = C.N('chapters', { chapters: [{ chapterTitle: 'Ch', src: 'asset:chapter-frame', alt: 'Ch' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode])])])];
     const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
     expect(assetIds).toContain('cmp-before');
     expect(assetIds).toContain('cmp-after');
@@ -452,6 +454,8 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(assetIds).toContain('scrolly-photo');
     expect(assetIds).toContain('clock-office');
     expect(assetIds).toContain('roster-partner');
+    expect(assetIds).toContain('arch-frame');
+    expect(assetIds).toContain('chapter-frame');
 
     // Zero-drift when absent
     const plainHtml = C.buildPage(C.state.pages[0]);
@@ -469,6 +473,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(plainHtml).not.toContain('.pagecraft-tiers');
     expect(plainHtml).not.toContain('.pagecraft-qapills');
     expect(plainHtml).not.toContain('.pagecraft-dockbar');
+    expect(plainHtml).not.toContain('.pagecraft-arches');
+    expect(plainHtml).not.toContain('.pagecraft-chapters');
+    expect(plainHtml).not.toContain('.pagecraft-slotpicker');
 
     // Floating header & 100dvh hero
     const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
@@ -713,5 +720,46 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(qpPanels[1].hasAttribute('hidden')).toBe(false);
     qpDispose!();
     qpDom.window.close();
+
+    // Chapters click switching + Slotpicker guest/pass live calculation
+    const chHtml = C.renderNode(C.N('chapters', {
+      autoSeconds: '0',
+      chapters: [
+        { chapterTitle: 'Caldarium', src: 'https://example.test/c1.jpg', alt: 'C1' },
+        { chapterTitle: 'Plunge', src: 'https://example.test/c2.jpg', alt: 'C2' }
+      ]
+    }), { edit: false });
+    const chDom = domFor(chHtml);
+    const chWin = chDom.window as any;
+    let chDispose: (() => void) | null = null;
+    chWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { chDispose = fn; };
+    chWin.eval(scriptBody(C.CHAPTERS_JS));
+    const chBtns = [...chWin.document.querySelectorAll('.pagecraft-chapters-btn')] as HTMLElement[];
+    const chSlides = [...chWin.document.querySelectorAll('.pagecraft-chapters-slide')] as HTMLElement[];
+    chBtns[1].click();
+    expect(chBtns[1].getAttribute('aria-selected')).toBe('true');
+    expect(chSlides[1].getAttribute('data-active')).toBe('1');
+    chDispose!();
+    chDom.window.close();
+
+    const spHtml = C.renderNode(C.N('slotpicker', {
+      currencySymbol: '€',
+      timeSlots: '06:30 Dawn, 19:30 Nocturne',
+      passes: [
+        { passName: 'Contrast Circuit', unitPrice: '95', fixedTotal: 0 },
+        { passName: 'Private Suite', unitPrice: '240', fixedTotal: 1 }
+      ]
+    }), { edit: false });
+    const spDom = domFor(spHtml);
+    const spWin = spDom.window as any;
+    let spDispose: (() => void) | null = null;
+    spWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { spDispose = fn; };
+    spWin.eval(scriptBody(C.SLOTPICKER_JS));
+    (spWin.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€190');
+    (spWin.document.querySelector('[data-sp-pass="1"]') as HTMLElement).click();
+    expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€240');
+    spDispose!();
+    spDom.window.close();
   });
 });

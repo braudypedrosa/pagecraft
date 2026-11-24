@@ -208,6 +208,9 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('tiers', { defaultCurrency: 'usd', items: [{ tierName: 'Audit', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200', period: 'tranche', summary: 'FTO audit.', features: 'Partner review', ctaText: 'Select', href: 'https://example.test/intake', featured: 1 }] }),
     C.N('qapills', { pillAlign: 'center', items: [{ q: 'Why entity names first?', a: 'Ethics wall protection.', note: 'Rule 1.18', href: 'https://example.test/rules', linkLabel: 'Details' }] }),
     C.N('dockbar', { submitLabel: 'Screen →', destHref: 'https://example.test/check', ariaLabel: 'Conflict bar', items: [{ fieldLabel: 'Entity', fieldType: 'text', ph: 'Company' }] }),
+    C.N('arches', { items: [{ src: 'https://example.test/a1.webp', alt: 'Arch 1' }] }),
+    C.N('chapters', { frameRatio: '16 / 9', autoSeconds: '0', chapters: [{ chapterTitle: 'Caldarium', chapterSub: '40C', overlayText: 'Warm spring.', src: 'https://example.test/ch1.webp', alt: 'Caldarium' }] }),
+    C.N('slotpicker', { currencySymbol: '€', timeSlots: '06:30, 19:30', confirmLabel: 'Hold →', confirmHref: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -247,8 +250,8 @@ describe('full customer document round trip', () => {
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(44);
-    expect(new Set(choices)).toHaveLength(44);
+    expect(choices).toHaveLength(47);
+    expect(new Set(choices)).toHaveLength(47);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();
