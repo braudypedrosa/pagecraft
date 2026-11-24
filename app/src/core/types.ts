@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -82,7 +82,7 @@ interface Linkable { link?: string; target?: string }
 /** Carried by anything that can take a text style. */
 interface Styled { ts?: string }
 
-export interface SectionProps { tag?: string; width?: string; inner?: string }
+export interface SectionProps { tag?: string; width?: string; inner?: string; floating?: 0 | 1 | boolean }
 export interface RowProps { }
 export interface ColumnProps { }
 export interface ListProps {
@@ -253,6 +253,28 @@ export interface MarqueeProps {
 export interface FilterProps {
   group?: string; all?: string; tags?: string; align?: string;
 }
+export interface CompareProps {
+  beforeSrc?: string; afterSrc?: string; beforeAlt?: string; afterAlt?: string;
+  beforeLabel?: string; afterLabel?: string; ratio?: string; position?: string;
+}
+export interface TimelineItem { tag?: string; title?: string; detail?: string }
+export interface TimelineProps {
+  orientation?: string; marker?: string;
+  items?: TimelineItem[];
+}
+export interface ProgressItem { label?: string; value?: string; unit?: string }
+export interface ProgressProps {
+  items?: ProgressItem[]; showValue?: 0 | 1 | boolean; rounded?: 0 | 1 | boolean;
+}
+export interface HotspotItem { label?: string; title?: string; detail?: string; x?: string; y?: string }
+export interface HotspotProps {
+  src?: string; alt?: string; w?: string; h?: string; ratio?: string;
+  items?: HotspotItem[];
+}
+export interface StripsItem { src?: string; alt?: string; tag?: string; title?: string; detail?: string; w?: string; h?: string }
+export interface StripsProps { items?: StripsItem[] }
+export interface SwitcherItem { label?: string; meta?: string; title?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string; pos?: string }
+export interface SwitcherProps { stageLayout?: string; ratio?: string; items?: SwitcherItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -263,6 +285,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
@@ -516,6 +539,8 @@ export interface Control {
   /** what a freshly added row holds. A tab with no label has nothing to click, so it cannot
       start empty the way an unanswered question can. */
   rowNew?: [string, string];
+  /** multi-field item definition for `qa` repeaters that hold 2+ columns per item. */
+  rowFields?: { k: string; label: string; ph?: string; def?: string; area?: 0 | 1 }[];
   addLabel?: string;
   /** a setting rather than content, so it never appears as bindable. `BIND_CTL` decides by
       control kind, which is right until the same kind means both things: a filter's value is

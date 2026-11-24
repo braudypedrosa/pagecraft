@@ -31,7 +31,11 @@ import { sha256 } from './libraries.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
 import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
 import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
-import { AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS } from './extra-widgets.ts';
+import {
+  FLOATING_SECTION_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS,
+  MARQUEE_CSS, FILTER_CSS, FILTER_JS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS,
+  PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS
+} from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
@@ -241,7 +245,7 @@ const BUTTON_VARIANT_BASES: Record<string, Decls> = {
    the same units wherever it appears. */
 const U = {
   size: ['px', 'rem', 'em', 'vw'],
-  len: ['px', 'rem', '%', 'vw', 'vh'],
+  len: ['px', 'rem', '%', 'vw', 'vh', 'dvh', 'svh'],
   space: ['px', 'rem', '%'],
   radius: ['px', 'rem', '%'],
   line: ['', 'px', 'em', '%'],
@@ -473,11 +477,12 @@ const DEF: Record<string, WidgetDef> = {
   section: {
     label: 'Section', icon: 'section', level: 1,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
-    make: () => ({ props: { tag: 'section', width: 'boxed', inner: '' }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
+    make: () => ({ props: { tag: 'section', width: 'boxed', inner: '', floating: 0 }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
     controls: {
       content: [
         { t: 'pick', k: 'width', label: 'Content width', opts: [['boxed', 'Boxed'], ['full', 'Full width']], text: 1 },
         { t: 'unit', c: 'min-height', label: 'Min height', layout: 'inline', r: 1, units: U.len },
+        { t: 'toggle', k: 'floating', label: 'Float over hero', note: 'Overlays this section at the top of the page so a header blends with a full-height hero.' },
         { t: 'select', k: 'tag', label: 'HTML tag', layout: 'inline', opts: [['section', 'section'], ['div', 'div'], ['header', 'header'], ['footer', 'footer'], ['main', 'main'], ['article', 'article'], ['aside', 'aside']] }
       ],
       style: []
@@ -1426,6 +1431,271 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--fl-pill-radius', label: 'Tab radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+
+  compare: {
+    label: 'Image compare', icon: 'compare', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        beforeSrc: '', afterSrc: '',
+        beforeAlt: 'Before comparison view', afterAlt: 'After comparison view',
+        beforeLabel: 'Before', afterLabel: 'After', ratio: '16 / 9', position: '50'
+      },
+      css: {
+        d: { width: '100%', '--cmp-accent': '#ffffff', '--cmp-ink': '#111311', '--cmp-radius': '12px' },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'beforeSrc', label: 'Before image' },
+        { t: 'text', k: 'beforeAlt', label: 'Before alt text', ph: 'Describe before view' },
+        { t: 'text', k: 'beforeLabel', label: 'Before badge', ph: 'Before' },
+        { t: 'img', k: 'afterSrc', label: 'After image' },
+        { t: 'text', k: 'afterAlt', label: 'After alt text', ph: 'Describe after view' },
+        { t: 'text', k: 'afterLabel', label: 'After badge', ph: 'After' },
+        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['1 / 1', 'Square'], ['21 / 9', '21:9']] },
+        { t: 'unit', k: 'position', label: 'Initial split (%)', integer: 1, min: 0, max: 100, units: [''] }
+      ],
+      style: [
+        { t: 'color', c: '--cmp-accent', label: 'Handle & divider', r: 1, layout: 'inline' },
+        { t: 'color', c: '--cmp-ink', label: 'Handle icon', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--cmp-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  timeline: {
+    label: 'Timeline', icon: 'timeline', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        orientation: 'vertical', marker: 'numbers',
+        items: [
+          { tag: 'Phase 01', title: 'Initial assessment', detail: 'Outline what happens during the first stage.' },
+          { tag: 'Phase 02', title: 'Build & review', detail: 'Document key milestones along the timeline.' },
+          { tag: 'Phase 03', title: 'Delivery & handoff', detail: 'Close out with verification and next steps.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tl-accent': cvar('brand'), '--tl-accent-ink': '#ffffff',
+          '--tl-line': cvar('line'), '--tl-card': cvar('surface'),
+          '--tl-ink': cvar('ink'), '--tl-muted': cvar('muted'),
+          '--tl-gap': '22px', '--tl-radius': '10px', '--tl-title-size': '18px', '--tl-body-size': '15px'
+        },
+        t: {}, m: { '--tl-gap': '16px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'orientation', label: 'Orientation', opts: [['vertical', 'Vertical'], ['horizontal', 'Horizontal']], text: 1 },
+        { t: 'select', k: 'marker', label: 'Markers', opts: [['numbers', 'Numbers'], ['dots', 'Dots']] },
+        {
+          t: 'qa', k: 'items', label: 'Milestones', addLabel: 'Add milestone',
+          rowFields: [
+            { k: 'tag', label: 'Phase tag', ph: 'Phase 01', def: 'Next step' },
+            { k: 'title', label: 'Title', ph: 'Milestone title', def: 'New milestone' },
+            { k: 'detail', label: 'Details', ph: 'Description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tl-accent', label: 'Marker accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-accent-ink', label: 'Marker text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-line', label: 'Spine & border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-card', label: 'Card fill', r: 1 },
+        { t: 'color', c: '--tl-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tl-gap', label: 'Step gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--tl-radius', label: 'Card radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  progress: {
+    label: 'Progress bars', icon: 'progress', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        showValue: 1, rounded: 1,
+        items: [
+          { label: 'Completion rate', value: '88', unit: '%' },
+          { label: 'Target benchmark', value: '72', unit: '%' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--pg-fill': cvar('brand'), '--pg-track': cvar('line'),
+          '--pg-text': cvar('ink'), '--pg-muted': cvar('muted'),
+          '--pg-height': '10px', '--pg-gap': '16px', '--pg-radius': '999px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Meters', addLabel: 'Add bar',
+          rowFields: [
+            { k: 'label', label: 'Label', ph: 'Metric name', def: 'New metric' },
+            { k: 'value', label: 'Value (0–100)', ph: '75', def: '75' },
+            { k: 'unit', label: 'Unit', ph: '%', def: '%' }
+          ]
+        },
+        { t: 'toggle', k: 'showValue', label: 'Show numeric value' },
+        { t: 'toggle', k: 'rounded', label: 'Pill ends' }
+      ],
+      style: [
+        { t: 'color', c: '--pg-fill', label: 'Fill colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-track', label: 'Track colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-text', label: 'Label colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-muted', label: 'Value colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--pg-height', label: 'Bar height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--pg-gap', label: 'Row gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  hotspot: {
+    label: 'Image hotspots', icon: 'hotspot', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        src: '', alt: '', w: '', h: '', ratio: '',
+        items: [
+          { label: '01', title: 'Primary detail', detail: 'Click pin markers to inspect technical specifications.', x: '38', y: '48' },
+          { label: '02', title: 'Secondary detail', detail: 'Position markers anywhere across the diagram.', x: '66', y: '62' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--hs-pin': cvar('ink'), '--hs-pin-ink': '#ffffff', '--hs-ring': '#ffffff',
+          '--hs-card': cvar('bg'), '--hs-card-ink': cvar('ink'), '--hs-line': cvar('line'), '--hs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'src', label: 'Diagram / Photo' },
+        { t: 'text', k: 'alt', label: 'Alt text', ph: 'Describe the diagram or product view' },
+        { t: 'dims', label: 'Intrinsic size' },
+        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['', 'Natural image ratio'], ['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Hotspot pins', addLabel: 'Add pin',
+          rowFields: [
+            { k: 'label', label: 'Pin badge', ph: '01', def: '03' },
+            { k: 'title', label: 'Callout title', ph: 'Feature name', def: 'New callout' },
+            { k: 'x', label: 'X position (%)', ph: '50', def: '50' },
+            { k: 'y', label: 'Y position (%)', ph: '50', def: '50' },
+            { k: 'detail', label: 'Details', ph: 'Callout copy', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--hs-pin', label: 'Pin fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-pin-ink', label: 'Pin text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-ring', label: 'Pin border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-card', label: 'Popover background', r: 1 },
+        { t: 'color', c: '--hs-card-ink', label: 'Popover text', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--hs-radius', label: 'Image radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  strips: {
+    label: 'Expanding strips', icon: 'strips', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        items: [
+          { src: '', alt: 'Workshop bench', tag: 'Forged Metal', title: 'Cold-Swaged Frame', detail: 'Select any strip to expand field specifications and surface tolerances.' },
+          { src: '', alt: 'Kiln cellar', tag: 'Seasoned Fiber', title: 'Kiln-Cured Cellulose', detail: 'Long-cured billets keep temple tension stable through seasonal humidity.' },
+          { src: '', alt: 'Fitting studio', tag: 'Clinical Suite', title: 'Bespoke Fitting', detail: 'Direct optical center mapping paired with lightweight hardware balance.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--st-height': '520px', '--st-gap': '10px', '--st-radius': '14px',
+          '--st-bg': '#16191D', '--st-ink': '#FFFFFF', '--st-accent': cvar('brand'), '--st-tag': '#F7B084'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Strips', addLabel: 'Add strip',
+          rowFields: [
+            { k: 'title', label: 'Title', ph: 'Panel title', def: 'New panel' },
+            { k: 'tag', label: 'Metadata tag', ph: 'Optional footnote', def: '' },
+            { k: 'src', label: 'Photo URL or asset', ph: 'asset:photo', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the photo', def: '' },
+            { k: 'detail', label: 'Details', ph: 'Short description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--st-height', label: 'Strip height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--st-gap', label: 'Panel gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--st-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--st-bg', label: 'Backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-accent', label: 'Focus accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-tag', label: 'Tag colour', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  switcher: {
+    label: 'Stage switcher', icon: 'switcher', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stageLayout: 'rail', ratio: '3 / 2',
+        items: [
+          { label: 'Surface Inspection', meta: 'Step A', title: 'Macro surface alignment', detail: 'Inspect raw material grain and tolerance callouts in a dedicated visual stage.', src: '', alt: 'Inspection stage view', pos: '50% 50%' },
+          { label: 'Optical Assembly', meta: 'Step B', title: 'Final component integration', detail: 'Switch cleanly between sequential phases without scrolling past stacked sections.', src: '', alt: 'Assembly stage view', pos: '50% 50%' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sw-accent': cvar('brand'), '--sw-surface': cvar('surface'),
+          '--sw-ink': cvar('ink'), '--sw-muted': cvar('muted'), '--sw-line': cvar('line'),
+          '--sw-radius': '14px', '--sw-gap': '36px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'stageLayout', label: 'Navigation style', opts: [['rail', 'Vertical step rail'], ['tabs', 'Horizontal tabs']] },
+        { t: 'select', k: 'ratio', label: 'Stage ratio', opts: [['3 / 2', '3:2'], ['16 / 9', '16:9'], ['4 / 3', '4:3'], ['16 / 10', '16:10'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Stages', addLabel: 'Add stage',
+          rowFields: [
+            { k: 'label', label: 'Step button', ph: 'Step title', def: 'New stage' },
+            { k: 'meta', label: 'Meta', ph: 'Duration or step', def: '' },
+            { k: 'title', label: 'Caption heading', ph: 'Stage headline', def: 'Stage overview' },
+            { k: 'src', label: 'Stage photo URL or asset', ph: 'asset:photo', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Describe stage visual', def: '' },
+            { k: 'pos', label: 'Object position', ph: '50% 50%', def: '50% 50%' },
+            { k: 'detail', label: 'Details', ph: 'Stage description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sw-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-surface', label: 'Stage surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sw-radius', label: 'Stage radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--sw-gap', label: 'Split gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
   }
 };
 
@@ -2008,6 +2278,11 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'countdown') return n.props.target ? 'Countdown · ' + String(n.props.target).slice(0, 10) : d.label;
   if (n.type === 'marquee') return `Marquee · ${n.children.length} item${n.children.length === 1 ? '' : 's'}`;
   if (n.type === 'filter') return `Tag filter · ${collectFilterTags(n).length} tag${collectFilterTags(n).length === 1 ? '' : 's'}`;
+  if (n.type === 'timeline') return `Timeline · ${((n.props.items as any[]) || []).length} step${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'progress') return `Progress · ${((n.props.items as any[]) || []).length} bar${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'hotspot') return `Hotspots · ${((n.props.items as any[]) || []).length} pin${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'strips') return `Strips · ${((n.props.items as any[]) || []).length} panel${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'switcher') return `Switcher · ${((n.props.items as any[]) || []).length} stage${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -3529,7 +3804,7 @@ function classMove(id: string, dir: number) {
     strings rather than NaN, because the inspector shows this straight to the user. */
 function parseU(v: unknown): { n: string; u: string } {
   const s = String(v == null ? '' : v).trim();
-  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|dvh|svh|dvw|svw|ch|s|ms)?$/i);
   return m ? { n: m[1].replace(/^\+/, ''), u: (m[2] || '').toLowerCase() } : { n: '', u: '' };
 }
 
@@ -5134,7 +5409,13 @@ const TEXT_SLOTS = {
   form: [['fields', 'label', 'ph']],
   audio: ['title', 'subtitle'],
   countdown: ['done', 'lblDays', 'lblHours', 'lblMins', 'lblSecs'],
-  filter: ['all', 'tags']
+  filter: ['all', 'tags'],
+  compare: ['beforeAlt', 'afterAlt', 'beforeLabel', 'afterLabel'],
+  timeline: [['items', 'tag', 'title', 'detail']],
+  progress: [['items', 'label', 'unit']],
+  hotspot: ['alt', ['items', 'label', 'title', 'detail']],
+  strips: [['items', 'alt', 'tag', 'title', 'detail']],
+  switcher: [['items', 'label', 'meta', 'title', 'detail', 'alt']]
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -5144,10 +5425,13 @@ const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['n
 const SLOT_LABEL = {
   text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
   q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution', panel: 'Panel',
-  body: 'Rows', title: 'File name', home: 'Front page name',
+  body: 'Rows', title: 'Title', home: 'Front page name',
   subtitle: 'Subtitle', done: 'Completed message', lblDays: 'Days label',
   lblHours: 'Hours label', lblMins: 'Minutes label', lblSecs: 'Seconds label',
-  all: 'Reset label', tags: 'Filter tags'
+  all: 'Reset label', tags: 'Filter tags',
+  beforeAlt: 'Before alt text', afterAlt: 'After alt text',
+  beforeLabel: 'Before badge', afterLabel: 'After badge',
+  tag: 'Phase tag', detail: 'Details', unit: 'Unit', meta: 'Meta'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -5164,7 +5448,11 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   image: ['src'],
   video: ['src', 'poster'],
   audio: ['src', 'artwork'],
-  gallery: [['items', 'src']]
+  gallery: [['items', 'src']],
+  compare: ['beforeSrc', 'afterSrc'],
+  hotspot: ['src'],
+  strips: [['items', 'src']],
+  switcher: [['items', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -9577,22 +9865,40 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
-    if (node.type === 'audio') audio = true;
+    if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
+    else if (node.type === 'audio') audio = true;
     else if (node.type === 'countdown') countdown = true;
     else if (node.type === 'marquee') marquee = true;
     else if (node.type === 'filter') filter = true;
+    else if (node.type === 'compare') compare = true;
+    else if (node.type === 'timeline') timeline = true;
+    else if (node.type === 'progress') progress = true;
+    else if (node.type === 'hotspot') hotspot = true;
+    else if (node.type === 'strips') strips = true;
+    else if (node.type === 'switcher') switcher = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher };
 }
 
-function extraWidgetCss(used: { audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean }) {
-  return (used.audio ? `\n${AUDIO_CSS}` : '')
+function extraWidgetCss(used: {
+  audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean;
+}) {
+  return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
+    + (used.audio ? `\n${AUDIO_CSS}` : '')
     + (used.countdown ? `\n${COUNTDOWN_CSS}` : '')
     + (used.marquee ? `\n${MARQUEE_CSS}` : '')
     + (used.filter ? `\n${FILTER_CSS}` : '')
+    + (used.compare ? `\n${COMPARE_CSS}` : '')
+    + (used.timeline ? `\n${TIMELINE_CSS}` : '')
+    + (used.progress ? `\n${PROGRESS_CSS}` : '')
+    + (used.hotspot ? `\n${HOTSPOT_CSS}` : '')
+    + (used.strips ? `\n${STRIPS_CSS}` : '')
+    + (used.switcher ? `\n${SWITCHER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -9622,10 +9928,17 @@ function wordpressStylesFor(pg: Page) {
         date: pageControls.date && !globalControls.date,
       })
       + extraWidgetCss({
+        floating: pageExtra.floating && !globalExtra.floating,
         audio: pageExtra.audio && !globalExtra.audio,
         countdown: pageExtra.countdown && !globalExtra.countdown,
         marquee: pageExtra.marquee && !globalExtra.marquee,
         filter: pageExtra.filter && !globalExtra.filter,
+        compare: pageExtra.compare && !globalExtra.compare,
+        timeline: pageExtra.timeline && !globalExtra.timeline,
+        progress: pageExtra.progress && !globalExtra.progress,
+        hotspot: pageExtra.hotspot && !globalExtra.hotspot,
+        strips: pageExtra.strips && !globalExtra.strips,
+        switcher: pageExtra.switcher && !globalExtra.switcher,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -10597,7 +10910,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
     case 'section': {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : 'section';
       const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Row or component here</div>` : '');
-      return `<${tag} ${at()} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
+      const flt = p.floating ? ` data-floating="1"${o.edit ? ' data-floating-edit="1"' : ''}` : '';
+      return `<${tag} ${at()} ${cx('pagecraft-section')}${flt}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
     }
     case 'row':
       return `<div ${at()} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
@@ -11165,6 +11479,159 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-filter-bar" role="tablist" aria-label="Filter items" style="justify-content:${align}">${barBtns}</div>`
         + `<div class="pagecraft-filter-grid">${inner}</div>`
         + `<p class="pagecraft-filter-empty" data-filter-empty role="status" hidden>No matching items.</p>`
+        + `</div>`;
+    }
+    case 'compare': {
+      const posNum = parseFloat(String(p.position ?? '50'));
+      const pos = Number.isFinite(posNum) ? Math.max(0, Math.min(100, posNum)) : 50;
+      const ratio = cssRatio(p.ratio) || '16 / 9';
+      const beforeSrc = esc(String(p.beforeSrc || PH));
+      const afterSrc = esc(String(p.afterSrc || PH));
+      const beforeAlt = esc(String(p.beforeAlt ?? 'Before comparison view'));
+      const afterAlt = esc(String(p.afterAlt ?? 'After comparison view'));
+      const beforeLabel = String(p.beforeLabel ?? '').trim();
+      const afterLabel = String(p.afterLabel ?? '').trim();
+      const lz = !o.edit ? ' loading="lazy" decoding="async"' : '';
+      const knobSvg = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>';
+      return `<div ${at()} ${cx('pagecraft-compare')} data-compare${o.edit ? ' data-compare-edit' : ''} style="--cmp-pos:${pos}%;--cmp-ratio:${esc(ratio)}">`
+        + `<img class="pagecraft-compare-img pagecraft-compare-after" src="${afterSrc}" alt="${afterAlt}"${lz}>`
+        + `<img class="pagecraft-compare-img pagecraft-compare-before" src="${beforeSrc}" alt="${beforeAlt}"${lz}>`
+        + (beforeLabel ? `<span class="pagecraft-compare-tag" data-side="before">${esc(beforeLabel)}</span>` : '')
+        + (afterLabel ? `<span class="pagecraft-compare-tag" data-side="after">${esc(afterLabel)}</span>` : '')
+        + `<div class="pagecraft-compare-handle" aria-hidden="true"><span class="pagecraft-compare-knob">${knobSvg}</span></div>`
+        + `<input type="range" class="pagecraft-compare-range" data-compare-range min="0" max="100" value="${pos}" aria-label="Comparison split percentage" aria-valuetext="${Math.round(pos)}%">`
+        + `</div>`;
+    }
+    case 'timeline': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      if (!items.length) return o.edit
+        ? `<div ${at()} ${cx('pagecraft-timeline')}><div class="s-empty">${svg('plus', 12)} Add milestones in the panel</div></div>` : '';
+      const orient = p.orientation === 'horizontal' ? 'horizontal' : 'vertical';
+      const marker = p.marker === 'dots' ? 'dots' : 'numbers';
+      const rows = items.map(it => {
+        const tag = String(it.tag || '').trim();
+        const title = String(it.title || '').trim();
+        const detail = String(it.detail || '').trim();
+        return `<li class="pagecraft-timeline-item">`
+          + `<span class="pagecraft-timeline-mark" aria-hidden="true"></span>`
+          + `<div class="pagecraft-timeline-card">`
+          + (tag ? `<span class="pagecraft-timeline-tag">${esc(tag)}</span>` : '')
+          + (title ? `<h3 class="pagecraft-timeline-title">${esc(title)}</h3>` : '')
+          + (detail ? `<p class="pagecraft-timeline-detail">${esc(detail)}</p>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<ol ${at()} ${cx('pagecraft-timeline')} data-orientation="${orient}" data-marker="${marker}">${rows}</ol>`;
+    }
+    case 'progress': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      if (!items.length) return o.edit
+        ? `<div ${at()} ${cx('pagecraft-progress')}><div class="s-empty">${svg('plus', 12)} Add progress metrics in the panel</div></div>` : '';
+      const showVal = p.showValue !== 0;
+      const rounded = p.rounded === 0 ? '0' : '1';
+      const baseId = domId();
+      const bars = items.map((it, i) => {
+        const rawVal = parseFloat(String(it.value ?? '0'));
+        const val = Number.isFinite(rawVal) ? Math.max(0, Math.min(100, rawVal)) : 0;
+        const unit = String(it.unit ?? '%');
+        const lbl = String(it.label || `Metric ${i + 1}`);
+        const pid = `${baseId}-p-${i}`;
+        return `<div class="pagecraft-progress-item">`
+          + `<div class="pagecraft-progress-head"><label class="pagecraft-progress-label" for="${pid}">${esc(lbl)}</label>`
+          + (showVal ? `<span class="pagecraft-progress-val">${esc(String(val))}${esc(unit)}</span>` : '')
+          + `</div>`
+          + `<progress id="${pid}" class="pagecraft-progress-bar" value="${val}" max="100"></progress>`
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-progress')} data-rounded="${rounded}">${bars}</div>`;
+    }
+    case 'hotspot': {
+      const src = esc(String(p.src || PH));
+      const alt = esc(String(p.alt || 'Interactive diagram'));
+      const ratio = cssRatio(p.ratio);
+      const lz = !o.edit ? ' loading="lazy" decoding="async"' : '';
+      const dim = (p.w && p.h) ? ` width="${parseInt(String(p.w), 10)}" height="${parseInt(String(p.h), 10)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const pins = items.map((it, i) => {
+        const xNum = parseFloat(String(it.x ?? '50'));
+        const yNum = parseFloat(String(it.y ?? '50'));
+        const x = Number.isFinite(xNum) ? Math.max(0, Math.min(100, xNum)) : 50;
+        const y = Number.isFinite(yNum) ? Math.max(0, Math.min(100, yNum)) : 50;
+        const badge = String(it.label || String(i + 1));
+        const title = String(it.title || `Detail ${i + 1}`);
+        const detail = String(it.detail || '');
+        const hid = `${baseId}-hs-${i}`;
+        return `<button type="button" class="pagecraft-hotspot-pin" style="left:${x}%;top:${y}%" popovertarget="${hid}" popovertargetaction="toggle" aria-controls="${hid}" aria-expanded="false" aria-label="${esc(title)}"><span>${esc(badge)}</span></button>`
+          + `<div id="${hid}" class="pagecraft-hotspot-card" popover="auto">`
+          + `<div class="pagecraft-hotspot-card-head"><strong>${esc(title)}</strong>`
+          + `<button type="button" class="pagecraft-hotspot-close" popovertarget="${hid}" popovertargetaction="hide" aria-label="Close">×</button></div>`
+          + (detail ? `<p class="pagecraft-hotspot-card-body">${esc(detail)}</p>` : '')
+          + `</div>`;
+      }).join('');
+      const stageAttr = ratio ? ` data-fixed-ratio="1" style="aspect-ratio:${esc(ratio)}"` : '';
+      return `<div ${at()} ${cx('pagecraft-hotspot')} data-hotspot${o.edit ? ' data-hotspot-edit' : ''}>`
+        + `<div class="pagecraft-hotspot-stage"${stageAttr}>`
+        + `<img class="pagecraft-hotspot-img" src="${src}" alt="${alt}"${dim}${lz}>`
+        + pins + `</div></div>`;
+    }
+    case 'strips': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const strips = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Panel ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const title = String(it.title || `Panel ${i + 1}`);
+        const detail = String(it.detail || '');
+        const tag = String(it.tag || '');
+        return `<button type="button" class="pagecraft-strip" aria-expanded="${i === 0 ? 'true' : 'false'}">`
+          + `<img class="pagecraft-strip-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<span class="pagecraft-strip-scrim" aria-hidden="true"></span>`
+          + `<span class="pagecraft-strip-body">`
+          + `<span class="pagecraft-strip-title">${esc(title)}</span>`
+          + (detail ? `<span class="pagecraft-strip-detail">${esc(detail)}</span>` : '')
+          + (tag ? `<span class="pagecraft-strip-tag">${esc(tag)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-strips')} data-strips${o.edit ? ' data-strips-edit' : ''}>${strips}</div>`;
+    }
+    case 'switcher': {
+      const layout = p.stageLayout === 'tabs' ? 'tabs' : 'rail';
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--sw-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const tabButtons = items.map((it, i) => {
+        const label = String(it.label || it.title || `Stage ${i + 1}`);
+        const meta = String(it.meta || '');
+        const detail = String(it.detail || '');
+        const tid = `${baseId}-sw-t-${i}`;
+        const pid = `${baseId}-sw-p-${i}`;
+        return `<button type="button" role="tab" class="pagecraft-switcher-tab" id="${tid}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" aria-controls="${pid}">`
+          + `<span class="pagecraft-switcher-tab-title">${esc(label)}</span>`
+          + (meta ? `<span class="pagecraft-switcher-tab-meta">${esc(meta)}</span>` : '')
+          + (detail ? `<span class="pagecraft-switcher-tab-detail">${esc(detail)}</span>` : '')
+          + `</button>`;
+      }).join('');
+      const panels = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || it.label || `Stage ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const pos = typeof it.pos === 'string' && /^[a-zA-Z0-9.% -]{1,32}$/.test(it.pos.trim()) ? it.pos.trim() : '';
+        const posStyle = pos ? ` style="object-position:${esc(pos)}"` : '';
+        const title = String(it.title || it.label || `Stage ${i + 1}`);
+        const detail = String(it.detail || '');
+        const tid = `${baseId}-sw-t-${i}`;
+        const pid = `${baseId}-sw-p-${i}`;
+        return `<figure role="tabpanel" class="pagecraft-switcher-panel" id="${pid}" aria-labelledby="${tid}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-switcher-img" src="${src}" alt="${alt}"${dim}${posStyle} decoding="async">`
+          + `<figcaption class="pagecraft-switcher-cap">`
+          + `<span class="pagecraft-switcher-cap-title">${esc(title)}</span>`
+          + (detail ? `<p class="pagecraft-switcher-cap-text">${esc(detail)}</p>` : '')
+          + `</figcaption></figure>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-switcher')} data-switcher data-layout="${esc(layout)}"${o.edit ? ' data-switcher-edit' : ''}${ratioStyle}>`
+        + `<div class="pagecraft-switcher-list" role="tablist">${tabButtons}</div>`
+        + `<div class="pagecraft-switcher-stage">${panels}</div>`
         + `</div>`;
     }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
@@ -11788,7 +12255,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -12297,7 +12764,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

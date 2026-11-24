@@ -31,6 +31,12 @@ test('known templates receive clear names and separate controlled facets', () =>
     siteTypes: string[];
   }> = [
     {
+      id: 'alder-and-silt',
+      name: 'ALDER & SILT · Landscape Architecture',
+      industries: ['Architecture & Design'],
+      siteTypes: ['Portfolio', 'Business'],
+    },
+    {
       id: 'architecture-studio',
       name: 'Common Ground · Architecture Studio',
       industries: ['Architecture & Design'],
@@ -79,10 +85,34 @@ test('known templates receive clear names and separate controlled facets', () =>
       siteTypes: ['Business'],
     },
     {
+      id: 'kestrel-cargo',
+      name: 'KESTREL · Electric Cargo Mobility',
+      industries: ['Architecture & Design'],
+      siteTypes: ['Business'],
+    },
+    {
       id: 'maren-and-tomas',
       name: 'Maren & Tomás · Destination Wedding',
       industries: ['Travel & Hospitality'],
       siteTypes: ['Portfolio'],
+    },
+    {
+      id: 'masuda-optical',
+      name: 'MASUDA / 04 · Titanium Eyewear',
+      industries: ['Health & Wellness', 'Architecture & Design'],
+      siteTypes: ['Business', 'Portfolio'],
+    },
+    {
+      id: 'mercer-quinn',
+      name: 'MERCER QUINN · Patent & AI Litigation',
+      industries: ['Professional Services'],
+      siteTypes: ['Business'],
+    },
+    {
+      id: 'soraia-thermal',
+      name: 'SORAIA · Thermal Bathhouse',
+      industries: ['Health & Wellness', 'Travel & Hospitality'],
+      siteTypes: ['Business'],
     },
     {
       id: 'neighborhood-cafe',

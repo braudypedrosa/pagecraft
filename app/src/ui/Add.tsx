@@ -44,7 +44,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
   {
     g: 'Content', items: [
       ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
-      ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['audio', 'Audio'], ['icon', 'Icon']
+      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'], ['video', 'Video'], ['audio', 'Audio'],
+      ['timeline', 'Timeline'], ['progress', 'Progress bars'], ['icon', 'Icon']
     ]
   },
   {
@@ -52,7 +53,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -97,6 +98,12 @@ const ALIASES: Record<string, string> = {
   audio: 'podcast player sound mp3 track episode',
   countdown: 'timer event deadline clock launch',
   filter: 'tags category tabs portfolio schedule',
+  compare: 'before after slider diff image comparison',
+  timeline: 'steps roadmap milestones process phases',
+  progress: 'bars meters benchmark stats percentages',
+  hotspot: 'annotations pins diagram map callouts popover',
+  strips: 'expanding strips accordion gallery showcase panels',
+  switcher: 'stage visual switcher process steps showcase tabs',
   list: 'collection cms dynamic',
 };
 

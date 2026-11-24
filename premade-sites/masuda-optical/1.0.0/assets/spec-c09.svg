@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#F2F0EB"/>
+  <path d="M32 68 H608 M32 296 H608 M320 68 V296" stroke="#DFDCD5" stroke-width="1" stroke-dasharray="3 5"/>
+  <text x="32" y="42" fill="#A84404" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.4">C-09 · MINERAL SUN CLIP</text>
+  <text x="608" y="42" text-anchor="end" fill="#5B5954" font-family="ui-monospace, monospace" font-size="12">46□21 · SNAP FIT</text>
+  <g transform="translate(80, 96)" fill="none" stroke="#181A1D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="34" width="174" height="120" rx="48" fill="#D5D0C7" fill-opacity="0.72" stroke="#A84404" stroke-width="2.2"/>
+       <rect x="286" y="34" width="174" height="120" rx="48" fill="#D5D0C7" fill-opacity="0.72" stroke="#A84404" stroke-width="2.2"/>
+       <line x1="170" y1="30" x2="310" y2="30" stroke="#181A1D" stroke-width="2.6"/>
+       <circle cx="32" cy="48" r="4" fill="#A84404" stroke="none"/><circle cx="182" cy="142" r="4" fill="#A84404" stroke="none"/>
+       <circle cx="298" cy="48" r="4" fill="#A84404" stroke="none"/><circle cx="448" cy="142" r="4" fill="#A84404" stroke="none"/>
+       <text x="240" y="12" text-anchor="middle" fill="#A84404" stroke="none" font-family="ui-monospace, monospace" font-size="11" font-weight="700">99.8% POLARIZING BAYONET BAR</text>
+  </g>
+  <text x="32" y="330" fill="#5B5954" font-family="ui-monospace, monospace" font-size="11">SABAE ORTHOGRAPHIC ELEVATION · 1:1 MM</text>
+  <text x="608" y="330" text-anchor="end" fill="#181A1D" font-family="ui-monospace, monospace" font-size="11" font-weight="700">CHASSIS MASS: 4.1 g</text>
+</svg>

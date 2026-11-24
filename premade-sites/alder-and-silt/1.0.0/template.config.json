@@ -1,0 +1,117 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "alder-and-silt",
+  "version": "1.0.0",
+  "name": "ALDER & SILT",
+  "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+  "description": "Four-page ecological landscape architecture studio site with a translucent forest-glass floating header over a 100dvh coastal boardwalk meadow canvas, clay-to-meadow compare scrubber, filterable site monographs, seasonal field gallery, vertical 5-stage stewardship timeline, permitting FAQ accordion, and site walk desk.",
+  "categories": [
+    "Landscape & Ecology",
+    "Architecture"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 220,
+      "height": 40
+    },
+    {
+      "id": "coastal-hero",
+      "file": "assets/coastal-hero.webp",
+      "name": "coastal-hero.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "slope-before",
+      "file": "assets/slope-before.webp",
+      "name": "slope-before.webp",
+      "width": 1024,
+      "height": 336
+    },
+    {
+      "id": "slope-after",
+      "file": "assets/slope-after.webp",
+      "name": "slope-after.webp",
+      "width": 1024,
+      "height": 336
+    },
+    {
+      "id": "headland-pavilion",
+      "file": "assets/headland-pavilion.webp",
+      "name": "headland-pavilion.webp",
+      "width": 1086,
+      "height": 675
+    },
+    {
+      "id": "riparian-bioswale",
+      "file": "assets/riparian-bioswale.webp",
+      "name": "riparian-bioswale.webp",
+      "width": 1200,
+      "height": 805
+    },
+    {
+      "id": "timber-weir",
+      "file": "assets/timber-weir.webp",
+      "name": "timber-weir.webp",
+      "width": 1200,
+      "height": 805
+    },
+    {
+      "id": "planting-corps",
+      "file": "assets/planting-corps.webp",
+      "name": "planting-corps.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "estuary-marsh",
+      "file": "assets/estuary-marsh.webp",
+      "name": "estuary-marsh.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "granite-terrace",
+      "file": "assets/granite-terrace.webp",
+      "name": "granite-terrace.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "upland-meadow",
+      "file": "assets/upland-meadow.webp",
+      "name": "upland-meadow.webp",
+      "width": 1200,
+      "height": 800
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:alder-and-silt:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "6113a93f44ee846aec2a62f54165cb4d018e7afc9df93d6eb35f02ec99cb9f50"
+}

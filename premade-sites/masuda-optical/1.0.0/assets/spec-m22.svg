@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#F2F0EB"/>
+  <path d="M32 68 H608 M32 296 H608 M320 68 V296" stroke="#DFDCD5" stroke-width="1" stroke-dasharray="3 5"/>
+  <text x="32" y="42" fill="#A84404" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.4">M-22 · KUROTANI WELLINGTON</text>
+  <text x="608" y="42" text-anchor="end" fill="#5B5954" font-family="ui-monospace, monospace" font-size="12">48□21 – 150 mm</text>
+  <g transform="translate(80, 96)" fill="none" stroke="#181A1D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 28 L196 36 L184 134 C180 152, 134 156, 102 156 C56 156, 28 142, 24 114 Z" fill="#DEDAD0" fill-opacity="0.82" stroke-width="5"/>
+       <path d="M284 36 L466 28 L456 114 C452 142, 424 156, 378 156 C346 156, 300 152, 296 134 Z" fill="#DEDAD0" fill-opacity="0.82" stroke-width="5"/>
+       <path d="M196 52 H284" stroke-width="5.2"/>
+       <line x1="20" y1="90" x2="460" y2="90" stroke="#A84404" stroke-width="1.2" stroke-dasharray="3 4"/>
+       <text x="240" y="16" text-anchor="middle" fill="#A84404" stroke="none" font-family="ui-monospace, monospace" font-size="11" font-weight="700">6MM AGED TAKIRON + TI CORE WIRE</text>
+  </g>
+  <text x="32" y="330" fill="#5B5954" font-family="ui-monospace, monospace" font-size="11">SABAE ORTHOGRAPHIC ELEVATION · 1:1 MM</text>
+  <text x="608" y="330" text-anchor="end" fill="#181A1D" font-family="ui-monospace, monospace" font-size="11" font-weight="700">CHASSIS MASS: 16.2 g</text>
+</svg>

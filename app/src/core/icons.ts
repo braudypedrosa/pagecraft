@@ -88,7 +88,13 @@ const IC: Record<string, string> = {
   audio:'<path d="M2.5 9.5v-3M5.5 11.5v-7M8.5 13.5v-11M11.5 10.5v-5M14 9v-2" stroke-linecap="round"/>',
   countdown:'<circle cx="8" cy="9" r="5.2"/><path d="M6.2 2.2h3.6M8 9V6.5l1.8 1.3" stroke-linecap="round" stroke-linejoin="round"/>',
   marquee:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.2" opacity=".45"/><path d="M3.5 8h9M10.5 6l2 2-2 2" stroke-linecap="round" stroke-linejoin="round"/>',
-  filter:'<path d="M2 3.2h12L9.4 8.5v4.1l-2.8 1.2V8.5z" stroke-linejoin="round"/>'
+  filter:'<path d="M2 3.2h12L9.4 8.5v4.1l-2.8 1.2V8.5z" stroke-linejoin="round"/>',
+  compare:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M8 1.8v12.4M5.4 8L3.8 8M10.6 8h1.6" stroke-linecap="round"/>',
+  timeline:'<path d="M4.2 3v10" stroke-linecap="round"/><circle cx="4.2" cy="4.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.2" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.2" cy="11.8" r="1.4" fill="currentColor" stroke="none"/><path d="M7.5 4.2h6M7.5 8h5M7.5 11.8h6" stroke-linecap="round"/>',
+  progress:'<rect x="1.5" y="3.5" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="3.5" width="9" height="2.6" rx="1.3" fill="currentColor" stroke="none"/><rect x="1.5" y="9.9" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="9.9" width="6.2" height="2.6" rx="1.3" fill="currentColor" stroke="none"/>',
+  hotspot:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" opacity=".55"/><circle cx="6" cy="7" r="2.1"/><circle cx="6" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="10.8" cy="10" r="1.7"/>',
+  strips:'<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
+  switcher:'<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

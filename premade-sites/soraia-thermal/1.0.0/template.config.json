@@ -1,0 +1,110 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "soraia-thermal",
+  "version": "1.0.0",
+  "name": "SORAIA",
+  "sampleName": "SORAIA — Thermal Basalt Reserve",
+  "description": "Four-page Nordic-Iberian subterranean basalt bathhouse and thermal sanctuary site featuring a dark translucent floating header over a 100dvh centered cinema stage, lightbox sanctuary film trigger, interactive 4-chamber architectural floorplan hotspots, artesian mineral progress bars, subterranean vault slider, material gallery, etiquette accordion, and reservation desk.",
+  "categories": [
+    "Wellness & Hospitality",
+    "Architecture"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 220,
+      "height": 40
+    },
+    {
+      "id": "vault-floorplan",
+      "file": "assets/vault-floorplan.svg",
+      "name": "vault-floorplan.svg",
+      "width": 880,
+      "height": 480
+    },
+    {
+      "id": "basalt-sanctuary",
+      "file": "assets/basalt-sanctuary.webp",
+      "name": "basalt-sanctuary.webp",
+      "width": 1020,
+      "height": 840
+    },
+    {
+      "id": "cedar-soak",
+      "file": "assets/cedar-soak.webp",
+      "name": "cedar-soak.webp",
+      "width": 1200,
+      "height": 972
+    },
+    {
+      "id": "plunge-chamber",
+      "file": "assets/plunge-chamber.webp",
+      "name": "plunge-chamber.webp",
+      "width": 1200,
+      "height": 805
+    },
+    {
+      "id": "slate-tepidarium",
+      "file": "assets/slate-tepidarium.webp",
+      "name": "slate-tepidarium.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "rain-oculus",
+      "file": "assets/rain-oculus.webp",
+      "name": "rain-oculus.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "hinoki-joinery",
+      "file": "assets/hinoki-joinery.webp",
+      "name": "hinoki-joinery.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "botanical-vessel",
+      "file": "assets/botanical-vessel.webp",
+      "name": "botanical-vessel.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "linen-alcove",
+      "file": "assets/linen-alcove.webp",
+      "name": "linen-alcove.webp",
+      "width": 1200,
+      "height": 800
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:soraia-thermal:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "e8d6366653fa1ba2189338d18a605aa359a5c1b837c3fedea0012ca093cfc642"
+}

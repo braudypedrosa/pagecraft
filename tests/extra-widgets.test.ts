@@ -415,4 +415,164 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
 
     dom.window.close();
   });
+
+  test('floating section header, dvh units, compare, timeline, progress, and hotspot widgets', () => {
+    expect(C.U.len).toContain('dvh');
+    expect(C.U.len).toContain('svh');
+    expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
+
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher'] as const) {
+      expect(C.DEF[type]).toBeTruthy();
+      expect(C.DEF[type].caps).toContain('spacing');
+      expect(C.DEF[type].caps).toContain('animation');
+      const node = C.N(type);
+      expect(node.type).toBe(type);
+      expect(C.nameOf(node)).toBeTruthy();
+      expect(C.kindOf(node)).toBeTruthy();
+      expect(quickAddChoices(type).map(x => x[0])).toContain(type);
+    }
+
+    const mediaDoc = blankDoc('Asset refs');
+    const cmpNode = C.N('compare', { beforeSrc: 'asset:cmp-before', afterSrc: 'asset:cmp-after' });
+    const hsNode = C.N('hotspot', { src: 'asset:hs-diagram' });
+    const stNode = C.N('strips', { items: [{ src: 'asset:strip-photo', title: 'Panel', detail: 'Detail' }] });
+    const swNode = C.N('switcher', { items: [{ label: 'Stage 1', src: 'asset:stage-photo', title: 'Stage', detail: 'Detail' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode])])])];
+    const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
+    expect(assetIds).toContain('cmp-before');
+    expect(assetIds).toContain('cmp-after');
+    expect(assetIds).toContain('hs-diagram');
+    expect(assetIds).toContain('strip-photo');
+    expect(assetIds).toContain('stage-photo');
+
+    // Zero-drift when absent
+    const plainHtml = C.buildPage(C.state.pages[0]);
+    expect(plainHtml).not.toContain('data-floating="1"');
+    expect(plainHtml).not.toContain('.pagecraft-compare');
+    expect(plainHtml).not.toContain('.pagecraft-timeline');
+    expect(plainHtml).not.toContain('.pagecraft-progress');
+    expect(plainHtml).not.toContain('.pagecraft-hotspot');
+    expect(plainHtml).not.toContain('.pagecraft-strips');
+    expect(plainHtml).not.toContain('.pagecraft-switcher');
+
+    // Floating header & 100dvh hero
+    const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
+    const editHdr = C.renderNode(hdr, { edit: true });
+    expect(editHdr).toContain('data-floating="1"');
+    expect(editHdr).toContain('data-floating-edit="1"');
+    const pubHdr = C.renderNode(hdr, { edit: false });
+    expect(pubHdr).toContain('data-floating="1"');
+    expect(pubHdr).not.toContain('data-floating-edit');
+
+    // Compare interaction
+    const cmpHtml = C.renderNode(cmpNode, { edit: false });
+    expect(cmpHtml).toContain('style="--cmp-pos:50%;--cmp-ratio:16 / 9"');
+    expect(C.COMPARE_CSS).toContain('clip-path:inset(0 calc(100% - var(--cmp-pos,50%)) 0 0)');
+    const cmpDom = domFor(cmpHtml);
+    const cmpWin = cmpDom.window as any;
+    let cmpDispose: (() => void) | null = null;
+    cmpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { cmpDispose = fn; };
+    cmpWin.eval(scriptBody(C.COMPARE_JS));
+    const cmpRoot = cmpWin.document.querySelector('.pagecraft-compare') as HTMLElement;
+    const range = cmpWin.document.querySelector('[data-compare-range]') as HTMLInputElement;
+    range.value = '74';
+    range.dispatchEvent(new cmpWin.Event('input', { bubbles: true }));
+    expect(cmpRoot.style.getPropertyValue('--cmp-pos')).toBe('74%');
+    expect(range.getAttribute('aria-valuetext')).toBe('74%');
+    cmpDispose!();
+    expect(cmpRoot.hasAttribute('data-pc-cmp-ready')).toBe(false);
+    cmpDom.window.close();
+
+    // Progress + Timeline
+    const tlHtml = C.renderNode(C.N('timeline', {
+      orientation: 'horizontal', marker: 'dots',
+      items: [{ tag: 'Day 01', title: 'Intake', detail: 'Site survey.' }]
+    }), { edit: false });
+    expect(tlHtml).toContain('data-orientation="horizontal"');
+    expect(tlHtml).toContain('data-marker="dots"');
+    expect(tlHtml).toContain('Intake');
+
+    const pgHtml = C.renderNode(C.N('progress', {
+      showValue: 1, rounded: 0,
+      items: [{ label: 'Retention', value: '94', unit: '%' }]
+    }), { edit: false });
+    expect(pgHtml).toContain('data-rounded="0"');
+    expect(pgHtml).toContain('<progress');
+    expect(pgHtml).toContain('value="94"');
+    expect(pgHtml).toContain('94%');
+
+    // Hotspot popover fallback interaction (JSDOM lacks native popover)
+    const hsHtml = C.renderNode(C.N('hotspot', {
+      src: 'https://example.test/diagram.jpg', alt: 'Chassis anatomy',
+      items: [{ label: '01', title: 'Mid-Drive Motor', detail: '110 Nm planetary torque', x: '42', y: '58' }]
+    }), { edit: false });
+    const hsDom = domFor(hsHtml);
+    const hsWin = hsDom.window as any;
+    let hsDispose: (() => void) | null = null;
+    hsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { hsDispose = fn; };
+    hsWin.eval(scriptBody(C.HOTSPOT_JS));
+    const pin = hsWin.document.querySelector('.pagecraft-hotspot-pin') as HTMLButtonElement;
+    const card = hsWin.document.querySelector('.pagecraft-hotspot-card') as HTMLElement;
+    pin.click();
+    expect(card.classList.contains(':popover-open')).toBe(true);
+    expect(pin.getAttribute('aria-expanded')).toBe('true');
+    (card.querySelector('.pagecraft-hotspot-close') as HTMLButtonElement).click();
+    expect(card.classList.contains(':popover-open')).toBe(false);
+    expect(pin.getAttribute('aria-expanded')).toBe('false');
+    hsDispose!();
+    hsDom.window.close();
+
+    // Expanding strips click + keyboard interaction
+    const stHtml = C.renderNode(C.N('strips', {
+      items: [
+        { src: 'https://example.test/one.jpg', alt: 'One', tag: 'First', title: 'Panel One', detail: 'Detail one' },
+        { src: 'https://example.test/two.jpg', alt: 'Two', tag: 'Second', title: 'Panel Two', detail: 'Detail two' },
+      ]
+    }), { edit: false });
+    const stDom = domFor(stHtml);
+    const stWin = stDom.window as any;
+    let stDispose: (() => void) | null = null;
+    stWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { stDispose = fn; };
+    stWin.eval(scriptBody(C.STRIPS_JS));
+    const strips = [...stWin.document.querySelectorAll('.pagecraft-strip')] as HTMLButtonElement[];
+    expect(strips[0].getAttribute('aria-expanded')).toBe('true');
+    expect(strips[1].getAttribute('aria-expanded')).toBe('false');
+    strips[1].click();
+    expect(strips[0].getAttribute('aria-expanded')).toBe('false');
+    expect(strips[1].getAttribute('aria-expanded')).toBe('true');
+    strips[1].dispatchEvent(new stWin.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(strips[0].getAttribute('aria-expanded')).toBe('true');
+    stDispose!();
+    expect(stWin.document.querySelector('.pagecraft-strips')?.hasAttribute('data-pc-st-ready')).toBe(false);
+    stDom.window.close();
+
+    // Stage switcher click + keyboard interaction
+    const swHtml = C.renderNode(C.N('switcher', {
+      stageLayout: 'rail', ratio: '3 / 2',
+      items: [
+        { label: 'Step A', meta: '10 min', title: 'Stage A', detail: 'Alpha detail', src: 'https://example.test/a.jpg', alt: 'Stage A photo' },
+        { label: 'Step B', meta: '15 min', title: 'Stage B', detail: 'Beta detail', src: 'https://example.test/b.jpg', alt: 'Stage B photo' },
+      ]
+    }), { edit: false });
+    const swDom = domFor(swHtml);
+    const swWin = swDom.window as any;
+    let swDispose: (() => void) | null = null;
+    swWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { swDispose = fn; };
+    swWin.eval(scriptBody(C.SWITCHER_JS));
+    const swTabs = [...swWin.document.querySelectorAll('.pagecraft-switcher-tab')] as HTMLButtonElement[];
+    const swPanels = [...swWin.document.querySelectorAll('.pagecraft-switcher-panel')] as HTMLElement[];
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('1');
+    swTabs[1].click();
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('false');
+    expect(swTabs[1].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('0');
+    expect(swPanels[1].getAttribute('data-active')).toBe('1');
+    swTabs[1].dispatchEvent(new swWin.KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('1');
+    swDispose!();
+    expect(swWin.document.querySelector('.pagecraft-switcher')?.hasAttribute('data-pc-sw-ready')).toBe(false);
+    swDom.window.close();
+  });
 });

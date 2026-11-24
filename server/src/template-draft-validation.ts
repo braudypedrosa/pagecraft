@@ -2,7 +2,7 @@ import * as Core from '../../app/src/core/index.ts';
 import { adoptHostDocument, DocumentSchemaError } from '../../app/src/host/schema.ts';
 import type { Doc, Node } from '../../app/src/core/types.ts';
 
-export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','video','audio','icon','countdown','marquee','filter','tabs','table','code','crumbs','button','nav','form','accordion','spacer','divider']);
+export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','compare','timeline','progress','hotspot','strips','switcher','video','audio','icon','countdown','marquee','filter','tabs','table','code','crumbs','button','nav','form','accordion','spacer','divider']);
 const nodeKeys = new Set(['id','type','props','css','st','anim','hide','cls','adv','children','use','vals','variant','slot','bind']);
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = (message: string): never => { throw new Error(`invalid template document: ${message}`); };
@@ -128,7 +128,7 @@ export function validateTemplateDraftDocument(input: unknown, assetIds: readonly
         if (node.anim.once !== undefined && node.anim.once !== 0 && node.anim.once !== 1) fail('invalid animation');
       }
       if (node.bind) for (const binding of Object.values(node.bind)) { shape(binding,['src','path'],'binding'); if (!safeIdentifier(binding.path)) fail('invalid binding'); }
-      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],tabs:['label','panel','panelId'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
+      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],timeline:['tag','title','detail'],progress:['label','value','unit'],hotspot:['label','title','detail','x','y'],strips:['src','alt','tag','title','detail','w','h'],switcher:['label','meta','title','detail','src','alt','w','h','pos'],tabs:['label','panel','panelId'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
       const list = node.type === 'form' ? node.props.fields : node.props.items;
       if (list !== undefined && nested[node.type]) { if (!Array.isArray(list) || list.length > 500) fail('invalid items'); for (const item of list) { shape(item,nested[node.type],'item'); if (Object.values(item).some(v=>!['string','number','boolean'].includes(typeof v))) fail('invalid item value'); } }
       const allowedProps = new Set([...Object.keys(Core.DEF[node.type].make().props), ...Core.ctlKeys(node.type), 'link', 'target', 'ts']);

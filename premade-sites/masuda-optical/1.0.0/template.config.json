@@ -1,0 +1,222 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "masuda-optical",
+  "version": "1.0.0",
+  "name": "MASUDA / 04",
+  "sampleName": "MASUDA / 04 — Sabae Titanium Eyewear",
+  "description": "Four-page Sabae titanium eyewear and clinical optometry editorial template featuring a 1240px four-tile editorial bento hero, interactive anatomical frame hotspot stage, dark obsidian hardware lineup with orthographic CAD elevations, native expanding photo strips (strips), pixel-aligned M-09 exterior-to-CAD compare workbench, standardized 21:8 architectural inner heroes, filterable 6-model catalog, finish swatch comparison cards, CMM sizing ledger, native clinical fitting stage switcher (switcher), Tokai high-index resin comparator, Sabae traceability film rows, boutique directory, and exam booking desk.",
+  "categories": [
+    "Fashion & Optics",
+    "Industrial Craft"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 220,
+      "height": 40
+    },
+    {
+      "id": "lens-index-160",
+      "file": "assets/lens-index-160.svg",
+      "name": "lens-index-160.svg",
+      "width": 680,
+      "height": 380
+    },
+    {
+      "id": "lens-index-167",
+      "file": "assets/lens-index-167.svg",
+      "name": "lens-index-167.svg",
+      "width": 680,
+      "height": 380
+    },
+    {
+      "id": "lens-index-174",
+      "file": "assets/lens-index-174.svg",
+      "name": "lens-index-174.svg",
+      "width": 680,
+      "height": 380
+    },
+    {
+      "id": "spec-m09",
+      "file": "assets/spec-m09.svg",
+      "name": "spec-m09.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m12",
+      "file": "assets/spec-m12.svg",
+      "name": "spec-m12.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m15",
+      "file": "assets/spec-m15.svg",
+      "name": "spec-m15.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-c09",
+      "file": "assets/spec-c09.svg",
+      "name": "spec-c09.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m18",
+      "file": "assets/spec-m18.svg",
+      "name": "spec-m18.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m22",
+      "file": "assets/spec-m22.svg",
+      "name": "spec-m22.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m09-dark",
+      "file": "assets/spec-m09-dark.svg",
+      "name": "spec-m09-dark.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m12-dark",
+      "file": "assets/spec-m12-dark.svg",
+      "name": "spec-m12-dark.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "spec-m15-dark",
+      "file": "assets/spec-m15-dark.svg",
+      "name": "spec-m15-dark.svg",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "id": "editorial-portrait",
+      "file": "assets/editorial-portrait.webp",
+      "name": "editorial-portrait.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "hero-plinth",
+      "file": "assets/hero-plinth.webp",
+      "name": "hero-plinth.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "plinth-exterior",
+      "file": "assets/plinth-exterior.webp",
+      "name": "plinth-exterior.webp",
+      "width": 1200,
+      "height": 675
+    },
+    {
+      "id": "plinth-optical-cad",
+      "file": "assets/plinth-optical-cad.webp",
+      "name": "plinth-optical-cad.webp",
+      "width": 1200,
+      "height": 675
+    },
+    {
+      "id": "takiron-block",
+      "file": "assets/takiron-block.webp",
+      "name": "takiron-block.webp",
+      "width": 684,
+      "height": 474
+    },
+    {
+      "id": "cnc-milling-poster",
+      "file": "assets/cnc-milling-poster.webp",
+      "name": "cnc-milling-poster.webp",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "banner-frames",
+      "file": "assets/banner-frames.webp",
+      "name": "banner-frames.webp",
+      "width": 1440,
+      "height": 550
+    },
+    {
+      "id": "banner-fitting",
+      "file": "assets/banner-fitting.webp",
+      "name": "banner-fitting.webp",
+      "width": 1440,
+      "height": 550
+    },
+    {
+      "id": "banner-boutiques",
+      "file": "assets/banner-boutiques.webp",
+      "name": "banner-boutiques.webp",
+      "width": 1440,
+      "height": 550
+    },
+    {
+      "id": "studio-ledge",
+      "file": "assets/studio-ledge.webp",
+      "name": "studio-ledge.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "kyoto-suite",
+      "file": "assets/kyoto-suite.webp",
+      "name": "kyoto-suite.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "boutique-gallery",
+      "file": "assets/boutique-gallery.webp",
+      "name": "boutique-gallery.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "editorial-fit",
+      "file": "assets/editorial-fit.webp",
+      "name": "editorial-fit.webp",
+      "width": 1200,
+      "height": 800
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:masuda-optical:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "0d2f2cc7104ad9a112be239799d71bf06e696d14625c11f7c90c942d6d9a4838"
+}

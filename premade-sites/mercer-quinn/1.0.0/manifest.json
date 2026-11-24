@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "mercer-quinn",
+  "version": "1.0.0",
+  "name": "MERCER QUINN",
+  "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
+  "description": "Four-page Swiss broadsheet intellectual property and AI systems litigation counsel site featuring a hairline silver-parchment floating header over a 100dvh manifesto grid, precedent ledger, practice switcher tabs, SPDX dataset provenance code specimen, Article 53 countdown, oral-argument audio player, fee table, and conflict check desk.",
+  "categories": [
+    "Legal & Advisory",
+    "Enterprise Tech"
+  ],
+  "pages": [
+    {
+      "id": "mrq-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "mrq-page-practice",
+      "name": "Practice Areas",
+      "slug": "practice"
+    },
+    {
+      "id": "mrq-page-briefings",
+      "name": "Precedent & Briefings",
+      "slug": "briefings"
+    },
+    {
+      "id": "mrq-page-conflict-check",
+      "name": "Conflict Check",
+      "slug": "conflict-check"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "a5d3656ae718fdd8a9dcd12bf91e599545ac93866086426aa3c890152017a14d",
+  "previewPage": "index.html",
+  "assetCount": 7,
+  "assetBytes": 483979
+}

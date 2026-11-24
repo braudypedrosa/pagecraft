@@ -44,9 +44,11 @@ export function mediaReferences(document: Doc): MediaReference[] {
     const fields = node.type === 'image' ? ['src']
       : node.type === 'video' ? ['src', 'poster']
       : node.type === 'audio' ? ['src', 'artwork']
+      : node.type === 'compare' ? ['beforeSrc', 'afterSrc']
+      : node.type === 'hotspot' ? ['src']
       : [];
     fields.forEach(key => scan(props[key], [...base, 'props', key], where));
-    if (node.type === 'gallery' && Array.isArray(props.items)) props.items.forEach((item, j) =>
+    if ((node.type === 'gallery' || node.type === 'strips' || node.type === 'switcher') && Array.isArray(props.items)) props.items.forEach((item, j) =>
       scan(item.src, [...base, 'props', 'items', j, 'src'], where));
     const definition = document.meta.components?.find(def => def.id === node.use);
     definition?.props.filter(prop => prop.t === 'img').forEach(prop =>

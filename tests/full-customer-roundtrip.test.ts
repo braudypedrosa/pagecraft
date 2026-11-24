@@ -195,6 +195,12 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('filter', { group: 'roundtrip' }, {}, [
       C.N('box', { tags: 'Feature' }, {}, [C.N('text', { html: '<p>Filter card.</p>' })]),
     ]),
+    C.N('compare', { beforeSrc: 'https://example.test/before.webp', afterSrc: 'https://example.test/after.webp', beforeAlt: 'Before', afterAlt: 'After' }),
+    C.N('timeline', { orientation: 'horizontal', marker: 'numbers', items: [{ tag: '01', title: 'Step one', detail: 'Step details.' }] }),
+    C.N('progress', { showValue: 1, rounded: 1, items: [{ label: 'Efficiency', value: '91', unit: '%' }] }),
+    C.N('hotspot', { src: 'https://example.test/diagram.webp', alt: 'Diagram', items: [{ label: 'A', title: 'Part A', detail: 'Spec A', x: '45', y: '55' }] }),
+    C.N('strips', { items: [{ src: 'https://example.test/strip.webp', alt: 'Strip', tag: 'Metal', title: 'Cold swaging', detail: 'Swaged front.' }] }),
+    C.N('switcher', { stageLayout: 'rail', ratio: '3 / 2', items: [{ label: 'Phase A', meta: '15 min', title: 'Corneal map', detail: 'Wavefront scan.', src: 'https://example.test/stage.webp', alt: 'Stage view' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -228,14 +234,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 31 Add choices map to stable persisted module shapes', () => {
+  test('all 37 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(31);
-    expect(new Set(choices)).toHaveLength(31);
+    expect(choices).toHaveLength(37);
+    expect(new Set(choices)).toHaveLength(37);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

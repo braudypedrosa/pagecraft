@@ -1595,6 +1595,201 @@
       "previewPage": "index.html",
       "assetCount": 8,
       "assetBytes": 1000856
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "masuda-optical",
+      "version": "1.0.0",
+      "name": "MASUDA / 04",
+      "sampleName": "MASUDA / 04 — Sabae Titanium Eyewear",
+      "description": "Four-page Sabae titanium eyewear and clinical optometry editorial template featuring a 1240px four-tile editorial bento hero, interactive anatomical frame hotspot stage, dark obsidian hardware lineup with orthographic CAD elevations, native expanding photo strips (strips), pixel-aligned M-09 exterior-to-CAD compare workbench, standardized 21:8 architectural inner heroes, filterable 6-model catalog, finish swatch comparison cards, CMM sizing ledger, native clinical fitting stage switcher (switcher), Tokai high-index resin comparator, Sabae traceability film rows, boutique directory, and exam booking desk.",
+      "categories": [
+        "Fashion & Optics",
+        "Industrial Craft"
+      ],
+      "pages": [
+        {
+          "id": "msd-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "msd-page-frames",
+          "name": "Frames",
+          "slug": "frames"
+        },
+        {
+          "id": "msd-page-fitting",
+          "name": "Fitting & Optics",
+          "slug": "fitting"
+        },
+        {
+          "id": "msd-page-boutiques",
+          "name": "Sabae & Boutiques",
+          "slug": "boutiques"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "0d2f2cc7104ad9a112be239799d71bf06e696d14625c11f7c90c942d6d9a4838",
+      "previewPage": "index.html",
+      "assetCount": 28,
+      "assetBytes": 1117894
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "alder-and-silt",
+      "version": "1.0.0",
+      "name": "ALDER & SILT",
+      "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+      "description": "Four-page ecological landscape architecture studio site with a translucent forest-glass floating header over a 100dvh coastal boardwalk meadow canvas, clay-to-meadow compare scrubber, filterable site monographs, seasonal field gallery, vertical 5-stage stewardship timeline, permitting FAQ accordion, and site walk desk.",
+      "categories": [
+        "Landscape & Ecology",
+        "Architecture"
+      ],
+      "pages": [
+        {
+          "id": "aldr-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "aldr-page-sites",
+          "name": "Selected Sites",
+          "slug": "sites"
+        },
+        {
+          "id": "aldr-page-process",
+          "name": "Ecology & Process",
+          "slug": "process"
+        },
+        {
+          "id": "aldr-page-consultation",
+          "name": "Site Walk",
+          "slug": "consultation"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "6113a93f44ee846aec2a62f54165cb4d018e7afc9df93d6eb35f02ec99cb9f50",
+      "previewPage": "index.html",
+      "assetCount": 13,
+      "assetBytes": 2213683
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "mercer-quinn",
+      "version": "1.0.0",
+      "name": "MERCER QUINN",
+      "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
+      "description": "Four-page Swiss broadsheet intellectual property and AI systems litigation counsel site featuring a hairline silver-parchment floating header over a 100dvh manifesto grid, precedent ledger, practice switcher tabs, SPDX dataset provenance code specimen, Article 53 countdown, oral-argument audio player, fee table, and conflict check desk.",
+      "categories": [
+        "Legal & Advisory",
+        "Enterprise Tech"
+      ],
+      "pages": [
+        {
+          "id": "mrq-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "mrq-page-practice",
+          "name": "Practice Areas",
+          "slug": "practice"
+        },
+        {
+          "id": "mrq-page-briefings",
+          "name": "Precedent & Briefings",
+          "slug": "briefings"
+        },
+        {
+          "id": "mrq-page-conflict-check",
+          "name": "Conflict Check",
+          "slug": "conflict-check"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a5d3656ae718fdd8a9dcd12bf91e599545ac93866086426aa3c890152017a14d",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 483979
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "soraia-thermal",
+      "version": "1.0.0",
+      "name": "SORAIA",
+      "sampleName": "SORAIA — Thermal Basalt Reserve",
+      "description": "Four-page Nordic-Iberian subterranean basalt bathhouse and thermal sanctuary site featuring a dark translucent floating header over a 100dvh centered cinema stage, lightbox sanctuary film trigger, interactive 4-chamber architectural floorplan hotspots, artesian mineral progress bars, subterranean vault slider, material gallery, etiquette accordion, and reservation desk.",
+      "categories": [
+        "Wellness & Hospitality",
+        "Architecture"
+      ],
+      "pages": [
+        {
+          "id": "sra-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "sra-page-circuit",
+          "name": "Thermal Circuit",
+          "slug": "circuit"
+        },
+        {
+          "id": "sra-page-architecture",
+          "name": "Architecture & Film",
+          "slug": "architecture"
+        },
+        {
+          "id": "sra-page-reserve",
+          "name": "Reserve",
+          "slug": "reserve"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "e8d6366653fa1ba2189338d18a605aa359a5c1b837c3fedea0012ca093cfc642",
+      "previewPage": "index.html",
+      "assetCount": 12,
+      "assetBytes": 915330
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kestrel-cargo",
+      "version": "1.0.0",
+      "name": "KESTREL",
+      "sampleName": "KESTREL — Urban Cargo EV Engineering",
+      "description": "Four-page electric utility cargo bike and municipal fleet site featuring a 70vh full-bleed dark studio hero with docked 4-metric telemetry bar, standardized 44vh inner-page engineering headers, pixel-aligned exterior-to-X-Ray scrubber, CAN-Bus & dyno progress cards, 3 hardware macro cards, interactive hotspot chassis diagram, visual trim tabs, horizontal certification timeline, 6-hub depot network cards, and fleet pilot desk.",
+      "categories": [
+        "Hardware & Mobility",
+        "Industrial Craft"
+      ],
+      "pages": [
+        {
+          "id": "ksl-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "ksl-page-models",
+          "name": "Models & Specs",
+          "slug": "models"
+        },
+        {
+          "id": "ksl-page-drivetrain",
+          "name": "Drivetrain X-Ray",
+          "slug": "drivetrain"
+        },
+        {
+          "id": "ksl-page-fleet",
+          "name": "Test Ride & Fleet",
+          "slug": "fleet"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "5c4d5505c3ee4e02052b04d42de4fbc6fb249259112ef55be93849b96f073172",
+      "previewPage": "index.html",
+      "assetCount": 11,
+      "assetBytes": 439767
     }
   ]
 }

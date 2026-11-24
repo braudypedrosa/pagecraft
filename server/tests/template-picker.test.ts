@@ -93,6 +93,7 @@ test("template picker renders the twelve named templates and represented facets"
   const names = [...document.querySelectorAll("[data-template-card] strong")]
     .map(node => node.textContent);
   a.deepEqual(names, [
+    "ALDER & SILT · Landscape Architecture",
     "Common Ground · Architecture Studio",
     "Bramble Vet · Veterinary Clinic",
     "Marea · Coastal Stays",
@@ -102,7 +103,11 @@ test("template picker renders the twelve named templates and represented facets"
     "Fieldwork Radio · Podcast & Live Show",
     "Northline · Creative Studio",
     "Kairn Climbing · Bouldering Gym",
+    "KESTREL · Electric Cargo Mobility",
     "Maren & Tomás · Destination Wedding",
+    "MASUDA / 04 · Titanium Eyewear",
+    "MERCER QUINN · Patent & AI Litigation",
+    "SORAIA · Thermal Bathhouse",
     "Salt House · Holiday Homes",
     "Stillwood · Cabin Retreat",
   ]);
@@ -143,7 +148,14 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   setControl(search, "architect", Event);
   a.deepEqual(
     visibleCards(document).map(card => card.querySelector("strong")?.textContent),
-    ["Common Ground · Architecture Studio"],
+    [
+      "ALDER & SILT · Landscape Architecture",
+      "Common Ground · Architecture Studio",
+      "KESTREL · Electric Cargo Mobility",
+      "MASUDA / 04 · Titanium Eyewear",
+      "MERCER QUINN · Patent & AI Litigation",
+      "SORAIA · Thermal Bathhouse",
+    ],
   );
   setControl(search, "", Event);
   setControl(industry, "travel-hospitality", Event);
@@ -170,7 +182,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 12);
+  a.equal(visibleCards(document).length, 17);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

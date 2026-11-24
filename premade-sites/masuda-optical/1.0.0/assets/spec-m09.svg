@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#F2F0EB"/>
+  <path d="M32 68 H608 M32 296 H608 M320 68 V296" stroke="#DFDCD5" stroke-width="1" stroke-dasharray="3 5"/>
+  <text x="32" y="42" fill="#A84404" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.4">M-09 · CROWN PANTO</text>
+  <text x="608" y="42" text-anchor="end" fill="#5B5954" font-family="ui-monospace, monospace" font-size="12">46□21 – 145 mm</text>
+  <g transform="translate(80, 96)" fill="none" stroke="#181A1D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 32 L182 32 C196 36, 200 72, 192 104 C180 144, 134 156, 108 156 C80 156, 36 144, 24 104 C18 72, 20 38, 24 32 Z" fill="#E7E4DC" fill-opacity="0.72"/>
+       <path d="M298 32 L456 32 C460 38, 462 72, 456 104 C444 144, 400 156, 372 156 C346 156, 300 144, 288 104 C280 72, 284 36, 298 32 Z" fill="#E7E4DC" fill-opacity="0.72"/>
+       <path d="M196 48 C220 30, 260 30, 284 48" stroke="#A84404" stroke-width="3.2"/>
+       <line x1="0" y1="54" x2="22" y2="54" stroke-width="4"/><line x1="458" y1="54" x2="480" y2="54" stroke-width="4"/>
+       <line x1="20" y1="-12" x2="196" y2="-12" stroke="#A84404" stroke-width="1.2"/><text x="108" y="-20" text-anchor="middle" fill="#A84404" stroke="none" font-family="ui-monospace, monospace" font-size="11" font-weight="700">46.0 mm</text>
+       <text x="240" y="-20" text-anchor="middle" fill="#5B5954" stroke="none" font-family="ui-monospace, monospace" font-size="11">21.0</text>
+  </g>
+  <text x="32" y="330" fill="#5B5954" font-family="ui-monospace, monospace" font-size="11">SABAE ORTHOGRAPHIC ELEVATION · 1:1 MM</text>
+  <text x="608" y="330" text-anchor="end" fill="#181A1D" font-family="ui-monospace, monospace" font-size="11" font-weight="700">CHASSIS MASS: 11.4 g</text>
+</svg>
