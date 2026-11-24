@@ -152,6 +152,19 @@ test.each([
     body: new URLSearchParams({ csrf: csrf! })
   });
   a.equal(approved.status, 302);
+  const expired = await admin(second, '/v1/integrations/wordpress/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: csrf! })
+  });
+  a.equal(expired.status, 400);
+  a.match(expired.headers.get('content-type') || '', /text\/html/);
+  a.match(await expired.text(), /This approval has expired[\s\S]*Go back to WordPress/);
+  const signedOut = await request(first, '/v1/wordpress-import/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: csrf! })
+  });
+  a.equal(signedOut.status, 401);
+  a.match(await signedOut.text(), /You’re signed out/);
   const returned = new URL(approved.headers.get('location')!);
   a.equal(returned.origin, new URL(callback).origin);
   a.equal(returned.pathname, new URL(callback).pathname);
@@ -475,6 +488,14 @@ test('OAuth consent and one-time editor SSO work across app workers and reject r
     body: new URLSearchParams({ csrf: csrf!, siteId: site.id })
   });
   a.equal(replayConsent.status, 400);
+  a.match(replayConsent.headers.get('content-type') || '', /text\/html/);
+  a.match(await replayConsent.text(), /This approval has expired/);
+  const signedOut = await request(first, '/v1/oauth/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: csrf! })
+  });
+  a.equal(signedOut.status, 401);
+  a.match(await signedOut.text(), /You’re signed out/);
 
   const token = await request(first, '/v1/oauth/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },

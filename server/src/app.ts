@@ -5390,7 +5390,7 @@ export function createApp(o: Options) {
       item.role === "owner"
     );
     if (!projects.length) {
-      return c.json({ error: "this account owns no Pagecraft projects" }, 403);
+      return c.html(wordpressConsentProblem("no-projects"), 403);
     }
     const csrf = newToken();
     const consent: ManualImportConsent = {
@@ -5439,7 +5439,7 @@ export function createApp(o: Options) {
       return c.json({ error: "manual import persistence is unavailable" }, 503);
     }
     const user = await who(c);
-    if (!user) return c.json({ error: "sign in" }, 401);
+    if (!user) return c.html(wordpressConsentProblem("signed-out"), 401);
     const body = await c.req.parseBody().catch(() => null) as
       | Record<string, unknown>
       | null;
@@ -5454,7 +5454,7 @@ export function createApp(o: Options) {
       | ManualImportConsent
       | undefined;
     if (!consent || consent.userId !== user.id) {
-      return c.json({ error: "consent expired or already used" }, 400);
+      return c.html(wordpressConsentProblem("expired"), 400);
     }
     const code = newToken();
     await o.connected.putGrant({
@@ -5815,10 +5815,7 @@ export function createApp(o: Options) {
       roleAllows(item.role, "admin")
     );
     if (!projects.length) {
-      return c.json(
-        { error: "no project can be connected by this account" },
-        403,
-      );
+      return c.html(wordpressConsentProblem("no-connectable"), 403);
     }
     if (siteId && !projects.some((item) => item.site.id === siteId)) {
       return c.notFound();
@@ -5877,7 +5874,7 @@ export function createApp(o: Options) {
   app.post("/v1/oauth/authorize", async (c) => {
     if (!o.connected) return releaseUnavailable(c);
     const user = await who(c);
-    if (!user) return c.json({ error: "sign in" }, 401);
+    if (!user) return c.html(wordpressConsentProblem("signed-out"), 401);
     const body = await c.req.parseBody().catch(() => null) as
       | Record<string, unknown>
       | null;
@@ -5891,7 +5888,7 @@ export function createApp(o: Options) {
       : null;
     const consent = grant?.payload as unknown as OAuthConsent | undefined;
     if (!consent || consent.userId !== user.id) {
-      return c.json({ error: "consent expired or already used" }, 400);
+      return c.html(wordpressConsentProblem("expired"), 400);
     }
     const siteId = String(body?.siteId || "");
     const membership = await o.auth.membership(siteId, user.id);
@@ -8137,6 +8134,38 @@ const newSiteForm = (label: string) => `
       }
     });
   <\/script>`;
+
+/* Approvals are browser form posts, so their problems are pages a person reads, not JSON. */
+const wordpressConsentProblem = (
+  problem: "expired" | "signed-out" | "no-projects" | "no-connectable",
+) => {
+  const [heading, text] = {
+    "expired": [
+      "This approval has expired",
+      "Approvals last 10 minutes and work once. Nothing was connected. Go back to WordPress and start connecting to Pagecraft again.",
+    ],
+    "signed-out": [
+      "You’re signed out",
+      "Nothing was connected. Sign in to Pagecraft, then go back to WordPress and start connecting again.",
+    ],
+    "no-projects": [
+      "No projects to import",
+      "This account doesn’t own any Pagecraft projects. Sign in with the account that owns the project, or create one first.",
+    ],
+    "no-connectable": [
+      "No project to connect",
+      "You need to be an owner or admin of a Pagecraft project to connect it to WordPress.",
+    ],
+  }[problem];
+  return shell(
+    "Can’t connect WordPress — Pagecraft",
+    `<h1>${heading}</h1><p>${text}</p>${
+      problem === "signed-out"
+        ? '<a href="/sign-in">Sign in</a>'
+        : '<a href="/">Go to your dashboard</a>'
+    }`,
+  );
+};
 
 const emptyPage = (email: string) =>
   shell(
