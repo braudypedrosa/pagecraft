@@ -44,7 +44,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
   {
     g: 'Content', items: [
       ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
-      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'], ['video', 'Video'], ['audio', 'Audio'],
+      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'], ['exhibit', 'Exhibit index'], ['video', 'Video'], ['audio', 'Audio'],
       ['timeline', 'Timeline'], ['progress', 'Progress bars'], ['icon', 'Icon']
     ]
   },
@@ -53,7 +53,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -104,6 +104,8 @@ const ALIASES: Record<string, string> = {
   hotspot: 'annotations pins diagram map callouts popover',
   strips: 'expanding strips accordion gallery showcase panels',
   switcher: 'stage visual switcher process steps showcase tabs',
+  exhibit: 'monograph ledger hover preview index projects exhibitions',
+  scrolly: 'sticky scroll steps narrative scrollytelling sequence',
   list: 'collection cms dynamic',
 };
 

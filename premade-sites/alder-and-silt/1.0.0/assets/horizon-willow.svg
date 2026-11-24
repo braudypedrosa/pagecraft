@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280">
+  <rect width="640" height="280" fill="#EFF3EE"/>
+  <path d="M0 92 L220 92 L430 184 L640 184 L640 280 L0 280 Z" fill="#CED9D0" stroke="#133128" stroke-width="1.6"/>
+  <path d="M412 176 L640 176 L640 222 L456 222 Z" fill="#0F6A53" fill-opacity="0.18"/>
+  <g stroke="#133128" stroke-width="2.6" stroke-linecap="round">
+    <line x1="256" y1="74" x2="218" y2="178"/><line x1="322" y1="102" x2="284" y2="206"/><line x1="388" y1="132" x2="350" y2="234"/>
+  </g>
+  <g stroke="#0F6A53" stroke-width="1.4" fill="none">
+    <path d="M232 142 C206 156, 192 178, 184 198"/><path d="M298 170 C272 184, 258 206, 248 226"/><path d="M364 198 C338 212, 324 232, 316 250"/>
+  </g>
+  <text x="28" y="42" fill="#0F6A53" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.2">HORIZON C · -450 TO -1400 MM</text>
+  <text x="612" y="42" text-anchor="end" fill="#132A22" font-family="ui-monospace, monospace" font-size="12" font-weight="700">SHEAR 240 N/M²</text>
+  <text x="28" y="256" fill="#3E544B" font-family="ui-monospace, monospace" font-size="11.5">DORMANT SALIX LIVE STAKES + DRY RIPRAP TOE</text>
+</svg>

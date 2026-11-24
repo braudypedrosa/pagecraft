@@ -219,6 +219,8 @@ test('all 34 module renderers emit their representative authored value', () => {
     hotspot: { expected: /popovertarget="/, configure: n => { n.props.src = 'https://example.com/diagram.jpg'; n.props.items = [{ label: '01', title: 'QA pin', detail: 'Detail', x: '40', y: '60' }]; } },
     strips: { expected: /data-strips/, configure: n => { n.props.items = [{ src: 'https://example.com/a.jpg', alt: 'QA strip', title: 'QA strip', detail: 'Detail' }]; } },
     switcher: { expected: /data-switcher/, configure: n => { n.props.items = [{ label: 'QA stage', meta: '10 min', title: 'QA stage title', detail: 'Stage detail', src: 'https://example.com/s.jpg', alt: 'Stage photo' }]; } },
+    exhibit: { expected: /data-exhibit/, configure: n => { n.props.items = [{ title: 'QA exhibit', location: 'Portland', scope: '2.4 ac', year: '2025', src: 'https://example.com/e.jpg', alt: 'Exhibit preview' }]; } },
+    scrolly: { expected: /data-scrolly/, configure: n => { n.props.items = [{ title: 'QA step', detail: 'Step detail', fact: '82 mm/hr', src: 'https://example.com/sc.jpg', alt: 'Step visual' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -283,7 +285,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(129);
+  expect(declarations).toHaveLength(131);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -331,7 +333,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(211);
+  expect(declarations).toHaveLength(224);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

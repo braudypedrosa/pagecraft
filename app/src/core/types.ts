@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -275,6 +275,10 @@ export interface StripsItem { src?: string; alt?: string; tag?: string; title?: 
 export interface StripsProps { items?: StripsItem[] }
 export interface SwitcherItem { label?: string; meta?: string; title?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string; pos?: string }
 export interface SwitcherProps { stageLayout?: string; ratio?: string; items?: SwitcherItem[] }
+export interface ExhibitItem { title?: string; location?: string; scope?: string; year?: string; href?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface ExhibitProps { previewRatio?: string; items?: ExhibitItem[] }
+export interface ScrollyItem { title?: string; detail?: string; fact?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface ScrollyProps { stickyRatio?: string; items?: ScrollyItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -285,7 +289,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

@@ -421,7 +421,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(C.U.len).toContain('svh');
     expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
 
-    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher'] as const) {
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly'] as const) {
       expect(C.DEF[type]).toBeTruthy();
       expect(C.DEF[type].caps).toContain('spacing');
       expect(C.DEF[type].caps).toContain('animation');
@@ -437,13 +437,17 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const hsNode = C.N('hotspot', { src: 'asset:hs-diagram' });
     const stNode = C.N('strips', { items: [{ src: 'asset:strip-photo', title: 'Panel', detail: 'Detail' }] });
     const swNode = C.N('switcher', { items: [{ label: 'Stage 1', src: 'asset:stage-photo', title: 'Stage', detail: 'Detail' }] });
-    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode])])])];
+    const exNode = C.N('exhibit', { items: [{ title: 'Entry 1', src: 'asset:exhibit-photo', alt: 'Exhibit' }] });
+    const scNode = C.N('scrolly', { items: [{ title: 'Step 1', src: 'asset:scrolly-photo', alt: 'Scrolly' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode])])])];
     const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
     expect(assetIds).toContain('cmp-before');
     expect(assetIds).toContain('cmp-after');
     expect(assetIds).toContain('hs-diagram');
     expect(assetIds).toContain('strip-photo');
     expect(assetIds).toContain('stage-photo');
+    expect(assetIds).toContain('exhibit-photo');
+    expect(assetIds).toContain('scrolly-photo');
 
     // Zero-drift when absent
     const plainHtml = C.buildPage(C.state.pages[0]);
@@ -454,6 +458,8 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(plainHtml).not.toContain('.pagecraft-hotspot');
     expect(plainHtml).not.toContain('.pagecraft-strips');
     expect(plainHtml).not.toContain('.pagecraft-switcher');
+    expect(plainHtml).not.toContain('.pagecraft-exhibit');
+    expect(plainHtml).not.toContain('.pagecraft-scrolly');
 
     // Floating header & 100dvh hero
     const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
@@ -574,5 +580,53 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     swDispose!();
     expect(swWin.document.querySelector('.pagecraft-switcher')?.hasAttribute('data-pc-sw-ready')).toBe(false);
     swDom.window.close();
+
+    // Exhibit index hover/focus preview interaction
+    const exHtml = C.renderNode(C.N('exhibit', {
+      previewRatio: '4 / 3',
+      items: [
+        { title: 'Headland Ledge', location: 'Cape Elizabeth', scope: '3.4 ac', year: '2025', href: 'https://example.test/a', src: 'https://example.test/a.jpg', alt: 'Headland' },
+        { title: 'Estuary Basin', location: 'Astoria', scope: '5.1 ac', year: '2024', href: 'https://example.test/b', src: 'https://example.test/b.jpg', alt: 'Estuary' },
+      ]
+    }), { edit: false });
+    const exDom = domFor(exHtml);
+    const exWin = exDom.window as any;
+    let exDispose: (() => void) | null = null;
+    exWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { exDispose = fn; };
+    exWin.eval(scriptBody(C.EXHIBIT_JS));
+    const exRows = [...exWin.document.querySelectorAll('.pagecraft-exhibit-row')] as HTMLElement[];
+    const exFloat = exWin.document.querySelector('.pagecraft-exhibit-float') as HTMLElement;
+    expect(exFloat.getAttribute('data-open')).toBe('0');
+    exRows[1].dispatchEvent(new exWin.FocusEvent('focus'));
+    expect(exFloat.getAttribute('data-open')).toBe('1');
+    expect(exFloat.getAttribute('data-active-idx')).toBe('1');
+    exDispose!();
+    expect(exWin.document.querySelector('.pagecraft-exhibit')?.hasAttribute('data-pc-ex-ready')).toBe(false);
+    exDom.window.close();
+
+    // Scrolly sticky steps click + keyboard activation
+    const scHtml = C.renderNode(C.N('scrolly', {
+      stickyRatio: '4 / 3',
+      items: [
+        { title: 'Soil Borings', detail: 'Phase one.', fact: '82 mm/hr', src: 'https://example.test/s1.jpg', alt: 'Phase 1' },
+        { title: 'Granite Weirs', detail: 'Phase two.', fact: '0% mortar', src: 'https://example.test/s2.jpg', alt: 'Phase 2' },
+      ]
+    }), { edit: false });
+    const scDom = domFor(scHtml);
+    const scWin = scDom.window as any;
+    let scDispose: (() => void) | null = null;
+    scWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { scDispose = fn; };
+    scWin.eval(scriptBody(C.SCROLLY_JS));
+    const scSteps = [...scWin.document.querySelectorAll('.pagecraft-scrolly-step')] as HTMLElement[];
+    const scPlates = [...scWin.document.querySelectorAll('.pagecraft-scrolly-plate')] as HTMLElement[];
+    expect(scSteps[0].getAttribute('data-active')).toBe('1');
+    expect(scPlates[0].getAttribute('data-active')).toBe('1');
+    scSteps[1].click();
+    expect(scSteps[0].getAttribute('data-active')).toBe('0');
+    expect(scSteps[1].getAttribute('data-active')).toBe('1');
+    expect(scPlates[1].getAttribute('data-active')).toBe('1');
+    scDispose!();
+    expect(scWin.document.querySelector('.pagecraft-scrolly')?.hasAttribute('data-pc-sc-ready')).toBe(false);
+    scDom.window.close();
   });
 });

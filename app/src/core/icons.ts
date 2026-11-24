@@ -94,7 +94,9 @@ const IC: Record<string, string> = {
   progress:'<rect x="1.5" y="3.5" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="3.5" width="9" height="2.6" rx="1.3" fill="currentColor" stroke="none"/><rect x="1.5" y="9.9" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="9.9" width="6.2" height="2.6" rx="1.3" fill="currentColor" stroke="none"/>',
   hotspot:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" opacity=".55"/><circle cx="6" cy="7" r="2.1"/><circle cx="6" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="10.8" cy="10" r="1.7"/>',
   strips:'<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
-  switcher:'<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>'
+  switcher:'<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
+  exhibit:'<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
+  scrolly:'<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

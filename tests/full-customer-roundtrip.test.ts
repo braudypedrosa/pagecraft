@@ -201,6 +201,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('hotspot', { src: 'https://example.test/diagram.webp', alt: 'Diagram', items: [{ label: 'A', title: 'Part A', detail: 'Spec A', x: '45', y: '55' }] }),
     C.N('strips', { items: [{ src: 'https://example.test/strip.webp', alt: 'Strip', tag: 'Metal', title: 'Cold swaging', detail: 'Swaged front.' }] }),
     C.N('switcher', { stageLayout: 'rail', ratio: '3 / 2', items: [{ label: 'Phase A', meta: '15 min', title: 'Corneal map', detail: 'Wavefront scan.', src: 'https://example.test/stage.webp', alt: 'Stage view' }] }),
+    C.N('exhibit', { previewRatio: '4 / 3', items: [{ title: 'Headland Ledge', location: 'Cape Elizabeth', scope: '3.4 ac', year: '2025', href: 'https://example.test/work', src: 'https://example.test/exhibit.webp', alt: 'Exhibit plate' }] }),
+    C.N('scrolly', { stickyRatio: '4 / 3', items: [{ title: 'Soil Borings', detail: 'Percolation survey.', fact: '82 mm/hr', src: 'https://example.test/scrolly.webp', alt: 'Scrolly plate' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -240,8 +242,8 @@ describe('full customer document round trip', () => {
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(37);
-    expect(new Set(choices)).toHaveLength(37);
+    expect(choices).toHaveLength(39);
+    expect(new Set(choices)).toHaveLength(39);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

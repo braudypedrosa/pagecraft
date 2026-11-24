@@ -66,6 +66,8 @@ __export(index_exports, {
   DEV_W: () => DEV_W,
   EMBED_FRAME_HASH: () => EMBED_FRAME_HASH,
   EMBED_FRAME_JS: () => EMBED_FRAME_JS,
+  EXHIBIT_CSS: () => EXHIBIT_CSS,
+  EXHIBIT_JS: () => EXHIBIT_JS,
   FACADE_JS: () => FACADE_JS,
   FIELD_TYPES: () => FIELD_TYPES,
   FILTER_CSS: () => FILTER_CSS,
@@ -109,6 +111,8 @@ __export(index_exports, {
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
   SCHEMA: () => SCHEMA,
+  SCROLLY_CSS: () => SCROLLY_CSS,
+  SCROLLY_JS: () => SCROLLY_JS,
   SEC_TAGS: () => SEC_TAGS,
   SHARED_FOOTER_END: () => SHARED_FOOTER_END,
   SHARED_FOOTER_START: () => SHARED_FOOTER_START,
@@ -693,7 +697,9 @@ var IC = {
   progress: '<rect x="1.5" y="3.5" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="3.5" width="9" height="2.6" rx="1.3" fill="currentColor" stroke="none"/><rect x="1.5" y="9.9" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="9.9" width="6.2" height="2.6" rx="1.3" fill="currentColor" stroke="none"/>',
   hotspot: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" opacity=".55"/><circle cx="6" cy="7" r="2.1"/><circle cx="6" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="10.8" cy="10" r="1.7"/>',
   strips: '<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
-  switcher: '<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>'
+  switcher: '<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
+  exhibit: '<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
+  scrolly: '<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>'
 };
 var svg = (n, s = 14, cls = "") => `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ""}</svg>`;
 var ICONS = [
@@ -2306,6 +2312,8 @@ var KIND = {
   hotspot: "image hotspots",
   strips: "expanding strips",
   switcher: "stage switcher",
+  exhibit: "exhibit index",
+  scrolly: "sticky steps",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -3113,6 +3121,169 @@ var SWITCHER_JS = `<script>
 })();
 </script>
 `;
+var EXHIBIT_CSS = `.pagecraft-exhibit{position:relative;width:100%}
+.pagecraft-exhibit-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--ex-line,rgba(19,49,40,.15))}
+.pagecraft-exhibit-item{margin:0;border-bottom:1px solid var(--ex-line,rgba(19,49,40,.15))}
+.pagecraft-exhibit-row{appearance:none;width:100%;border:0;background:transparent;padding:20px 14px;margin:0;display:grid;grid-template-columns:72px minmax(0,1.4fr) minmax(0,1fr) auto auto;align-items:center;gap:22px;text-align:left;text-decoration:none;color:var(--ex-ink,#132A22);font-family:inherit;cursor:pointer;transition:background-color .22s cubic-bezier(.22,1,.36,1),padding-inline-start .22s cubic-bezier(.22,1,.36,1)}
+.pagecraft-exhibit-row:hover,.pagecraft-exhibit-row:focus-visible,.pagecraft-exhibit-row[data-active="1"]{background:var(--ex-hover,rgba(19,49,40,.045));padding-inline-start:20px}
+.pagecraft-exhibit-row:focus-visible{outline:2px solid var(--ex-accent,#0F6A53);outline-offset:-2px}
+.pagecraft-exhibit[data-exhibit-edit] .pagecraft-exhibit-row{pointer-events:none}
+.pagecraft-exhibit-thumb{display:block;width:72px;border-radius:7px;overflow:hidden;border:1px solid var(--ex-line,rgba(19,49,40,.15));background:#133128;flex-shrink:0}
+.pagecraft-exhibit-thumb-img{display:block;width:100%;height:auto;aspect-ratio:4 / 3;object-fit:cover}
+.pagecraft-exhibit-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pagecraft-exhibit-title{display:block;font-size:clamp(19px,1.9vw,24px);line-height:1.22;font-weight:600;letter-spacing:-.012em;color:var(--ex-ink,#132A22)}
+.pagecraft-exhibit-loc{display:block;font-size:13.5px;line-height:1.4;color:var(--ex-muted,#435A51)}
+.pagecraft-exhibit-scope{display:block;font-size:14px;line-height:1.45;color:var(--ex-muted,#435A51)}
+.pagecraft-exhibit-year{display:block;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ex-ink,#132A22);white-space:nowrap}
+.pagecraft-exhibit-arrow{color:var(--ex-accent,#0F6A53);opacity:.72;flex-shrink:0;transition:transform .22s cubic-bezier(.22,1,.36,1),opacity .22s ease}
+.pagecraft-exhibit-row:hover .pagecraft-exhibit-arrow,.pagecraft-exhibit-row:focus-visible .pagecraft-exhibit-arrow{opacity:1;transform:translate(2px,-2px)}
+.pagecraft-exhibit-float{position:absolute;inset-inline-end:52px;inset-block-start:0;width:276px;aspect-ratio:var(--ex-ratio,4 / 3);border-radius:var(--ex-radius,12px);overflow:hidden;border:1px solid var(--ex-line,rgba(19,49,40,.18));background-color:var(--ex-surface,#133128);background-size:cover;background-position:center;box-shadow:0 20px 48px rgba(14,30,24,.22);pointer-events:none;z-index:20;opacity:0;visibility:hidden;transform:translate3d(0,var(--ex-y,12px),0) scale(.96);transition:opacity .24s cubic-bezier(.22,1,.36,1),visibility .24s ease,transform .28s cubic-bezier(.22,1,.36,1)}
+.pagecraft-exhibit-float[data-open="1"]{opacity:1;visibility:visible;transform:translate3d(0,var(--ex-y,12px),0) scale(1)}
+@media (max-width:860px){
+  .pagecraft-exhibit-row{grid-template-columns:64px minmax(0,1fr) auto;gap:12px 14px;padding:16px 8px}
+  .pagecraft-exhibit-row:hover,.pagecraft-exhibit-row:focus-visible,.pagecraft-exhibit-row[data-active="1"]{padding-inline-start:10px}
+  .pagecraft-exhibit-thumb{width:64px}
+  .pagecraft-exhibit-scope{grid-column:2 / -1;font-size:13px}
+  .pagecraft-exhibit-arrow{display:none}
+  .pagecraft-exhibit-float{opacity:0!important;visibility:hidden!important}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-exhibit-row,.pagecraft-exhibit-arrow,.pagecraft-exhibit-float{transition:none}}`;
+var EXHIBIT_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-exhibit[data-exhibit]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ex-ready')||root.hasAttribute('data-exhibit-edit'))return;
+    root.setAttribute('data-pc-ex-ready','1');
+    var rows=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-exhibit-row[data-exhibit-idx]'));
+    var floatEl=root.querySelector('.pagecraft-exhibit-float');
+    if(!rows.length||!floatEl)return;
+    function show(idx,row){
+      rows.forEach(function(r,i){r.setAttribute('data-active',i===idx?'1':'0');});
+      var img=row.querySelector('.pagecraft-exhibit-thumb-img');
+      var src=img&&(img.currentSrc||img.getAttribute('src'))||'';
+      if(src){
+        floatEl.style.backgroundImage='url("'+src.replace(/"/g,'\\"')+'")';
+        floatEl.setAttribute('data-active-idx',String(idx));
+      }
+      var rootRect=root.getBoundingClientRect();
+      var rowRect=row.getBoundingClientRect();
+      var fh=floatEl.offsetHeight||207;
+      var maxTop=Math.max(0,(rootRect.height||320)-fh);
+      var y=Math.max(0,Math.min(maxTop,(rowRect.top-rootRect.top)+(rowRect.height/2)-(fh/2)));
+      floatEl.style.setProperty('--ex-y',Math.round(y)+'px');
+      floatEl.setAttribute('data-open','1');
+    }
+    function hide(){
+      rows.forEach(function(r){r.removeAttribute('data-active');});
+      floatEl.setAttribute('data-open','0');
+    }
+    var offs=[];
+    rows.forEach(function(row,idx){
+      function onEnter(){show(idx,row);}
+      function onFocus(){show(idx,row);}
+      row.addEventListener('pointerenter',onEnter);
+      row.addEventListener('focus',onFocus);
+      offs.push(function(){row.removeEventListener('pointerenter',onEnter);row.removeEventListener('focus',onFocus);});
+    });
+    function onLeave(){hide();}
+    function onFocusOut(e){if(!root.contains(e.relatedTarget))hide();}
+    root.addEventListener('pointerleave',onLeave);
+    root.addEventListener('focusout',onFocusOut);
+    offs.push(function(){root.removeEventListener('pointerleave',onLeave);root.removeEventListener('focusout',onFocusOut);});
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      hide();
+      root.removeAttribute('data-pc-ex-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+var SCROLLY_CSS = `.pagecraft-scrolly{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.08fr);gap:var(--sc-gap,44px);align-items:start;width:100%;position:relative}
+.pagecraft-scrolly-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:24px}
+.pagecraft-scrolly-step{margin:0;outline:none;cursor:pointer}
+.pagecraft-scrolly[data-scrolly-edit] .pagecraft-scrolly-step{pointer-events:none}
+.pagecraft-scrolly-card{padding:28px 30px;border-radius:var(--sc-radius,14px);border:1px solid var(--sc-line,rgba(19,49,40,.15));background:var(--sc-surface,#fff);display:flex;flex-direction:column;gap:12px;transition:border-color .25s ease,background-color .25s ease,box-shadow .25s ease}
+.pagecraft-scrolly-step[data-active="1"] .pagecraft-scrolly-card{border-color:var(--sc-accent,#0F6A53);box-shadow:0 16px 38px rgba(14,32,25,.09)}
+.pagecraft-scrolly-step:focus-visible .pagecraft-scrolly-card{outline:2px solid var(--sc-accent,#0F6A53);outline-offset:2px}
+.pagecraft-scrolly-title{margin:0;font-size:clamp(20px,2vw,25px);line-height:1.22;font-weight:600;letter-spacing:-.012em;color:var(--sc-ink,#132A22)}
+.pagecraft-scrolly-detail{margin:0;font-size:15.5px;line-height:1.62;color:var(--sc-muted,#435A51)}
+.pagecraft-scrolly-fact{align-self:flex-start;margin-top:4px;padding:5px 12px;border-radius:999px;border:1px solid var(--sc-line,rgba(19,49,40,.16));font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sc-accent,#0F6A53);background:rgba(15,106,83,.06)}
+.pagecraft-scrolly-stage{position:sticky;top:108px}
+.pagecraft-scrolly-frame{display:grid;border-radius:var(--sc-radius,14px);overflow:hidden;border:1px solid var(--sc-line,rgba(19,49,40,.16));background:var(--sc-surface,#fff);box-shadow:0 20px 48px rgba(14,32,25,.12)}
+.pagecraft-scrolly-plate{grid-area:1 / 1;margin:0;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .38s cubic-bezier(.22,1,.36,1),visibility .38s ease}
+.pagecraft-scrolly-plate[data-active="1"]{opacity:1;visibility:visible;pointer-events:auto;z-index:1}
+.pagecraft-scrolly-img{display:block;width:100%;height:auto;aspect-ratio:var(--sc-ratio,4 / 3);object-fit:cover;background:#133128;transform:scale(1.03);transition:transform .55s cubic-bezier(.22,1,.36,1)}
+.pagecraft-scrolly-plate[data-active="1"] .pagecraft-scrolly-img{transform:scale(1)}
+.pagecraft-scrolly-cap{padding:14px 20px;font-size:13.5px;line-height:1.45;font-weight:500;font-variant-numeric:tabular-nums;color:var(--sc-muted,#435A51);border-top:1px solid var(--sc-line,rgba(19,49,40,.12));background:var(--sc-surface,#fff)}
+@media (max-width:860px){
+  .pagecraft-scrolly{grid-template-columns:minmax(0,1fr);gap:20px}
+  .pagecraft-scrolly-stage{position:relative;top:auto;order:-1}
+  .pagecraft-scrolly-card{padding:20px}
+  .pagecraft-scrolly-steps{gap:14px}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-scrolly-card,.pagecraft-scrolly-plate,.pagecraft-scrolly-img{transition:none}}`;
+var SCROLLY_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-scrolly[data-scrolly]').forEach(function(root){
+    if(root.hasAttribute('data-pc-sc-ready')||root.hasAttribute('data-scrolly-edit'))return;
+    root.setAttribute('data-pc-sc-ready','1');
+    var steps=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-scrolly-step[data-scrolly-step]'));
+    var plates=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-scrolly-plate[data-scrolly-plate]'));
+    if(!steps.length||!plates.length)return;
+    function activate(idx){
+      steps.forEach(function(s,i){s.setAttribute('data-active',i===idx?'1':'0');});
+      plates.forEach(function(p,i){
+        var on=i===idx;
+        p.setAttribute('data-active',on?'1':'0');
+        p.setAttribute('aria-hidden',on?'false':'true');
+      });
+    }
+    var offs=[];
+    steps.forEach(function(step,idx){
+      function onAct(){activate(idx);}
+      function onKey(e){
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(idx);}
+      }
+      step.addEventListener('click',onAct);
+      step.addEventListener('focus',onAct);
+      step.addEventListener('keydown',onKey);
+      offs.push(function(){
+        step.removeEventListener('click',onAct);
+        step.removeEventListener('focus',onAct);
+        step.removeEventListener('keydown',onKey);
+      });
+    });
+    if(typeof IntersectionObserver==='function'){
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(!entry.isIntersecting)return;
+          var idx=parseInt(entry.target.getAttribute('data-scrolly-step')||'0',10);
+          if(idx>=0)activate(idx);
+        });
+      },{rootMargin:'-28% 0px -42% 0px',threshold:0.05});
+      steps.forEach(function(step){io.observe(step);});
+      offs.push(function(){io.disconnect();});
+    }
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-sc-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -3143,7 +3314,7 @@ function mediaReferences(document) {
     const props = node.props;
     const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
-    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -3201,7 +3372,7 @@ function replaceMediaReferences(document, sourceId, replacementId) {
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs";
+var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs" || node.type === "exhibit";
 var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
 var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
 var BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -5182,6 +5353,118 @@ var DEF = {
         { t: "unit", c: "--sw-gap", label: "Split gap", layout: "inline", r: 1, units: U.space }
       ]
     }
+  },
+  exhibit: {
+    label: "Exhibit index",
+    icon: "exhibit",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        previewRatio: "4 / 3",
+        items: [
+          { title: "Headland Ledge Monograph", location: "Cape Elizabeth, Maine", scope: "3.4 ac \xB7 Coastal Granite", year: "2025", href: "", src: "", alt: "Headland ledge project view" },
+          { title: "Estuary Saltmarsh Basin", location: "Astoria, Oregon", scope: "5.1 ac \xB7 Tidal Weir", year: "2024", href: "", src: "", alt: "Estuary saltmarsh project view" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ex-accent": cvar("brand"),
+          "--ex-surface": cvar("surface"),
+          "--ex-ink": cvar("ink"),
+          "--ex-muted": cvar("muted"),
+          "--ex-line": cvar("line"),
+          "--ex-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "previewRatio", label: "Preview ratio", opts: [["4 / 3", "4:3"], ["3 / 2", "3:2"], ["16 / 10", "16:10"], ["1 / 1", "Square"]] },
+        {
+          t: "qa",
+          k: "items",
+          label: "Entries",
+          addLabel: "Add entry",
+          rowFields: [
+            { k: "title", label: "Project title", ph: "Project or monograph title", def: "New entry" },
+            { k: "location", label: "Location", ph: "City or region", def: "" },
+            { k: "scope", label: "Scope", ph: "Acreage or discipline", def: "" },
+            { k: "year", label: "Year", ph: "2025", def: "2025" },
+            { k: "href", label: "Link URL", ph: "sites.html#entry", def: "" },
+            { k: "src", label: "Preview image URL or asset", ph: "asset:preview", def: "" },
+            { k: "alt", label: "Alt text", ph: "Describe preview visual", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ex-accent", label: "Accent colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ex-surface", label: "Preview surface", r: 1, layout: "inline" },
+        { t: "color", c: "--ex-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ex-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ex-line", label: "Rule line", r: 1, layout: "inline" },
+        { t: "unit", c: "--ex-radius", label: "Preview radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  scrolly: {
+    label: "Sticky steps",
+    icon: "scrolly",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        stickyRatio: "4 / 3",
+        items: [
+          { title: "Subsurface soil borings", detail: "Field engineers map percolation horizons and seasonal water tables before grading begins.", fact: "82 mm/hr infiltration", src: "", alt: "Soil boring survey stage" },
+          { title: "Mortarless stone civil work", detail: "Split granite check weirs slow peak stormwater runoff across the slope contour.", fact: "0% Portland cement", src: "", alt: "Dry-laid stone weir stage" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sc-accent": cvar("brand"),
+          "--sc-surface": cvar("surface"),
+          "--sc-ink": cvar("ink"),
+          "--sc-muted": cvar("muted"),
+          "--sc-line": cvar("line"),
+          "--sc-radius": "14px",
+          "--sc-gap": "44px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "stickyRatio", label: "Sticky frame ratio", opts: [["4 / 3", "4:3"], ["3 / 2", "3:2"], ["16 / 10", "16:10"], ["16 / 9", "16:9"], ["1 / 1", "Square"]] },
+        {
+          t: "qa",
+          k: "items",
+          label: "Scrolling steps",
+          addLabel: "Add step",
+          rowFields: [
+            { k: "title", label: "Step heading", ph: "Step title", def: "New step" },
+            { k: "fact", label: "Metric note", ph: "Key specification", def: "" },
+            { k: "src", label: "Stage image URL or asset", ph: "asset:stage", def: "" },
+            { k: "alt", label: "Alt text", ph: "Describe stage visual", def: "" },
+            { k: "detail", label: "Step narrative", ph: "Describe what happens in this phase", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--sc-accent", label: "Active accent", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "unit", c: "--sc-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "unit", c: "--sc-gap", label: "Column gap", layout: "inline", r: 1, units: U.space }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -5670,6 +5953,8 @@ var nameOf = (n) => {
   if (n.type === "hotspot") return `Hotspots \xB7 ${(n.props.items || []).length} pin${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "strips") return `Strips \xB7 ${(n.props.items || []).length} panel${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "switcher") return `Switcher \xB7 ${(n.props.items || []).length} stage${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "exhibit") return `Exhibit \xB7 ${(n.props.items || []).length} entr${(n.props.items || []).length === 1 ? "y" : "ies"}`;
+  if (n.type === "scrolly") return `Steps \xB7 ${(n.props.items || []).length} step${(n.props.items || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -8274,7 +8559,9 @@ var TEXT_SLOTS = {
   progress: [["items", "label", "unit"]],
   hotspot: ["alt", ["items", "label", "title", "detail"]],
   strips: [["items", "alt", "tag", "title", "detail"]],
-  switcher: [["items", "label", "meta", "title", "detail", "alt"]]
+  switcher: [["items", "label", "meta", "title", "detail", "alt"]],
+  exhibit: [["items", "title", "location", "scope", "year", "alt"]],
+  scrolly: [["items", "title", "detail", "fact", "alt"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -8307,7 +8594,11 @@ var SLOT_LABEL = {
   tag: "Phase tag",
   detail: "Details",
   unit: "Unit",
-  meta: "Meta"
+  meta: "Meta",
+  location: "Location",
+  scope: "Scope",
+  year: "Year",
+  fact: "Metric note"
 };
 var ASSET_SLOTS = {
   image: ["src"],
@@ -8317,7 +8608,9 @@ var ASSET_SLOTS = {
   compare: ["beforeSrc", "afterSrc"],
   hotspot: ["src"],
   strips: [["items", "src"]],
-  switcher: [["items", "src"]]
+  switcher: [["items", "src"]],
+  exhibit: [["items", "src"]],
+  scrolly: [["items", "src"]]
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
@@ -12227,7 +12520,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -12241,9 +12534,11 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "hotspot") hotspot = true;
     else if (node.type === "strips") strips = true;
     else if (node.type === "switcher") switcher = true;
+    else if (node.type === "exhibit") exhibit = true;
+    else if (node.type === "scrolly") scrolly = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -12257,7 +12552,9 @@ ${TIMELINE_CSS}` : "") + (used.progress ? `
 ${PROGRESS_CSS}` : "") + (used.hotspot ? `
 ${HOTSPOT_CSS}` : "") + (used.strips ? `
 ${STRIPS_CSS}` : "") + (used.switcher ? `
-${SWITCHER_CSS}` : "") + (used.videoLightbox ? `
+${SWITCHER_CSS}` : "") + (used.exhibit ? `
+${EXHIBIT_CSS}` : "") + (used.scrolly ? `
+${SCROLLY_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -12293,6 +12590,8 @@ ${ANIM_CALM}` : "")),
       hotspot: pageExtra.hotspot && !globalExtra.hotspot,
       strips: pageExtra.strips && !globalExtra.strips,
       switcher: pageExtra.switcher && !globalExtra.switcher,
+      exhibit: pageExtra.exhibit && !globalExtra.exhibit,
+      scrolly: pageExtra.scrolly && !globalExtra.scrolly,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -13597,6 +13896,46 @@ function renderNode(n, o) {
       }).join("");
       return `<div ${at()} ${cx("pagecraft-switcher")} data-switcher data-layout="${esc(layout)}"${o.edit ? " data-switcher-edit" : ""}${ratioStyle}><div class="pagecraft-switcher-list" role="tablist">${tabButtons}</div><div class="pagecraft-switcher-stage">${panels}</div></div>`;
     }
+    case "exhibit": {
+      const ratio = cssRatio(p.previewRatio);
+      const ratioStyle = ratio ? ` style="--ex-ratio:${esc(ratio)}"` : "";
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const arrowSvg = '<svg class="pagecraft-exhibit-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const listRows = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Entry ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const title = String(it.title || `Entry ${i + 1}`);
+        const loc = String(it.location || "");
+        const scope = String(it.scope || "");
+        const year = String(it.year || "");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const inner2 = `<span class="pagecraft-exhibit-thumb"><img class="pagecraft-exhibit-thumb-img" src="${src}" alt="${alt}"${dim} decoding="async"></span><span class="pagecraft-exhibit-main"><span class="pagecraft-exhibit-title">${esc(title)}</span>` + (loc ? `<span class="pagecraft-exhibit-loc">${esc(loc)}</span>` : "") + `</span>` + (scope ? `<span class="pagecraft-exhibit-scope">${esc(scope)}</span>` : "<span></span>") + (year ? `<span class="pagecraft-exhibit-year">${esc(year)}</span>` : "<span></span>") + arrowSvg;
+        const rowEl = href ? `<a class="pagecraft-exhibit-row" href="${esc(href)}" data-exhibit-idx="${i}">${inner2}</a>` : `<button type="button" class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner2}</button>`;
+        return `<li class="pagecraft-exhibit-item">${rowEl}</li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-exhibit")} data-exhibit${o.edit ? " data-exhibit-edit" : ""}${ratioStyle}><ol class="pagecraft-exhibit-list">${listRows}</ol><div class="pagecraft-exhibit-float" data-open="0" aria-hidden="true"></div></div>`;
+    }
+    case "scrolly": {
+      const ratio = cssRatio(p.stickyRatio);
+      const ratioStyle = ratio ? ` style="--sc-ratio:${esc(ratio)}"` : "";
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const steps = items.map((it, i) => {
+        const title = String(it.title || `Step ${i + 1}`);
+        const detail = String(it.detail || "");
+        const fact = String(it.fact || "");
+        return `<li class="pagecraft-scrolly-step" data-scrolly-step="${i}" data-active="${i === 0 ? "1" : "0"}" tabindex="0"><div class="pagecraft-scrolly-card"><h3 class="pagecraft-scrolly-title">${esc(title)}</h3>` + (detail ? `<p class="pagecraft-scrolly-detail">${esc(detail)}</p>` : "") + (fact ? `<span class="pagecraft-scrolly-fact">${esc(fact)}</span>` : "") + `</div></li>`;
+      }).join("");
+      const plates = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Step ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const fact = String(it.fact || it.title || "");
+        return `<figure class="pagecraft-scrolly-plate" data-scrolly-plate="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><img class="pagecraft-scrolly-img" src="${src}" alt="${alt}"${dim} decoding="async">` + (fact ? `<figcaption class="pagecraft-scrolly-cap">${esc(fact)}</figcaption>` : "") + `</figure>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-scrolly")} data-scrolly${o.edit ? " data-scrolly-edit" : ""}${ratioStyle}><ol class="pagecraft-scrolly-steps">${steps}</ol><div class="pagecraft-scrolly-stage"><div class="pagecraft-scrolly-frame">${plates}</div></div></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -14111,7 +14450,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 </script>
 ` : ""}</body>
@@ -14614,6 +14953,8 @@ function proposalApply(changes, proposalId = "", options) {
   DEV_W,
   EMBED_FRAME_HASH,
   EMBED_FRAME_JS,
+  EXHIBIT_CSS,
+  EXHIBIT_JS,
   FACADE_JS,
   FIELD_TYPES,
   FILTER_CSS,
@@ -14657,6 +14998,8 @@ function proposalApply(changes, proposalId = "", options) {
   REF_DEPTH,
   RESERVED,
   SCHEMA,
+  SCROLLY_CSS,
+  SCROLLY_JS,
   SEC_TAGS,
   SHARED_FOOTER_END,
   SHARED_FOOTER_START,

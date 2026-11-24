@@ -65,6 +65,8 @@ const runtimeSource = [
   Core.HOTSPOT_JS,
   Core.STRIPS_JS,
   Core.SWITCHER_JS,
+  Core.EXHIBIT_JS,
+  Core.SCROLLY_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {
