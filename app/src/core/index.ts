@@ -35,7 +35,8 @@ import {
   FLOATING_SECTION_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS,
   MARQUEE_CSS, FILTER_CSS, FILTER_JS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS,
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
-  EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS
+  EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
+  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -45,7 +46,7 @@ const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').re
 /** Nav menu, manual Breadcrumb, and Exhibit index are the widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
-const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit';
+const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills';
 
 /** A WordPress-owned destination is stored in the editor as a typed, target-neutral
  * reference. It is not a browser URL: `pageHref` converts it to the exact signed
@@ -1790,6 +1791,257 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--sc-gap', label: 'Column gap', layout: 'inline', r: 1, units: U.space }
       ]
     }
+  },
+
+  clocks: {
+    label: 'Office clocks', icon: 'clocks', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        hour12: 0, opens: '9', closes: '18', openLabel: 'Office open', closedLabel: 'After hours',
+        items: [
+          { city: 'London', tz: 'Europe/London', address: '14 Old Square\nLondon WC2A 3UE', phone: '+44 20 7946 0110', href: '', linkLabel: '' },
+          { city: 'New York', tz: 'America/New_York', address: '55 Water Street\nNew York, NY 10041', phone: '+1 212 555 0142', href: '', linkLabel: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ck-accent': cvar('brand'), '--ck-surface': 'transparent',
+          '--ck-ink': cvar('ink'), '--ck-muted': cvar('muted'), '--ck-line': cvar('line'),
+          '--ck-radius': '0px', '--ck-gap': '0px', '--ck-time-size': '40px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'toggle', k: 'hour12', label: '12-hour clock' },
+        { t: 'text', k: 'opens', label: 'Opens (hour, 0–24)', ph: '9' },
+        { t: 'text', k: 'closes', label: 'Closes (hour, 0–24)', ph: '18' },
+        { t: 'text', k: 'openLabel', label: 'Open label', ph: 'Office open' },
+        { t: 'text', k: 'closedLabel', label: 'Closed label', ph: 'After hours' },
+        {
+          t: 'qa', k: 'items', label: 'Offices', addLabel: 'Add office',
+          rowFields: [
+            { k: 'city', label: 'City', ph: 'London', def: 'New office' },
+            { k: 'tz', label: 'Time zone (IANA)', ph: 'Europe/London', def: 'UTC' },
+            { k: 'phone', label: 'Phone', ph: '+44 20 0000 0000', def: '' },
+            { k: 'href', label: 'Map or page link', ph: 'https://maps.example', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Open in Maps', def: '' },
+            { k: 'src', label: 'Office image URL or asset', ph: 'asset:office', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Office exterior or room', def: '' },
+            { k: 'address', label: 'Address', ph: 'Street, city, postcode', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ck-accent', label: 'Open accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-surface', label: 'Card fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-line', label: 'Rule colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ck-time-size', label: 'Time size', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--ck-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--ck-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  roster: {
+    label: 'Partner spotlight', icon: 'roster', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        portraitRatio: '4 / 5',
+        items: [
+          { name: 'Claire Mercer', role: 'Managing Trial Partner · J.D., Ph.D. Electrical Engineering', seat: 'Washington, D.C.', credential: 'U.S. Federal Circuit & PTAB', quote: '“Every trial brief and cross-examination outline should read cleanly to both a district judge and a silicon architect.”', href: '', linkLabel: 'Schedule intake', src: '', alt: 'Claire Mercer portrait' },
+          { name: 'David Quinn', role: 'Senior Appellate Partner · KC, UPC Representative', seat: 'London & Munich', credential: 'Patents Court & UPC', quote: '“Synchronizing European preliminary injunction defenses with U.S. claim construction prevents transatlantic estoppel traps.”', href: '', linkLabel: 'Schedule intake', src: '', alt: 'David Quinn portrait' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--rs-accent': cvar('brand'), '--rs-surface': cvar('surface'),
+          '--rs-ink': cvar('ink'), '--rs-muted': cvar('muted'), '--rs-line': cvar('line'),
+          '--rs-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'portraitRatio', label: 'Portrait ratio', opts: [['4 / 5', '4:5'], ['3 / 4', '3:4'], ['1 / 1', 'Square'], ['3 / 2', '3:2']] },
+        {
+          t: 'qa', k: 'items', label: 'Members', addLabel: 'Add member',
+          rowFields: [
+            { k: 'name', label: 'Full name', ph: 'Claire Mercer', def: 'New partner' },
+            { k: 'role', label: 'Role & degree', ph: 'Managing Partner · Ph.D.', def: '' },
+            { k: 'seat', label: 'Office / city', ph: 'Washington, D.C.', def: '' },
+            { k: 'credential', label: 'Admission / focus', ph: 'Federal Circuit Bar', def: '' },
+            { k: 'src', label: 'Portrait URL or asset', ph: 'asset:partner', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Partner portrait', def: '' },
+            { k: 'href', label: 'Action link', ph: 'conflict-check.html', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Direct intake', def: '' },
+            { k: 'quote', label: 'Spotlight quote', ph: 'Working principle or notable verdict', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--rs-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-surface', label: 'Stage surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  tiers: {
+    label: 'Currency tiers', icon: 'tiers', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        defaultCurrency: 'usd', usdLabel: 'USD $', eurLabel: 'EUR €', gbpLabel: 'GBP £',
+        items: [
+          { tierName: 'Fixed-Scope Audit', badge: '', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200', period: 'per tranche', summary: 'Freedom-to-operate or AI provenance technical file.', features: '15-business-day turnaround\nWritten partner opinion', ctaText: 'Clear conflict', href: '', featured: 0 },
+          { tierName: 'Fractional IP Counsel', badge: 'Most engaged', priceUsd: '$6,400', priceEur: '€5,800', priceGbp: '£4,950', period: '/ month', summary: 'Ongoing docket clearance, claim charting, and regulatory filings.', features: 'Same-day partner access\nQuarterly board IP review', ctaText: 'Retain counsel', href: '', featured: 1 }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tr-accent': cvar('brand'), '--tr-surface': cvar('surface'),
+          '--tr-ink': cvar('ink'), '--tr-muted': cvar('muted'), '--tr-line': cvar('line'),
+          '--tr-feat-bg': cvar('ink'), '--tr-feat-ink': '#ffffff', '--tr-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'defaultCurrency', label: 'Default currency', opts: [['usd', 'USD'], ['eur', 'EUR'], ['gbp', 'GBP']] },
+        { t: 'text', k: 'usdLabel', label: 'USD button', ph: 'USD $' },
+        { t: 'text', k: 'eurLabel', label: 'EUR button', ph: 'EUR €' },
+        { t: 'text', k: 'gbpLabel', label: 'GBP button', ph: 'GBP £' },
+        {
+          t: 'qa', k: 'items', label: 'Tiers', addLabel: 'Add tier',
+          rowFields: [
+            { k: 'tierName', label: 'Tier name', ph: 'Advisory Retainer', def: 'New tier' },
+            { k: 'badge', label: 'Badge (optional)', ph: 'Most engaged', def: '' },
+            { k: 'priceUsd', label: 'USD price', ph: '$6,400', def: '$5,000' },
+            { k: 'priceEur', label: 'EUR price', ph: '€5,800', def: '€4,600' },
+            { k: 'priceGbp', label: 'GBP price', ph: '£4,950', def: '£3,900' },
+            { k: 'period', label: 'Billing period', ph: '/ month', def: '/ month' },
+            { k: 'ctaText', label: 'Button label', ph: 'Select tier', def: 'Get started' },
+            { k: 'href', label: 'Button link', ph: 'conflict-check.html', def: '' },
+            { k: 'summary', label: 'Summary', ph: 'One-sentence tier scope', def: '', area: 1 },
+            { k: 'features', label: 'Features (one per line)', ph: 'Feature one\nFeature two', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tr-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-feat-bg', label: 'Featured fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-feat-ink', label: 'Featured text', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tr-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  qapills: {
+    label: 'Question pills', icon: 'qapills', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        pillAlign: 'center',
+        items: [
+          { q: 'Why submit only counterparty names first?', a: 'Screening corporate entity names before confidential facts are shared protects both existing clients and your privilege.', note: 'ABA Model Rule 1.18 compliant', href: '', linkLabel: '' },
+          { q: 'How fast is emergency clearance?', a: 'Standard docket screening completes within 24 hours; active TRO or customs seizure matters clear in two hours.', note: '24/7 duty partner desk', href: '', linkLabel: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--qp-accent': cvar('brand'), '--qp-surface': cvar('surface'),
+          '--qp-ink': cvar('ink'), '--qp-muted': cvar('muted'), '--qp-line': cvar('line'),
+          '--qp-radius': '2px', '--qp-pill-radius': '999px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'pillAlign', label: 'Alignment', opts: [['start', 'Left'], ['center', 'Center']], text: 1 },
+        {
+          t: 'qa', k: 'items', label: 'Questions', addLabel: 'Add question',
+          rowFields: [
+            { k: 'q', label: 'Question pill', ph: 'Short question', def: 'New question?' },
+            { k: 'note', label: 'Policy / rule note', ph: 'ABA Rule 1.18', def: '' },
+            { k: 'href', label: 'Action link', ph: '#check-desk', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Proceed to intake', def: '' },
+            { k: 'a', label: 'Full answer', ph: 'Direct answer shown in panel', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--qp-accent', label: 'Active pill accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-surface', label: 'Panel surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-ink', label: 'Question colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-muted', label: 'Answer colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--qp-radius', label: 'Panel radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--qp-pill-radius', label: 'Pill radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  dockbar: {
+    label: 'Docked intake bar', icon: 'dockbar', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        submitLabel: 'Screen Conflict →', destHref: '', ariaLabel: 'Quick screening bar',
+        items: [
+          { fieldLabel: 'Requesting Entity', fieldType: 'text', ph: 'Helios Silicon GmbH', choices: '' },
+          { fieldLabel: 'Counterparty Entity', fieldType: 'text', ph: 'Entity name only', choices: '' },
+          { fieldLabel: 'Primary Forum', fieldType: 'select', ph: '', choices: 'U.S. Federal Circuit, Unified Patent Court, PTAB Inter Partes, EU AI Act Audit' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--db-accent': cvar('brand'), '--db-surface': cvar('surface'),
+          '--db-ink': cvar('ink'), '--db-muted': cvar('muted'), '--db-line': cvar('line'),
+          '--db-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'submitLabel', label: 'Submit button', ph: 'Screen Conflict →' },
+        { t: 'link', k: 'destHref', label: 'Destination page' },
+        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Quick screening bar' },
+        {
+          t: 'qa', k: 'items', label: 'Fields', addLabel: 'Add field',
+          rowFields: [
+            { k: 'fieldLabel', label: 'Field label', ph: 'Requesting Entity', def: 'Field' },
+            { k: 'fieldType', label: 'Type (text or select)', ph: 'text', def: 'text' },
+            { k: 'ph', label: 'Placeholder', ph: 'Enter value', def: '' },
+            { k: 'choices', label: 'Select options (comma-separated)', ph: 'Option A, Option B', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--db-accent', label: 'Button & focus accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-surface', label: 'Bar surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-muted', label: 'Placeholder colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-line', label: 'Divider line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--db-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -2379,6 +2631,11 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'switcher') return `Switcher · ${((n.props.items as any[]) || []).length} stage${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'exhibit') return `Exhibit · ${((n.props.items as any[]) || []).length} entr${((n.props.items as any[]) || []).length === 1 ? 'y' : 'ies'}`;
   if (n.type === 'scrolly') return `Steps · ${((n.props.items as any[]) || []).length} step${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'clocks') return `Clocks · ${((n.props.items as any[]) || []).length} office${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'roster') return `Roster · ${((n.props.items as any[]) || []).length} member${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'tiers') return `Tiers · ${((n.props.items as any[]) || []).length} plan${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'qapills') return `Q&A pills · ${((n.props.items as any[]) || []).length} item${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'dockbar') return `Docked bar · ${((n.props.items as any[]) || []).length} field${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -5513,7 +5770,12 @@ const TEXT_SLOTS = {
   strips: [['items', 'alt', 'tag', 'title', 'detail']],
   switcher: [['items', 'label', 'meta', 'title', 'detail', 'alt']],
   exhibit: [['items', 'title', 'location', 'scope', 'year', 'alt']],
-  scrolly: [['items', 'title', 'detail', 'fact', 'alt']]
+  scrolly: [['items', 'title', 'detail', 'fact', 'alt']],
+  clocks: ['openLabel', 'closedLabel', ['items', 'city', 'address', 'phone', 'linkLabel', 'alt']],
+  roster: [['items', 'name', 'role', 'seat', 'credential', 'quote', 'linkLabel', 'alt']],
+  tiers: ['usdLabel', 'eurLabel', 'gbpLabel', ['items', 'tierName', 'badge', 'priceUsd', 'priceEur', 'priceGbp', 'period', 'summary', 'features', 'ctaText']],
+  qapills: [['items', 'q', 'a', 'note', 'linkLabel']],
+  dockbar: ['submitLabel', 'ariaLabel', ['items', 'fieldLabel', 'ph', 'choices']]
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -5530,7 +5792,14 @@ const SLOT_LABEL = {
   beforeAlt: 'Before alt text', afterAlt: 'After alt text',
   beforeLabel: 'Before badge', afterLabel: 'After badge',
   tag: 'Phase tag', detail: 'Details', unit: 'Unit', meta: 'Meta',
-  location: 'Location', scope: 'Scope', year: 'Year', fact: 'Metric note'
+  location: 'Location', scope: 'Scope', year: 'Year', fact: 'Metric note',
+  city: 'City', address: 'Address', phone: 'Phone', linkLabel: 'Link label',
+  openLabel: 'Open label', closedLabel: 'Closed label',
+  name: 'Name', role: 'Role', seat: 'Office', credential: 'Credential', quote: 'Quote',
+  usdLabel: 'USD label', eurLabel: 'EUR label', gbpLabel: 'GBP label',
+  tierName: 'Tier name', badge: 'Badge', priceUsd: 'USD price', priceEur: 'EUR price', priceGbp: 'GBP price',
+  period: 'Period', summary: 'Summary', features: 'Features', ctaText: 'Button text', note: 'Note',
+  submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -5553,7 +5822,9 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   strips: [['items', 'src']],
   switcher: [['items', 'src']],
   exhibit: [['items', 'src']],
-  scrolly: [['items', 'src']]
+  scrolly: [['items', 'src']],
+  clocks: [['items', 'src']],
+  roster: [['items', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -9966,7 +10237,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -9982,14 +10253,19 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'switcher') switcher = true;
     else if (node.type === 'exhibit') exhibit = true;
     else if (node.type === 'scrolly') scrolly = true;
+    else if (node.type === 'clocks') clocks = true;
+    else if (node.type === 'roster') roster = true;
+    else if (node.type === 'tiers') tiers = true;
+    else if (node.type === 'qapills') qapills = true;
+    else if (node.type === 'dockbar') dockbar = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10004,6 +10280,11 @@ function extraWidgetCss(used: {
     + (used.switcher ? `\n${SWITCHER_CSS}` : '')
     + (used.exhibit ? `\n${EXHIBIT_CSS}` : '')
     + (used.scrolly ? `\n${SCROLLY_CSS}` : '')
+    + (used.clocks ? `\n${CLOCKS_CSS}` : '')
+    + (used.roster ? `\n${ROSTER_CSS}` : '')
+    + (used.tiers ? `\n${TIERS_CSS}` : '')
+    + (used.qapills ? `\n${QAPILLS_CSS}` : '')
+    + (used.dockbar ? `\n${DOCKBAR_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10046,6 +10327,11 @@ function wordpressStylesFor(pg: Page) {
         switcher: pageExtra.switcher && !globalExtra.switcher,
         exhibit: pageExtra.exhibit && !globalExtra.exhibit,
         scrolly: pageExtra.scrolly && !globalExtra.scrolly,
+        clocks: pageExtra.clocks && !globalExtra.clocks,
+        roster: pageExtra.roster && !globalExtra.roster,
+        tiers: pageExtra.tiers && !globalExtra.tiers,
+        qapills: pageExtra.qapills && !globalExtra.qapills,
+        dockbar: pageExtra.dockbar && !globalExtra.dockbar,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -11803,6 +12089,182 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-scrolly-stage"><div class="pagecraft-scrolly-frame">${plates}</div></div>`
         + `</div>`;
     }
+    case 'clocks': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const h12 = Number(p.hour12) === 1;
+      const num = (v: unknown, d: number) => { const n = parseFloat(String(v ?? '')); return Number.isFinite(n) ? Math.min(24, Math.max(0, n)) : d; };
+      const opens = num(p.opens, 9), closes = num(p.closes, 18);
+      const openLabel = String(p.openLabel || 'Office open'), closedLabel = String(p.closedLabel || 'After hours');
+      const now = new Date();
+      const cards = items.map((it, i) => {
+        const city = String(it.city || `Office ${i + 1}`);
+        const tz = String(it.tz || 'UTC');
+        let time = '--:--';
+        try { time = new Intl.DateTimeFormat(h12 ? 'en-US' : 'en-GB', { timeZone: tz, hour: h12 ? 'numeric' : '2-digit', minute: '2-digit', hour12: h12 }).format(now); } catch { /* invalid zone: the runtime keeps the placeholder */ }
+        const addr = String(it.address || '');
+        const phone = String(it.phone || '');
+        const tel = phone.replace(/[^+\d]/g, '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Directions');
+        const rawSrc = String(it.src || '').trim();
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const media = rawSrc ? `<div class="pagecraft-clocks-media"><img class="pagecraft-clocks-img" src="${esc(rawSrc)}" alt="${esc(String(it.alt || city))}"${dim} decoding="async"></div>` : '';
+        const telEl = phone && !o.edit ? `<a class="pagecraft-clocks-link" href="tel:${esc(tel)}">${esc(phone)}</a>` : (phone ? `<span class="pagecraft-clocks-link">${esc(phone)}</span>` : '');
+        const links = telEl
+          + (link ? `<a class="pagecraft-clocks-link" href="${esc(link)}"${/^https?:/i.test(link) ? ' target="_blank" rel="noopener"' : ''}>${esc(linkLabel)}</a>` : '');
+        return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">`
+          + media
+          + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span>`
+          + `<time class="pagecraft-clocks-time" data-clocks-time>${esc(time)}</time></div>`
+          + `<span class="pagecraft-clocks-state" data-clocks-state data-open="0">${esc(closedLabel)}</span>`
+          + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, '<br>')}</address>` : '')
+          + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-clocks')} data-clocks data-hour12="${h12 ? '1' : '0'}" data-opens="${opens}" data-closes="${closes}" data-open-label="${esc(openLabel)}" data-closed-label="${esc(closedLabel)}">`
+        + `<ul class="pagecraft-clocks-list">${cards}</ul>`
+        + `</div>`;
+    }
+    case 'roster': {
+      const ratio = cssRatio(p.portraitRatio);
+      const ratioStyle = ratio ? ` style="--rs-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = String(n.id || "pc");
+      const initialsOf = (nm: string) => nm.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || 'P';
+      const panels = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const role = String(it.role || '');
+        const seat = String(it.seat || '');
+        const cred = String(it.credential || '');
+        const quote = String(it.quote || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || name));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Schedule consultation');
+        const metaRow = (seat || cred)
+          ? `<div class="pagecraft-roster-meta">${seat ? `<span><strong>Chambers:</strong> ${esc(seat)}</span>` : ''}${cred ? `<span><strong>Bar:</strong> ${esc(cred)}</span>` : ''}</div>`
+          : '';
+        return `<article class="pagecraft-roster-panel" id="${esc(baseId)}-panel-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>`
+          + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : '')
+          + metaRow + `</div>`
+          + (quote ? `<blockquote class="pagecraft-roster-quote">${esc(quote)}</blockquote>` : '')
+          + (link ? `<a class="pagecraft-roster-cta" href="${esc(link)}">${esc(linkLabel)} →</a>` : '')
+          + `</div></article>`;
+      }).join('');
+      const tabs = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const seat = String(it.seat || it.credential || '');
+        return `<button type="button" class="pagecraft-roster-tab" id="${esc(baseId)}-tab-${i}" role="tab" aria-controls="${esc(baseId)}-panel-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-roster-tab="${i}">`
+          + `<span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span>`
+          + `<span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>`
+          + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-roster')} data-roster${ratioStyle}>`
+        + `<div class="pagecraft-roster-stage">${panels}</div>`
+        + `<div class="pagecraft-roster-strip" role="tablist" aria-label="Team spotlight">${tabs}</div>`
+        + `</div>`;
+    }
+    case 'tiers': {
+      const defCur = ['usd', 'eur', 'gbp'].includes(String(p.defaultCurrency)) ? String(p.defaultCurrency) : 'usd';
+      const curBtns = ([
+        ['usd', String(p.usdLabel || 'USD $')],
+        ['eur', String(p.eurLabel || 'EUR €')],
+        ['gbp', String(p.gbpLabel || 'GBP £')]
+      ] as const).map(([code, lbl]) =>
+        `<button type="button" class="pagecraft-tiers-cur" data-tiers-cur="${code}" aria-pressed="${code === defCur ? 'true' : 'false'}">${esc(lbl)}</button>`
+      ).join('');
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const tName = String(it.tierName || `Tier ${i + 1}`);
+        const badge = String(it.badge || '').trim();
+        const usd = String(it.priceUsd || '$0');
+        const eur = String(it.priceEur || usd);
+        const gbp = String(it.priceGbp || usd);
+        const initPrice = defCur === 'eur' ? eur : defCur === 'gbp' ? gbp : usd;
+        const period = String(it.period || '');
+        const summary = String(it.summary || '');
+        const feats = String(it.features || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const featHtml = feats.length
+          ? `<ul class="pagecraft-tiers-feats">${feats.map(f => `<li class="pagecraft-tiers-feat"><span class="pagecraft-tiers-check" aria-hidden="true">✓</span><span>${esc(f)}</span></li>`).join('')}</ul>`
+          : '';
+        const ctaText = String(it.ctaText || 'Select tier');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+        const featured = Number(it.featured) === 1 ? '1' : '0';
+        return `<article class="pagecraft-tiers-card" data-featured="${featured}">`
+          + `<div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>`
+          + (badge ? `<span class="pagecraft-tiers-badge">${esc(badge)}</span>` : '')
+          + `</div>`
+          + (summary ? `<p class="pagecraft-tiers-sum">${esc(summary)}</p>` : '')
+          + `<div class="pagecraft-tiers-price-row"><span class="pagecraft-tiers-price" data-usd="${esc(usd)}" data-eur="${esc(eur)}" data-gbp="${esc(gbp)}">${esc(initPrice)}</span>`
+          + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : '')
+          + `</div>`
+          + featHtml
+          + `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a>`
+          + `</article>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-tiers')} data-tiers data-active-cur="${esc(defCur)}">`
+        + `<div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div>`
+        + `<div class="pagecraft-tiers-grid">${cards}</div>`
+        + `</div>`;
+    }
+    case 'qapills': {
+      const left = String(p.pillAlign) === 'start';
+      const alignStyle = left ? ' style="--qp-align:flex-start;--qp-panel-align:flex-start;--qp-text-align:left"' : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = String(n.id || "pc");
+      const pills = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        return `<button type="button" class="pagecraft-qapills-pill" id="${esc(baseId)}-pill-${i}" role="tab" aria-controls="${esc(baseId)}-ans-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-qa-idx="${i}">${esc(q)}</button>`;
+      }).join('');
+      const panels = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        const a = String(it.a || '');
+        const note = String(it.note || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Learn more');
+        return `<div class="pagecraft-qapills-panel" id="${esc(baseId)}-ans-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-pill-${i}" data-qa-panel="${i}"${i === 0 ? '' : ' hidden'}>`
+          + `<h3 class="pagecraft-qapills-q">${esc(q)}</h3>`
+          + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : '')
+          + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : '')
+          + (link ? `<a class="pagecraft-qapills-link" href="${esc(link)}">${esc(linkLabel)} →</a>` : '')
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-qapills')} data-qapills${alignStyle}>`
+        + `<div class="pagecraft-qapills-bar" role="tablist" aria-label="Questions">${pills}</div>`
+        + `<div class="pagecraft-qapills-stage">${panels}</div>`
+        + `</div>`;
+    }
+    case 'dockbar': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const aria = String(p.ariaLabel || 'Quick intake');
+      const subLbl = String(p.submitLabel || 'Continue →');
+      const rawHref = safeUrl(String(p.destHref || '').trim());
+      const dest = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const fields = items.map((it, i) => {
+        const lbl = String(it.fieldLabel || `Field ${i + 1}`);
+        const fType = String(it.fieldType || 'text').toLowerCase();
+        const ph = String(it.ph || '');
+        const opts = String(it.choices || '').split(',').map(x => x.trim()).filter(Boolean);
+        const control = (fType === 'select' && opts.length)
+          ? `<select class="pagecraft-dockbar-select" name="f_${i}">${opts.map(op => `<option value="${esc(op)}">${esc(op)}</option>`).join('')}</select>`
+          : `<input class="pagecraft-dockbar-input" type="text" name="f_${i}" placeholder="${esc(ph)}" autocomplete="off">`;
+        return `<label class="pagecraft-dockbar-field"><span class="pagecraft-dockbar-lbl">${esc(lbl)}</span>${control}</label>`;
+      }).join('');
+      const btn = dest
+        ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`
+        : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
+      return `<div ${at()} ${cx('pagecraft-dockbar')} data-dockbar>`
+        + `<form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form>`
+        + `</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -12424,7 +12886,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-dockbar/.test(body) ? DOCKBAR_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -12933,7 +13395,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

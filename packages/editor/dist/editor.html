@@ -2533,7 +2533,12 @@ var IC = {
   strips: '<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
   switcher: '<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
   exhibit: '<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
-  scrolly: '<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>'
+  scrolly: '<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>',
+  clocks: '<circle cx="5" cy="8" r="3.5"/><path d="M5 6v2l1.2 1" stroke-linecap="round"/><circle cx="12" cy="8" r="2.6" opacity=".55"/><path d="M12 6.8V8h.9" stroke-linecap="round" opacity=".55"/>',
+  roster: '<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
+  tiers: '<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
+  qapills: '<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
+  dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
 };
 var svg = (n, s = 14, cls = "") => `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ""}</svg>`;
 var ICONS = [
@@ -4148,6 +4153,11 @@ var KIND = {
   switcher: "stage switcher",
   exhibit: "exhibit index",
   scrolly: "sticky steps",
+  clocks: "office clocks",
+  roster: "partner roster",
+  tiers: "currency tiers",
+  qapills: "question pills",
+  dockbar: "docked intake bar",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -4965,7 +4975,7 @@ var EXHIBIT_CSS = `.pagecraft-exhibit{position:relative;width:100%}
 .pagecraft-exhibit-thumb{display:block;width:72px;border-radius:7px;overflow:hidden;border:1px solid var(--ex-line,rgba(19,49,40,.15));background:#133128;flex-shrink:0}
 .pagecraft-exhibit-thumb-img{display:block;width:100%;height:auto;aspect-ratio:4 / 3;object-fit:cover}
 .pagecraft-exhibit-main{display:flex;flex-direction:column;gap:3px;min-width:0}
-.pagecraft-exhibit-title{display:block;font-size:clamp(19px,1.9vw,24px);line-height:1.22;font-weight:600;letter-spacing:-.012em;color:var(--ex-ink,#132A22)}
+.pagecraft-exhibit-title{display:block;font-size:clamp(19px,1.9vw,24px);line-height:1.32;font-weight:600;letter-spacing:-.012em;color:var(--ex-ink,#132A22)}
 .pagecraft-exhibit-loc{display:block;font-size:13.5px;line-height:1.4;color:var(--ex-muted,#435A51)}
 .pagecraft-exhibit-scope{display:block;font-size:14px;line-height:1.45;color:var(--ex-muted,#435A51)}
 .pagecraft-exhibit-year{display:block;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ex-ink,#132A22);white-space:nowrap}
@@ -5118,6 +5128,352 @@ var SCROLLY_JS = `<script>
 })();
 <\/script>
 `;
+var CLOCKS_CSS = `.pagecraft-clocks{width:100%}
+.pagecraft-clocks-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--ck-min,240px)),1fr));gap:var(--ck-gap,0px);border-top:var(--ck-rule,2px) solid var(--ck-ink,#0C0F1A)}
+.pagecraft-clocks-card{margin:0;display:flex;flex-direction:column;gap:14px;padding:24px var(--ck-pad,24px) 26px;background:var(--ck-surface,transparent);border-radius:var(--ck-radius,0px);border-bottom:1px solid var(--ck-line,#CDD2DC)}
+.pagecraft-clocks-card+.pagecraft-clocks-card{border-inline-start:1px solid var(--ck-line,#CDD2DC)}
+.pagecraft-clocks-media{display:block;width:100%;border-radius:var(--ck-img-radius,4px);overflow:hidden;border:1px solid var(--ck-line,#CDD2DC);margin-bottom:4px}
+.pagecraft-clocks-img{display:block;width:100%;height:auto;aspect-ratio:4 / 3;object-fit:cover}
+.pagecraft-clocks-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pagecraft-clocks-city{font-size:var(--ck-city-size,22px);line-height:1.15;font-weight:600;letter-spacing:-.01em;color:var(--ck-ink,#0C0F1A)}
+.pagecraft-clocks-time{font-size:var(--ck-time-size,40px);line-height:1;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ck-ink,#0C0F1A);white-space:nowrap}
+.pagecraft-clocks-state{display:inline-flex;align-items:center;gap:8px;font-size:13px;line-height:1.3;font-weight:600;color:var(--ck-muted,#525A6B)}
+.pagecraft-clocks-state::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ck-line,#CDD2DC);flex-shrink:0}
+.pagecraft-clocks-state[data-open="1"]{color:var(--ck-accent,#1B36B8)}
+.pagecraft-clocks-state[data-open="1"]::before{background:var(--ck-accent,#1B36B8);box-shadow:0 0 0 3px color-mix(in srgb,var(--ck-accent,#1B36B8) 18%,transparent)}
+.pagecraft-clocks-addr{margin:0;font-size:15px;line-height:1.55;color:var(--ck-muted,#525A6B);font-style:normal}
+.pagecraft-clocks-links{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:auto;padding-top:4px}
+.pagecraft-clocks-link{font-size:14px;font-weight:600;line-height:1.4;color:var(--ck-ink,#0C0F1A);text-decoration:underline;text-decoration-color:var(--ck-line,#CDD2DC);text-underline-offset:4px;text-decoration-thickness:1px;transition:text-decoration-color .18s ease,color .18s ease}
+.pagecraft-clocks-link:hover,.pagecraft-clocks-link:focus-visible{color:var(--ck-accent,#1B36B8);text-decoration-color:currentColor}
+.pagecraft-clocks-link:focus-visible{outline:2px solid var(--ck-accent,#1B36B8);outline-offset:3px;border-radius:2px}
+@media (max-width:860px){
+  .pagecraft-clocks-card+.pagecraft-clocks-card{border-inline-start:0}
+  .pagecraft-clocks-card{padding:20px var(--ck-pad-m,20px) 22px}
+  .pagecraft-clocks-time{font-size:min(var(--ck-time-size,40px),34px)}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-clocks-link{transition:none}}`;
+var CLOCKS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-clocks[data-clocks]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ck-ready'))return;
+    root.setAttribute('data-pc-ck-ready','1');
+    var cards=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-clocks-card[data-tz]'));
+    if(!cards.length)return;
+    var h12=root.getAttribute('data-hour12')==='1';
+    var opens=parseFloat(root.getAttribute('data-opens')||'9');
+    var closes=parseFloat(root.getAttribute('data-closes')||'18');
+    var openLabel=root.getAttribute('data-open-label')||'Open now';
+    var closedLabel=root.getAttribute('data-closed-label')||'Closed';
+    function tick(){
+      var now=new Date();
+      cards.forEach(function(card){
+        var tz=card.getAttribute('data-tz')||'';
+        var timeEl=card.querySelector('[data-clocks-time]');
+        var stateEl=card.querySelector('[data-clocks-state]');
+        try{
+          var parts=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',weekday:'short',hour12:false}).formatToParts(now);
+          var get=function(t){for(var i=0;i<parts.length;i++){if(parts[i].type===t)return parts[i].value;}return '';};
+          var hh=parseInt(get('hour'),10)%24;var mm=parseInt(get('minute'),10);var wd=get('weekday');
+          if(timeEl){
+            timeEl.textContent=new Intl.DateTimeFormat(h12?'en-US':'en-GB',{timeZone:tz,hour:h12?'numeric':'2-digit',minute:'2-digit',hour12:h12}).format(now);
+            timeEl.setAttribute('datetime',now.toISOString());
+          }
+          if(stateEl){
+            var dec=hh+mm/60;var weekend=wd==='Sat'||wd==='Sun';
+            var isOpen=!weekend&&dec>=opens&&dec<closes;
+            stateEl.setAttribute('data-open',isOpen?'1':'0');
+            stateEl.textContent=isOpen?openLabel:closedLabel;
+          }
+        }catch(err){
+          if(timeEl)timeEl.textContent='--:--';
+        }
+      });
+    }
+    tick();
+    var timer=setInterval(tick,15000);
+    function onVis(){if(!document.hidden)tick();}
+    document.addEventListener('visibilitychange',onVis);
+    disposers.push(function(){
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange',onVis);
+      root.removeAttribute('data-pc-ck-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var ROSTER_CSS = `.pagecraft-roster{width:100%;display:flex;flex-direction:column;gap:20px}
+.pagecraft-roster-stage{display:grid;background:var(--rs-surface,#FFFFFF);border:1px solid var(--rs-line,#C8D0DF);border-radius:var(--rs-radius,2px);overflow:hidden}
+.pagecraft-roster-panel{grid-area:1 / 1;display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,.58fr);align-items:stretch;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s cubic-bezier(.22,1,.36,1),visibility .26s ease}
+.pagecraft-roster-panel[data-active="1"]{opacity:1;visibility:visible;pointer-events:auto}
+.pagecraft-roster-media{background:var(--rs-ink,#0C1220);overflow:hidden}
+.pagecraft-roster-img{display:block;width:100%;height:100%;min-height:340px;aspect-ratio:var(--rs-ratio,4 / 5);object-fit:cover;object-position:center top}
+.pagecraft-roster-body{padding:36px 40px;display:flex;flex-direction:column;justify-content:space-between;gap:22px}
+.pagecraft-roster-head{display:flex;flex-direction:column;gap:8px}
+.pagecraft-roster-name{margin:0;font-size:clamp(26px,2.5vw,34px);line-height:1.2;font-weight:600;letter-spacing:-.016em;color:var(--rs-ink,#0C1220)}
+.pagecraft-roster-role{margin:0;font-size:16px;line-height:1.5;font-weight:500;color:var(--rs-accent,#1B3B9B)}
+.pagecraft-roster-meta{display:flex;flex-wrap:wrap;gap:8px 24px;padding-top:14px;border-top:1px solid var(--rs-line,#C8D0DF);font-size:14px;line-height:1.5;color:var(--rs-muted,#4A566E)}
+.pagecraft-roster-meta strong{color:var(--rs-ink,#0C1220);font-weight:600}
+.pagecraft-roster-quote{margin:0;padding-top:18px;border-top:1px solid var(--rs-line,#C8D0DF);font-size:17px;line-height:1.6;color:var(--rs-ink,#0C1220);max-width:56ch}
+.pagecraft-roster-cta{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;line-height:1.4;color:var(--rs-accent,#1B3B9B);text-decoration:underline;text-underline-offset:4px}
+.pagecraft-roster-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
+.pagecraft-roster-tab{appearance:none;margin:0;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left;background:var(--rs-surface,#FFFFFF);border:1px solid var(--rs-line,#C8D0DF);border-radius:var(--rs-radius,2px);color:var(--rs-ink,#0C1220);font-family:inherit;cursor:pointer;transition:border-color .18s ease,background-color .18s ease}
+.pagecraft-roster-tab[aria-selected="true"]{border-color:var(--rs-accent,#1B3B9B);background:color-mix(in srgb,var(--rs-accent,#1B3B9B) 6%,var(--rs-surface,#FFFFFF))}
+.pagecraft-roster-tab:focus-visible{outline:2px solid var(--rs-accent,#1B3B9B);outline-offset:2px}
+.pagecraft-roster-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.04em;background-color:var(--rs-ink,#0C1220);color:#FFFFFF;background-size:cover;background-position:center top}
+.pagecraft-roster-avatar[data-has-photo="1"]{color:transparent}
+.pagecraft-roster-tmeta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pagecraft-roster-tname{font-size:14.5px;line-height:1.35;font-weight:600;color:var(--rs-ink,#0C1220)}
+.pagecraft-roster-tseat{font-size:12.5px;line-height:1.35;color:var(--rs-muted,#4A566E)}
+@media (max-width:860px){
+  .pagecraft-roster-panel{grid-template-columns:1fr}
+  .pagecraft-roster-img{height:auto;min-height:0;aspect-ratio:var(--rs-ratio,4 / 5)}
+  .pagecraft-roster-body{padding:24px 20px}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-roster-panel,.pagecraft-roster-tab{transition:none}}`;
+var ROSTER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-roster[data-roster]').forEach(function(root){
+    if(root.hasAttribute('data-pc-rs-ready'))return;
+    root.setAttribute('data-pc-rs-ready','1');
+    var tabs=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-roster-tab[data-roster-tab]'));
+    var panels=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-roster-panel[data-roster-panel]'));
+    if(!tabs.length||!panels.length)return;
+    panels.forEach(function(panel,i){
+      var img=panel.querySelector('.pagecraft-roster-img');
+      var av=tabs[i]&&tabs[i].querySelector('.pagecraft-roster-avatar');
+      var src=img&&(img.currentSrc||img.getAttribute('src'))||'';
+      if(av&&src&&src.indexOf('data:image/svg')!==0){
+        av.style.backgroundImage='url("'+src.replace(/"/g,'\\"')+'")';
+        av.setAttribute('data-has-photo','1');
+      }
+    });
+    function select(idx,focusTab){
+      tabs.forEach(function(t,i){
+        var on=i===idx;
+        t.setAttribute('aria-selected',on?'true':'false');
+        t.setAttribute('tabindex',on?'0':'-1');
+        if(on&&focusTab)t.focus();
+      });
+      panels.forEach(function(p,i){
+        var on=i===idx;
+        p.setAttribute('data-active',on?'1':'0');
+        p.setAttribute('aria-hidden',on?'false':'true');
+      });
+    }
+    var offs=[];
+    tabs.forEach(function(tab,idx){
+      function onClick(){select(idx,false);}
+      function onKey(e){
+        var n=tabs.length;
+        if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();select((idx+1)%n,true);}
+        else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();select((idx-1+n)%n,true);}
+        else if(e.key==='Home'){e.preventDefault();select(0,true);}
+        else if(e.key==='End'){e.preventDefault();select(n-1,true);}
+      }
+      tab.addEventListener('click',onClick);
+      tab.addEventListener('keydown',onKey);
+      offs.push(function(){
+        tab.removeEventListener('click',onClick);
+        tab.removeEventListener('keydown',onKey);
+      });
+    });
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-rs-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var TIERS_CSS = `.pagecraft-tiers{width:100%;display:flex;flex-direction:column;gap:24px}
+.pagecraft-tiers-bar{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.pagecraft-tiers-cur-lbl{font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tr-muted,#4A566E);margin-right:4px}
+.pagecraft-tiers-cur{appearance:none;margin:0;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;line-height:1.3;border:1px solid var(--tr-line,#C8D0DF);border-radius:var(--tr-radius,2px);background:var(--tr-surface,#FFFFFF);color:var(--tr-ink,#0C1220);cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
+.pagecraft-tiers-cur[aria-pressed="true"]{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-tiers-cur:focus-visible{outline:2px solid var(--tr-accent,#1B3B9B);outline-offset:2px}
+.pagecraft-tiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px;align-items:stretch}
+.pagecraft-tiers-card{padding:30px 28px;display:flex;flex-direction:column;gap:18px;background:var(--tr-surface,#FFFFFF);color:var(--tr-ink,#0C1220);border:1px solid var(--tr-line,#C8D0DF);border-radius:var(--tr-radius,2px)}
+.pagecraft-tiers-card[data-featured="1"]{background:var(--tr-feat-bg,#0C1220);color:var(--tr-feat-ink,#F2F4F8);border-color:var(--tr-feat-bg,#0C1220)}
+.pagecraft-tiers-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pagecraft-tiers-name{margin:0;font-size:22px;line-height:1.3;font-weight:600;color:inherit}
+.pagecraft-tiers-badge{padding:4px 10px;font-size:11.5px;line-height:1.3;font-weight:600;border-radius:2px;background:var(--tr-accent,#1B3B9B);color:#FFFFFF;white-space:nowrap}
+.pagecraft-tiers-sum{margin:0;font-size:14.5px;line-height:1.58;color:var(--tr-muted,#4A566E);max-width:46ch}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-sum{color:var(--tr-feat-muted,#B8C6E0)}
+.pagecraft-tiers-price-row{display:flex;align-items:baseline;gap:8px;padding:16px 0;border-top:1px solid var(--tr-line,#C8D0DF);border-bottom:1px solid var(--tr-line,#C8D0DF)}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-price-row{border-color:rgba(184,198,224,.22)}
+.pagecraft-tiers-price{font-size:clamp(30px,3vw,38px);line-height:1.1;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:inherit}
+.pagecraft-tiers-period{font-size:14px;line-height:1.4;color:var(--tr-muted,#4A566E)}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-period{color:var(--tr-feat-muted,#B8C6E0)}
+.pagecraft-tiers-feats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;flex:1}
+.pagecraft-tiers-feat{font-size:14px;line-height:1.5;display:flex;align-items:flex-start;gap:10px;color:inherit}
+.pagecraft-tiers-check{color:var(--tr-accent,#1B3B9B);font-weight:700;flex-shrink:0}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-check{color:#7DA2FF}
+.pagecraft-tiers-btn{margin-top:6px;padding:12px 18px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;line-height:1.3;text-decoration:none;border-radius:var(--tr-radius,2px);border:1px solid var(--tr-ink,#0C1220);color:var(--tr-ink,#0C1220);background:transparent;transition:background-color .16s ease,color .16s ease}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-btn{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-tiers-btn:hover,.pagecraft-tiers-btn:focus-visible{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
+@media (max-width:860px){.pagecraft-tiers-bar{justify-content:flex-start}.pagecraft-tiers-card{padding:24px 20px}}
+@media (prefers-reduced-motion:reduce){.pagecraft-tiers-cur,.pagecraft-tiers-btn{transition:none}}`;
+var TIERS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-tiers[data-tiers]').forEach(function(root){
+    if(root.hasAttribute('data-pc-tr-ready'))return;
+    root.setAttribute('data-pc-tr-ready','1');
+    var btns=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-tiers-cur[data-tiers-cur]'));
+    var prices=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-tiers-price[data-usd]'));
+    if(!btns.length)return;
+    function setCur(cur){
+      root.setAttribute('data-active-cur',cur);
+      btns.forEach(function(b){
+        b.setAttribute('aria-pressed',b.getAttribute('data-tiers-cur')===cur?'true':'false');
+      });
+      prices.forEach(function(el){
+        var val=el.getAttribute('data-'+cur)||el.getAttribute('data-usd')||'';
+        if(val)el.textContent=val;
+      });
+    }
+    var offs=[];
+    btns.forEach(function(btn){
+      function onClick(){setCur(btn.getAttribute('data-tiers-cur')||'usd');}
+      btn.addEventListener('click',onClick);
+      offs.push(function(){btn.removeEventListener('click',onClick);});
+    });
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-tr-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var QAPILLS_CSS = `.pagecraft-qapills{width:100%;display:flex;flex-direction:column;gap:24px}
+.pagecraft-qapills-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:var(--qp-align,center)}
+.pagecraft-qapills-pill{appearance:none;margin:0;padding:10px 18px;min-height:42px;font-family:inherit;font-size:14px;font-weight:600;line-height:1.35;border:1px solid var(--qp-line,#C8D0DF);border-radius:var(--qp-pill-radius,999px);background:var(--qp-surface,#FFFFFF);color:var(--qp-ink,#0C1220);cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
+.pagecraft-qapills-pill[aria-selected="true"]{background:var(--qp-accent,#1B3B9B);border-color:var(--qp-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-qapills-pill:focus-visible{outline:2px solid var(--qp-accent,#1B3B9B);outline-offset:2px}
+.pagecraft-qapills-stage{padding:36px 40px;background:var(--qp-surface,#FFFFFF);border:1px solid var(--qp-line,#C8D0DF);border-radius:var(--qp-radius,2px)}
+.pagecraft-qapills-panel{display:flex;flex-direction:column;align-items:var(--qp-panel-align,center);text-align:var(--qp-text-align,center);gap:14px}
+.pagecraft-qapills-panel[hidden]{display:none}
+.pagecraft-qapills-q{margin:0;font-size:clamp(22px,2.2vw,28px);line-height:1.3;font-weight:600;color:var(--qp-ink,#0C1220);max-width:42ch}
+.pagecraft-qapills-a{margin:0;font-size:16px;line-height:1.65;color:var(--qp-muted,#4A566E);max-width:60ch}
+.pagecraft-qapills-note{font-size:13px;line-height:1.45;font-weight:600;color:var(--qp-ink,#0C1220);padding-top:6px}
+.pagecraft-qapills-link{font-size:14px;font-weight:600;line-height:1.4;color:var(--qp-accent,#1B3B9B);text-decoration:underline;text-underline-offset:4px}
+@media (max-width:860px){.pagecraft-qapills-stage{padding:24px 20px}.pagecraft-qapills-bar{justify-content:flex-start}}
+@media (prefers-reduced-motion:reduce){.pagecraft-qapills-pill{transition:none}}`;
+var QAPILLS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-qapills[data-qapills]').forEach(function(root){
+    if(root.hasAttribute('data-pc-qp-ready'))return;
+    root.setAttribute('data-pc-qp-ready','1');
+    var pills=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-qapills-pill[data-qa-idx]'));
+    var panels=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-qapills-panel[data-qa-panel]'));
+    if(!pills.length||!panels.length)return;
+    function activate(idx,focusPill){
+      pills.forEach(function(p,i){
+        var on=i===idx;
+        p.setAttribute('aria-selected',on?'true':'false');
+        p.setAttribute('tabindex',on?'0':'-1');
+        if(on&&focusPill)p.focus();
+      });
+      panels.forEach(function(pn,i){
+        if(i===idx)pn.removeAttribute('hidden');
+        else pn.setAttribute('hidden','');
+      });
+    }
+    var offs=[];
+    pills.forEach(function(pill,idx){
+      function onClick(){activate(idx,false);}
+      function onKey(e){
+        var n=pills.length;
+        if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();activate((idx+1)%n,true);}
+        else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();activate((idx-1+n)%n,true);}
+        else if(e.key==='Home'){e.preventDefault();activate(0,true);}
+        else if(e.key==='End'){e.preventDefault();activate(n-1,true);}
+      }
+      pill.addEventListener('click',onClick);
+      pill.addEventListener('keydown',onKey);
+      offs.push(function(){
+        pill.removeEventListener('click',onClick);
+        pill.removeEventListener('keydown',onKey);
+      });
+    });
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-qp-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var DOCKBAR_CSS = `.pagecraft-dockbar{position:relative;z-index:3;width:100%}
+.pagecraft-dockbar-form{margin:0;padding:8px;display:flex;align-items:stretch;gap:0;background:var(--db-surface,#FFFFFF);border:1px solid var(--db-line,#C8D0DF);border-radius:var(--db-radius,4px);box-shadow:0 22px 52px rgba(12,18,32,.14)}
+.pagecraft-dockbar-field{margin:0;padding:12px 18px;flex:1 1 0%;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;border-radius:0;cursor:text}
+.pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:1px solid var(--db-line,#C8D0DF)}
+.pagecraft-dockbar-lbl{font-size:11.5px;line-height:1.35;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--db-ink,#0C1220)}
+.pagecraft-dockbar-input,.pagecraft-dockbar-select{appearance:none;width:100%;min-width:0;margin:0;padding:2px 0;border:0;background:transparent;font-family:inherit;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
+.pagecraft-dockbar-input::placeholder{color:var(--db-muted,#4A566E);opacity:1}
+.pagecraft-dockbar-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
+.pagecraft-dockbar-submit{appearance:none;margin:0 0 0 8px;padding:0 26px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:#FFFFFF;font-family:inherit;font-size:14.5px;font-weight:600;line-height:1.3;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .16s ease}
+.pagecraft-dockbar-submit:hover,.pagecraft-dockbar-submit:focus-visible{background:var(--db-ink,#0C1220)}
+.pagecraft-dockbar-submit:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
+@media (max-width:860px){
+  .pagecraft-dockbar-form{flex-direction:column;padding:10px}
+  .pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:0;border-top:1px solid var(--db-line,#C8D0DF)}
+  .pagecraft-dockbar-submit{margin:8px 0 0;width:100%;min-height:48px}
+}
+@media (prefers-reduced-motion:reduce){.pagecraft-dockbar-submit{transition:none}}`;
+var DOCKBAR_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-dockbar[data-dockbar]').forEach(function(root){
+    if(root.hasAttribute('data-pc-db-ready'))return;
+    root.setAttribute('data-pc-db-ready','1');
+    var form=root.querySelector('.pagecraft-dockbar-form');
+    if(!form)return;
+    function onSubmit(e){
+      var dest=form.getAttribute('data-dest')||'';
+      if(!dest){e.preventDefault();return;}
+      e.preventDefault();
+      window.location.href=dest;
+    }
+    form.addEventListener('submit',onSubmit);
+    disposers.push(function(){
+      form.removeEventListener('submit',onSubmit);
+      root.removeAttribute('data-pc-db-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -5148,7 +5504,7 @@ function mediaReferences(document) {
     const props = node.props;
     const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
-    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -5206,7 +5562,7 @@ function replaceMediaReferences(document, sourceId, replacementId) {
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs" || node.type === "exhibit";
+var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs" || node.type === "exhibit" || node.type === "clocks" || node.type === "roster" || node.type === "tiers" || node.type === "qapills";
 var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
 var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
 var BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -7299,6 +7655,316 @@ var DEF = {
         { t: "unit", c: "--sc-gap", label: "Column gap", layout: "inline", r: 1, units: U.space }
       ]
     }
+  },
+  clocks: {
+    label: "Office clocks",
+    icon: "clocks",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        hour12: 0,
+        opens: "9",
+        closes: "18",
+        openLabel: "Office open",
+        closedLabel: "After hours",
+        items: [
+          { city: "London", tz: "Europe/London", address: "14 Old Square\nLondon WC2A 3UE", phone: "+44 20 7946 0110", href: "", linkLabel: "" },
+          { city: "New York", tz: "America/New_York", address: "55 Water Street\nNew York, NY 10041", phone: "+1 212 555 0142", href: "", linkLabel: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ck-accent": cvar("brand"),
+          "--ck-surface": "transparent",
+          "--ck-ink": cvar("ink"),
+          "--ck-muted": cvar("muted"),
+          "--ck-line": cvar("line"),
+          "--ck-radius": "0px",
+          "--ck-gap": "0px",
+          "--ck-time-size": "40px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "toggle", k: "hour12", label: "12-hour clock" },
+        { t: "text", k: "opens", label: "Opens (hour, 0\u201324)", ph: "9" },
+        { t: "text", k: "closes", label: "Closes (hour, 0\u201324)", ph: "18" },
+        { t: "text", k: "openLabel", label: "Open label", ph: "Office open" },
+        { t: "text", k: "closedLabel", label: "Closed label", ph: "After hours" },
+        {
+          t: "qa",
+          k: "items",
+          label: "Offices",
+          addLabel: "Add office",
+          rowFields: [
+            { k: "city", label: "City", ph: "London", def: "New office" },
+            { k: "tz", label: "Time zone (IANA)", ph: "Europe/London", def: "UTC" },
+            { k: "phone", label: "Phone", ph: "+44 20 0000 0000", def: "" },
+            { k: "href", label: "Map or page link", ph: "https://maps.example", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Open in Maps", def: "" },
+            { k: "src", label: "Office image URL or asset", ph: "asset:office", def: "" },
+            { k: "alt", label: "Alt text", ph: "Office exterior or room", def: "" },
+            { k: "address", label: "Address", ph: "Street, city, postcode", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ck-accent", label: "Open accent", r: 1, layout: "inline" },
+        { t: "color", c: "--ck-surface", label: "Card fill", r: 1, layout: "inline" },
+        { t: "color", c: "--ck-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ck-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ck-line", label: "Rule colour", r: 1, layout: "inline" },
+        { t: "unit", c: "--ck-time-size", label: "Time size", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--ck-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "unit", c: "--ck-gap", label: "Card gap", layout: "inline", r: 1, units: U.space }
+      ]
+    }
+  },
+  roster: {
+    label: "Partner spotlight",
+    icon: "roster",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        portraitRatio: "4 / 5",
+        items: [
+          { name: "Claire Mercer", role: "Managing Trial Partner \xB7 J.D., Ph.D. Electrical Engineering", seat: "Washington, D.C.", credential: "U.S. Federal Circuit & PTAB", quote: "\u201CEvery trial brief and cross-examination outline should read cleanly to both a district judge and a silicon architect.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "Claire Mercer portrait" },
+          { name: "David Quinn", role: "Senior Appellate Partner \xB7 KC, UPC Representative", seat: "London & Munich", credential: "Patents Court & UPC", quote: "\u201CSynchronizing European preliminary injunction defenses with U.S. claim construction prevents transatlantic estoppel traps.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "David Quinn portrait" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--rs-accent": cvar("brand"),
+          "--rs-surface": cvar("surface"),
+          "--rs-ink": cvar("ink"),
+          "--rs-muted": cvar("muted"),
+          "--rs-line": cvar("line"),
+          "--rs-radius": "2px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "portraitRatio", label: "Portrait ratio", opts: [["4 / 5", "4:5"], ["3 / 4", "3:4"], ["1 / 1", "Square"], ["3 / 2", "3:2"]] },
+        {
+          t: "qa",
+          k: "items",
+          label: "Members",
+          addLabel: "Add member",
+          rowFields: [
+            { k: "name", label: "Full name", ph: "Claire Mercer", def: "New partner" },
+            { k: "role", label: "Role & degree", ph: "Managing Partner \xB7 Ph.D.", def: "" },
+            { k: "seat", label: "Office / city", ph: "Washington, D.C.", def: "" },
+            { k: "credential", label: "Admission / focus", ph: "Federal Circuit Bar", def: "" },
+            { k: "src", label: "Portrait URL or asset", ph: "asset:partner", def: "" },
+            { k: "alt", label: "Alt text", ph: "Partner portrait", def: "" },
+            { k: "href", label: "Action link", ph: "conflict-check.html", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Direct intake", def: "" },
+            { k: "quote", label: "Spotlight quote", ph: "Working principle or notable verdict", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--rs-accent", label: "Active accent", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-surface", label: "Stage surface", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "unit", c: "--rs-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  tiers: {
+    label: "Currency tiers",
+    icon: "tiers",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        defaultCurrency: "usd",
+        usdLabel: "USD $",
+        eurLabel: "EUR \u20AC",
+        gbpLabel: "GBP \xA3",
+        items: [
+          { tierName: "Fixed-Scope Audit", badge: "", priceUsd: "$18,000", priceEur: "\u20AC16,500", priceGbp: "\xA314,200", period: "per tranche", summary: "Freedom-to-operate or AI provenance technical file.", features: "15-business-day turnaround\nWritten partner opinion", ctaText: "Clear conflict", href: "", featured: 0 },
+          { tierName: "Fractional IP Counsel", badge: "Most engaged", priceUsd: "$6,400", priceEur: "\u20AC5,800", priceGbp: "\xA34,950", period: "/ month", summary: "Ongoing docket clearance, claim charting, and regulatory filings.", features: "Same-day partner access\nQuarterly board IP review", ctaText: "Retain counsel", href: "", featured: 1 }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tr-accent": cvar("brand"),
+          "--tr-surface": cvar("surface"),
+          "--tr-ink": cvar("ink"),
+          "--tr-muted": cvar("muted"),
+          "--tr-line": cvar("line"),
+          "--tr-feat-bg": cvar("ink"),
+          "--tr-feat-ink": "#ffffff",
+          "--tr-radius": "2px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "defaultCurrency", label: "Default currency", opts: [["usd", "USD"], ["eur", "EUR"], ["gbp", "GBP"]] },
+        { t: "text", k: "usdLabel", label: "USD button", ph: "USD $" },
+        { t: "text", k: "eurLabel", label: "EUR button", ph: "EUR \u20AC" },
+        { t: "text", k: "gbpLabel", label: "GBP button", ph: "GBP \xA3" },
+        {
+          t: "qa",
+          k: "items",
+          label: "Tiers",
+          addLabel: "Add tier",
+          rowFields: [
+            { k: "tierName", label: "Tier name", ph: "Advisory Retainer", def: "New tier" },
+            { k: "badge", label: "Badge (optional)", ph: "Most engaged", def: "" },
+            { k: "priceUsd", label: "USD price", ph: "$6,400", def: "$5,000" },
+            { k: "priceEur", label: "EUR price", ph: "\u20AC5,800", def: "\u20AC4,600" },
+            { k: "priceGbp", label: "GBP price", ph: "\xA34,950", def: "\xA33,900" },
+            { k: "period", label: "Billing period", ph: "/ month", def: "/ month" },
+            { k: "ctaText", label: "Button label", ph: "Select tier", def: "Get started" },
+            { k: "href", label: "Button link", ph: "conflict-check.html", def: "" },
+            { k: "summary", label: "Summary", ph: "One-sentence tier scope", def: "", area: 1 },
+            { k: "features", label: "Features (one per line)", ph: "Feature one\nFeature two", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--tr-accent", label: "Accent colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-feat-bg", label: "Featured fill", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-feat-ink", label: "Featured text", r: 1, layout: "inline" },
+        { t: "unit", c: "--tr-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  qapills: {
+    label: "Question pills",
+    icon: "qapills",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        pillAlign: "center",
+        items: [
+          { q: "Why submit only counterparty names first?", a: "Screening corporate entity names before confidential facts are shared protects both existing clients and your privilege.", note: "ABA Model Rule 1.18 compliant", href: "", linkLabel: "" },
+          { q: "How fast is emergency clearance?", a: "Standard docket screening completes within 24 hours; active TRO or customs seizure matters clear in two hours.", note: "24/7 duty partner desk", href: "", linkLabel: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--qp-accent": cvar("brand"),
+          "--qp-surface": cvar("surface"),
+          "--qp-ink": cvar("ink"),
+          "--qp-muted": cvar("muted"),
+          "--qp-line": cvar("line"),
+          "--qp-radius": "2px",
+          "--qp-pill-radius": "999px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "pick", k: "pillAlign", label: "Alignment", opts: [["start", "Left"], ["center", "Center"]], text: 1 },
+        {
+          t: "qa",
+          k: "items",
+          label: "Questions",
+          addLabel: "Add question",
+          rowFields: [
+            { k: "q", label: "Question pill", ph: "Short question", def: "New question?" },
+            { k: "note", label: "Policy / rule note", ph: "ABA Rule 1.18", def: "" },
+            { k: "href", label: "Action link", ph: "#check-desk", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Proceed to intake", def: "" },
+            { k: "a", label: "Full answer", ph: "Direct answer shown in panel", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--qp-accent", label: "Active pill accent", r: 1, layout: "inline" },
+        { t: "color", c: "--qp-surface", label: "Panel surface", r: 1, layout: "inline" },
+        { t: "color", c: "--qp-ink", label: "Question colour", r: 1, layout: "inline" },
+        { t: "color", c: "--qp-muted", label: "Answer colour", r: 1, layout: "inline" },
+        { t: "color", c: "--qp-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "unit", c: "--qp-radius", label: "Panel radius", layout: "inline", r: 1, units: U.radius },
+        { t: "unit", c: "--qp-pill-radius", label: "Pill radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  dockbar: {
+    label: "Docked intake bar",
+    icon: "dockbar",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        submitLabel: "Screen Conflict \u2192",
+        destHref: "",
+        ariaLabel: "Quick screening bar",
+        items: [
+          { fieldLabel: "Requesting Entity", fieldType: "text", ph: "Helios Silicon GmbH", choices: "" },
+          { fieldLabel: "Counterparty Entity", fieldType: "text", ph: "Entity name only", choices: "" },
+          { fieldLabel: "Primary Forum", fieldType: "select", ph: "", choices: "U.S. Federal Circuit, Unified Patent Court, PTAB Inter Partes, EU AI Act Audit" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--db-accent": cvar("brand"),
+          "--db-surface": cvar("surface"),
+          "--db-ink": cvar("ink"),
+          "--db-muted": cvar("muted"),
+          "--db-line": cvar("line"),
+          "--db-radius": "2px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "submitLabel", label: "Submit button", ph: "Screen Conflict \u2192" },
+        { t: "link", k: "destHref", label: "Destination page" },
+        { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick screening bar" },
+        {
+          t: "qa",
+          k: "items",
+          label: "Fields",
+          addLabel: "Add field",
+          rowFields: [
+            { k: "fieldLabel", label: "Field label", ph: "Requesting Entity", def: "Field" },
+            { k: "fieldType", label: "Type (text or select)", ph: "text", def: "text" },
+            { k: "ph", label: "Placeholder", ph: "Enter value", def: "" },
+            { k: "choices", label: "Select options (comma-separated)", ph: "Option A, Option B", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--db-accent", label: "Button & focus accent", r: 1, layout: "inline" },
+        { t: "color", c: "--db-surface", label: "Bar surface", r: 1, layout: "inline" },
+        { t: "color", c: "--db-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--db-muted", label: "Placeholder colour", r: 1, layout: "inline" },
+        { t: "color", c: "--db-line", label: "Divider line", r: 1, layout: "inline" },
+        { t: "unit", c: "--db-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -7789,6 +8455,11 @@ var nameOf = (n) => {
   if (n.type === "switcher") return `Switcher \xB7 ${(n.props.items || []).length} stage${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "exhibit") return `Exhibit \xB7 ${(n.props.items || []).length} entr${(n.props.items || []).length === 1 ? "y" : "ies"}`;
   if (n.type === "scrolly") return `Steps \xB7 ${(n.props.items || []).length} step${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "clocks") return `Clocks \xB7 ${(n.props.items || []).length} office${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "roster") return `Roster \xB7 ${(n.props.items || []).length} member${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "tiers") return `Tiers \xB7 ${(n.props.items || []).length} plan${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "qapills") return `Q&A pills \xB7 ${(n.props.items || []).length} item${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "dockbar") return `Docked bar \xB7 ${(n.props.items || []).length} field${(n.props.items || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -10395,7 +11066,12 @@ var TEXT_SLOTS = {
   strips: [["items", "alt", "tag", "title", "detail"]],
   switcher: [["items", "label", "meta", "title", "detail", "alt"]],
   exhibit: [["items", "title", "location", "scope", "year", "alt"]],
-  scrolly: [["items", "title", "detail", "fact", "alt"]]
+  scrolly: [["items", "title", "detail", "fact", "alt"]],
+  clocks: ["openLabel", "closedLabel", ["items", "city", "address", "phone", "linkLabel", "alt"]],
+  roster: [["items", "name", "role", "seat", "credential", "quote", "linkLabel", "alt"]],
+  tiers: ["usdLabel", "eurLabel", "gbpLabel", ["items", "tierName", "badge", "priceUsd", "priceEur", "priceGbp", "period", "summary", "features", "ctaText"]],
+  qapills: [["items", "q", "a", "note", "linkLabel"]],
+  dockbar: ["submitLabel", "ariaLabel", ["items", "fieldLabel", "ph", "choices"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -10432,7 +11108,35 @@ var SLOT_LABEL = {
   location: "Location",
   scope: "Scope",
   year: "Year",
-  fact: "Metric note"
+  fact: "Metric note",
+  city: "City",
+  address: "Address",
+  phone: "Phone",
+  linkLabel: "Link label",
+  openLabel: "Open label",
+  closedLabel: "Closed label",
+  name: "Name",
+  role: "Role",
+  seat: "Office",
+  credential: "Credential",
+  quote: "Quote",
+  usdLabel: "USD label",
+  eurLabel: "EUR label",
+  gbpLabel: "GBP label",
+  tierName: "Tier name",
+  badge: "Badge",
+  priceUsd: "USD price",
+  priceEur: "EUR price",
+  priceGbp: "GBP price",
+  period: "Period",
+  summary: "Summary",
+  features: "Features",
+  ctaText: "Button text",
+  note: "Note",
+  submitLabel: "Submit label",
+  ariaLabel: "Accessible label",
+  fieldLabel: "Field label",
+  choices: "Choices"
 };
 var ASSET_SLOTS = {
   image: ["src"],
@@ -10444,7 +11148,9 @@ var ASSET_SLOTS = {
   strips: [["items", "src"]],
   switcher: [["items", "src"]],
   exhibit: [["items", "src"]],
-  scrolly: [["items", "src"]]
+  scrolly: [["items", "src"]],
+  clocks: [["items", "src"]],
+  roster: [["items", "src"]]
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
@@ -14354,7 +15060,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -14370,9 +15076,14 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "switcher") switcher = true;
     else if (node.type === "exhibit") exhibit = true;
     else if (node.type === "scrolly") scrolly = true;
+    else if (node.type === "clocks") clocks = true;
+    else if (node.type === "roster") roster = true;
+    else if (node.type === "tiers") tiers = true;
+    else if (node.type === "qapills") qapills = true;
+    else if (node.type === "dockbar") dockbar = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -14388,7 +15099,12 @@ ${HOTSPOT_CSS}` : "") + (used.strips ? `
 ${STRIPS_CSS}` : "") + (used.switcher ? `
 ${SWITCHER_CSS}` : "") + (used.exhibit ? `
 ${EXHIBIT_CSS}` : "") + (used.scrolly ? `
-${SCROLLY_CSS}` : "") + (used.videoLightbox ? `
+${SCROLLY_CSS}` : "") + (used.clocks ? `
+${CLOCKS_CSS}` : "") + (used.roster ? `
+${ROSTER_CSS}` : "") + (used.tiers ? `
+${TIERS_CSS}` : "") + (used.qapills ? `
+${QAPILLS_CSS}` : "") + (used.dockbar ? `
+${DOCKBAR_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -14426,6 +15142,11 @@ ${ANIM_CALM}` : "")),
       switcher: pageExtra.switcher && !globalExtra.switcher,
       exhibit: pageExtra.exhibit && !globalExtra.exhibit,
       scrolly: pageExtra.scrolly && !globalExtra.scrolly,
+      clocks: pageExtra.clocks && !globalExtra.clocks,
+      roster: pageExtra.roster && !globalExtra.roster,
+      tiers: pageExtra.tiers && !globalExtra.tiers,
+      qapills: pageExtra.qapills && !globalExtra.qapills,
+      dockbar: pageExtra.dockbar && !globalExtra.dockbar,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -15770,6 +16491,133 @@ function renderNode(n, o) {
       }).join("");
       return `<div ${at()} ${cx("pagecraft-scrolly")} data-scrolly${o.edit ? " data-scrolly-edit" : ""}${ratioStyle}><ol class="pagecraft-scrolly-steps">${steps}</ol><div class="pagecraft-scrolly-stage"><div class="pagecraft-scrolly-frame">${plates}</div></div></div>`;
     }
+    case "clocks": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const h12 = Number(p.hour12) === 1;
+      const num = (v, d2) => {
+        const n2 = parseFloat(String(v ?? ""));
+        return Number.isFinite(n2) ? Math.min(24, Math.max(0, n2)) : d2;
+      };
+      const opens = num(p.opens, 9), closes = num(p.closes, 18);
+      const openLabel = String(p.openLabel || "Office open"), closedLabel = String(p.closedLabel || "After hours");
+      const now = /* @__PURE__ */ new Date();
+      const cards = items.map((it, i) => {
+        const city = String(it.city || `Office ${i + 1}`);
+        const tz = String(it.tz || "UTC");
+        let time = "--:--";
+        try {
+          time = new Intl.DateTimeFormat(h12 ? "en-US" : "en-GB", { timeZone: tz, hour: h12 ? "numeric" : "2-digit", minute: "2-digit", hour12: h12 }).format(now);
+        } catch {
+        }
+        const addr = String(it.address || "");
+        const phone = String(it.phone || "");
+        const tel = phone.replace(/[^+\d]/g, "");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const linkLabel = String(it.linkLabel || "Directions");
+        const rawSrc = String(it.src || "").trim();
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const media = rawSrc ? `<div class="pagecraft-clocks-media"><img class="pagecraft-clocks-img" src="${esc(rawSrc)}" alt="${esc(String(it.alt || city))}"${dim} decoding="async"></div>` : "";
+        const telEl = phone && !o.edit ? `<a class="pagecraft-clocks-link" href="tel:${esc(tel)}">${esc(phone)}</a>` : phone ? `<span class="pagecraft-clocks-link">${esc(phone)}</span>` : "";
+        const links = telEl + (link ? `<a class="pagecraft-clocks-link" href="${esc(link)}"${/^https?:/i.test(link) ? ' target="_blank" rel="noopener"' : ""}>${esc(linkLabel)}</a>` : "");
+        return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">` + media + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span><time class="pagecraft-clocks-time" data-clocks-time>${esc(time)}</time></div><span class="pagecraft-clocks-state" data-clocks-state data-open="0">${esc(closedLabel)}</span>` + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, "<br>")}</address>` : "") + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : "") + `</li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-clocks")} data-clocks data-hour12="${h12 ? "1" : "0"}" data-opens="${opens}" data-closes="${closes}" data-open-label="${esc(openLabel)}" data-closed-label="${esc(closedLabel)}"><ul class="pagecraft-clocks-list">${cards}</ul></div>`;
+    }
+    case "roster": {
+      const ratio = cssRatio(p.portraitRatio);
+      const ratioStyle = ratio ? ` style="--rs-ratio:${esc(ratio)}"` : "";
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const baseId = String(n.id || "pc");
+      const initialsOf = (nm) => nm.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "P";
+      const panels = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const role = String(it.role || "");
+        const seat = String(it.seat || "");
+        const cred = String(it.credential || "");
+        const quote = String(it.quote || "");
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || name));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const linkLabel = String(it.linkLabel || "Schedule consultation");
+        const metaRow = seat || cred ? `<div class="pagecraft-roster-meta">${seat ? `<span><strong>Chambers:</strong> ${esc(seat)}</span>` : ""}${cred ? `<span><strong>Bar:</strong> ${esc(cred)}</span>` : ""}</div>` : "";
+        return `<article class="pagecraft-roster-panel" id="${esc(baseId)}-panel-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div><div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>` + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : "") + metaRow + `</div>` + (quote ? `<blockquote class="pagecraft-roster-quote">${esc(quote)}</blockquote>` : "") + (link ? `<a class="pagecraft-roster-cta" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div></article>`;
+      }).join("");
+      const tabs = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const seat = String(it.seat || it.credential || "");
+        return `<button type="button" class="pagecraft-roster-tab" id="${esc(baseId)}-tab-${i}" role="tab" aria-controls="${esc(baseId)}-panel-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-roster-tab="${i}"><span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span><span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>` + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : "") + `</span></button>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-roster")} data-roster${ratioStyle}><div class="pagecraft-roster-stage">${panels}</div><div class="pagecraft-roster-strip" role="tablist" aria-label="Team spotlight">${tabs}</div></div>`;
+    }
+    case "tiers": {
+      const defCur = ["usd", "eur", "gbp"].includes(String(p.defaultCurrency)) ? String(p.defaultCurrency) : "usd";
+      const curBtns = [
+        ["usd", String(p.usdLabel || "USD $")],
+        ["eur", String(p.eurLabel || "EUR \u20AC")],
+        ["gbp", String(p.gbpLabel || "GBP \xA3")]
+      ].map(
+        ([code, lbl]) => `<button type="button" class="pagecraft-tiers-cur" data-tiers-cur="${code}" aria-pressed="${code === defCur ? "true" : "false"}">${esc(lbl)}</button>`
+      ).join("");
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const tName = String(it.tierName || `Tier ${i + 1}`);
+        const badge = String(it.badge || "").trim();
+        const usd = String(it.priceUsd || "$0");
+        const eur = String(it.priceEur || usd);
+        const gbp = String(it.priceGbp || usd);
+        const initPrice = defCur === "eur" ? eur : defCur === "gbp" ? gbp : usd;
+        const period = String(it.period || "");
+        const summary = String(it.summary || "");
+        const feats = String(it.features || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        const featHtml = feats.length ? `<ul class="pagecraft-tiers-feats">${feats.map((f) => `<li class="pagecraft-tiers-feat"><span class="pagecraft-tiers-check" aria-hidden="true">\u2713</span><span>${esc(f)}</span></li>`).join("")}</ul>` : "";
+        const ctaText = String(it.ctaText || "Select tier");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "#";
+        const featured = Number(it.featured) === 1 ? "1" : "0";
+        return `<article class="pagecraft-tiers-card" data-featured="${featured}"><div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>` + (badge ? `<span class="pagecraft-tiers-badge">${esc(badge)}</span>` : "") + `</div>` + (summary ? `<p class="pagecraft-tiers-sum">${esc(summary)}</p>` : "") + `<div class="pagecraft-tiers-price-row"><span class="pagecraft-tiers-price" data-usd="${esc(usd)}" data-eur="${esc(eur)}" data-gbp="${esc(gbp)}">${esc(initPrice)}</span>` + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : "") + `</div>` + featHtml + `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a></article>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-tiers")} data-tiers data-active-cur="${esc(defCur)}"><div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div><div class="pagecraft-tiers-grid">${cards}</div></div>`;
+    }
+    case "qapills": {
+      const left = String(p.pillAlign) === "start";
+      const alignStyle = left ? ' style="--qp-align:flex-start;--qp-panel-align:flex-start;--qp-text-align:left"' : "";
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const baseId = String(n.id || "pc");
+      const pills = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        return `<button type="button" class="pagecraft-qapills-pill" id="${esc(baseId)}-pill-${i}" role="tab" aria-controls="${esc(baseId)}-ans-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-qa-idx="${i}">${esc(q)}</button>`;
+      }).join("");
+      const panels = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        const a = String(it.a || "");
+        const note = String(it.note || "");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const linkLabel = String(it.linkLabel || "Learn more");
+        return `<div class="pagecraft-qapills-panel" id="${esc(baseId)}-ans-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-pill-${i}" data-qa-panel="${i}"${i === 0 ? "" : " hidden"}><h3 class="pagecraft-qapills-q">${esc(q)}</h3>` + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : "") + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : "") + (link ? `<a class="pagecraft-qapills-link" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-qapills")} data-qapills${alignStyle}><div class="pagecraft-qapills-bar" role="tablist" aria-label="Questions">${pills}</div><div class="pagecraft-qapills-stage">${panels}</div></div>`;
+    }
+    case "dockbar": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const aria = String(p.ariaLabel || "Quick intake");
+      const subLbl = String(p.submitLabel || "Continue \u2192");
+      const rawHref = safeUrl(String(p.destHref || "").trim());
+      const dest = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+      const fields = items.map((it, i) => {
+        const lbl = String(it.fieldLabel || `Field ${i + 1}`);
+        const fType = String(it.fieldType || "text").toLowerCase();
+        const ph2 = String(it.ph || "");
+        const opts = String(it.choices || "").split(",").map((x) => x.trim()).filter(Boolean);
+        const control = fType === "select" && opts.length ? `<select class="pagecraft-dockbar-select" name="f_${i}">${opts.map((op) => `<option value="${esc(op)}">${esc(op)}</option>`).join("")}</select>` : `<input class="pagecraft-dockbar-input" type="text" name="f_${i}" placeholder="${esc(ph2)}" autocomplete="off">`;
+        return `<label class="pagecraft-dockbar-field"><span class="pagecraft-dockbar-lbl">${esc(lbl)}</span>${control}</label>`;
+      }).join("");
+      const btn = dest ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>` : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
+      return `<div ${at()} ${cx("pagecraft-dockbar")} data-dockbar><form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -16284,7 +17132,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-dockbar/.test(body) ? DOCKBAR_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -16768,6 +17616,8 @@ var __CORE = {
   BIND_CTL,
   BOX,
   BP_CHAIN,
+  CLOCKS_CSS,
+  CLOCKS_JS,
   CODE_JS,
   CODE_LANGS,
   COLL_CTL,
@@ -16785,6 +17635,8 @@ var __CORE = {
   DEV_KEY,
   DEV_LABEL,
   DEV_W,
+  DOCKBAR_CSS,
+  DOCKBAR_JS,
   EMBED_FRAME_HASH,
   EMBED_FRAME_JS,
   EXHIBIT_CSS,
@@ -16828,9 +17680,13 @@ var __CORE = {
   PUBLIC_DATE_JS,
   PUBLIC_SELECT_CSS,
   PUBLIC_SELECT_JS,
+  QAPILLS_CSS,
+  QAPILLS_JS,
   QUICK_SIDES,
   REF_DEPTH,
   RESERVED,
+  ROSTER_CSS,
+  ROSTER_JS,
   SCHEMA,
   SCROLLY_CSS,
   SCROLLY_JS,
@@ -16852,6 +17708,8 @@ var __CORE = {
   TABS_JS,
   TEMPLATES,
   TEXT_SLOTS,
+  TIERS_CSS,
+  TIERS_JS,
   TIMELINE_CSS,
   TRANSITIONS,
   TS_TYPES,
@@ -23204,6 +24062,11 @@ var PC_UI = (() => {
         ["tabs", "Tabs"],
         ["switcher", "Stage switcher"],
         ["scrolly", "Sticky steps"],
+        ["clocks", "Office clocks"],
+        ["roster", "Partner spotlight"],
+        ["tiers", "Currency tiers"],
+        ["qapills", "Question pills"],
+        ["dockbar", "Docked intake bar"],
         ["countdown", "Countdown"],
         ["filter", "Tag filter"],
         ["embed", "Embed"]
@@ -23249,6 +24112,11 @@ var PC_UI = (() => {
     switcher: "stage visual switcher process steps showcase tabs",
     exhibit: "monograph ledger hover preview index projects exhibitions",
     scrolly: "sticky scroll steps narrative scrollytelling sequence",
+    clocks: "office locations time zones local time world clock addresses",
+    roster: "team leadership partners spotlight directory members bios",
+    tiers: "pricing plans retainers currency switcher usd eur gbp rates",
+    qapills: "faq questions pills answers selector help desk",
+    dockbar: "search bar intake booking filter horizontal hero dock",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -30957,7 +31825,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     strips: '<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
     switcher: '<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
     exhibit: '<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
-    scrolly: '<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>'
+    scrolly: '<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>',
+    clocks: '<circle cx="5" cy="8" r="3.5"/><path d="M5 6v2l1.2 1" stroke-linecap="round"/><circle cx="12" cy="8" r="2.6" opacity=".55"/><path d="M12 6.8V8h.9" stroke-linecap="round" opacity=".55"/>',
+    roster: '<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
+    tiers: '<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
+    qapills: '<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
+    dockbar: '<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
   };
   var ICONS = [
     ["Interface", [
@@ -32894,6 +33767,316 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "color", c: "--sc-line", label: "Border line", r: 1, layout: "inline" },
           { t: "unit", c: "--sc-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
           { t: "unit", c: "--sc-gap", label: "Column gap", layout: "inline", r: 1, units: U.space }
+        ]
+      }
+    },
+    clocks: {
+      label: "Office clocks",
+      icon: "clocks",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          hour12: 0,
+          opens: "9",
+          closes: "18",
+          openLabel: "Office open",
+          closedLabel: "After hours",
+          items: [
+            { city: "London", tz: "Europe/London", address: "14 Old Square\nLondon WC2A 3UE", phone: "+44 20 7946 0110", href: "", linkLabel: "" },
+            { city: "New York", tz: "America/New_York", address: "55 Water Street\nNew York, NY 10041", phone: "+1 212 555 0142", href: "", linkLabel: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ck-accent": cvar("brand"),
+            "--ck-surface": "transparent",
+            "--ck-ink": cvar("ink"),
+            "--ck-muted": cvar("muted"),
+            "--ck-line": cvar("line"),
+            "--ck-radius": "0px",
+            "--ck-gap": "0px",
+            "--ck-time-size": "40px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "toggle", k: "hour12", label: "12-hour clock" },
+          { t: "text", k: "opens", label: "Opens (hour, 0\u201324)", ph: "9" },
+          { t: "text", k: "closes", label: "Closes (hour, 0\u201324)", ph: "18" },
+          { t: "text", k: "openLabel", label: "Open label", ph: "Office open" },
+          { t: "text", k: "closedLabel", label: "Closed label", ph: "After hours" },
+          {
+            t: "qa",
+            k: "items",
+            label: "Offices",
+            addLabel: "Add office",
+            rowFields: [
+              { k: "city", label: "City", ph: "London", def: "New office" },
+              { k: "tz", label: "Time zone (IANA)", ph: "Europe/London", def: "UTC" },
+              { k: "phone", label: "Phone", ph: "+44 20 0000 0000", def: "" },
+              { k: "href", label: "Map or page link", ph: "https://maps.example", def: "" },
+              { k: "linkLabel", label: "Link label", ph: "Open in Maps", def: "" },
+              { k: "src", label: "Office image URL or asset", ph: "asset:office", def: "" },
+              { k: "alt", label: "Alt text", ph: "Office exterior or room", def: "" },
+              { k: "address", label: "Address", ph: "Street, city, postcode", def: "", area: 1 }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ck-accent", label: "Open accent", r: 1, layout: "inline" },
+          { t: "color", c: "--ck-surface", label: "Card fill", r: 1, layout: "inline" },
+          { t: "color", c: "--ck-ink", label: "Text colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ck-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ck-line", label: "Rule colour", r: 1, layout: "inline" },
+          { t: "unit", c: "--ck-time-size", label: "Time size", layout: "inline", r: 1, units: U.space },
+          { t: "unit", c: "--ck-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "unit", c: "--ck-gap", label: "Card gap", layout: "inline", r: 1, units: U.space }
+        ]
+      }
+    },
+    roster: {
+      label: "Partner spotlight",
+      icon: "roster",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          portraitRatio: "4 / 5",
+          items: [
+            { name: "Claire Mercer", role: "Managing Trial Partner \xB7 J.D., Ph.D. Electrical Engineering", seat: "Washington, D.C.", credential: "U.S. Federal Circuit & PTAB", quote: "\u201CEvery trial brief and cross-examination outline should read cleanly to both a district judge and a silicon architect.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "Claire Mercer portrait" },
+            { name: "David Quinn", role: "Senior Appellate Partner \xB7 KC, UPC Representative", seat: "London & Munich", credential: "Patents Court & UPC", quote: "\u201CSynchronizing European preliminary injunction defenses with U.S. claim construction prevents transatlantic estoppel traps.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "David Quinn portrait" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--rs-accent": cvar("brand"),
+            "--rs-surface": cvar("surface"),
+            "--rs-ink": cvar("ink"),
+            "--rs-muted": cvar("muted"),
+            "--rs-line": cvar("line"),
+            "--rs-radius": "2px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "portraitRatio", label: "Portrait ratio", opts: [["4 / 5", "4:5"], ["3 / 4", "3:4"], ["1 / 1", "Square"], ["3 / 2", "3:2"]] },
+          {
+            t: "qa",
+            k: "items",
+            label: "Members",
+            addLabel: "Add member",
+            rowFields: [
+              { k: "name", label: "Full name", ph: "Claire Mercer", def: "New partner" },
+              { k: "role", label: "Role & degree", ph: "Managing Partner \xB7 Ph.D.", def: "" },
+              { k: "seat", label: "Office / city", ph: "Washington, D.C.", def: "" },
+              { k: "credential", label: "Admission / focus", ph: "Federal Circuit Bar", def: "" },
+              { k: "src", label: "Portrait URL or asset", ph: "asset:partner", def: "" },
+              { k: "alt", label: "Alt text", ph: "Partner portrait", def: "" },
+              { k: "href", label: "Action link", ph: "conflict-check.html", def: "" },
+              { k: "linkLabel", label: "Link label", ph: "Direct intake", def: "" },
+              { k: "quote", label: "Spotlight quote", ph: "Working principle or notable verdict", def: "", area: 1 }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--rs-accent", label: "Active accent", r: 1, layout: "inline" },
+          { t: "color", c: "--rs-surface", label: "Stage surface", r: 1, layout: "inline" },
+          { t: "color", c: "--rs-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--rs-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--rs-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "unit", c: "--rs-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    tiers: {
+      label: "Currency tiers",
+      icon: "tiers",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          defaultCurrency: "usd",
+          usdLabel: "USD $",
+          eurLabel: "EUR \u20AC",
+          gbpLabel: "GBP \xA3",
+          items: [
+            { tierName: "Fixed-Scope Audit", badge: "", priceUsd: "$18,000", priceEur: "\u20AC16,500", priceGbp: "\xA314,200", period: "per tranche", summary: "Freedom-to-operate or AI provenance technical file.", features: "15-business-day turnaround\nWritten partner opinion", ctaText: "Clear conflict", href: "", featured: 0 },
+            { tierName: "Fractional IP Counsel", badge: "Most engaged", priceUsd: "$6,400", priceEur: "\u20AC5,800", priceGbp: "\xA34,950", period: "/ month", summary: "Ongoing docket clearance, claim charting, and regulatory filings.", features: "Same-day partner access\nQuarterly board IP review", ctaText: "Retain counsel", href: "", featured: 1 }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tr-accent": cvar("brand"),
+            "--tr-surface": cvar("surface"),
+            "--tr-ink": cvar("ink"),
+            "--tr-muted": cvar("muted"),
+            "--tr-line": cvar("line"),
+            "--tr-feat-bg": cvar("ink"),
+            "--tr-feat-ink": "#ffffff",
+            "--tr-radius": "2px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "defaultCurrency", label: "Default currency", opts: [["usd", "USD"], ["eur", "EUR"], ["gbp", "GBP"]] },
+          { t: "text", k: "usdLabel", label: "USD button", ph: "USD $" },
+          { t: "text", k: "eurLabel", label: "EUR button", ph: "EUR \u20AC" },
+          { t: "text", k: "gbpLabel", label: "GBP button", ph: "GBP \xA3" },
+          {
+            t: "qa",
+            k: "items",
+            label: "Tiers",
+            addLabel: "Add tier",
+            rowFields: [
+              { k: "tierName", label: "Tier name", ph: "Advisory Retainer", def: "New tier" },
+              { k: "badge", label: "Badge (optional)", ph: "Most engaged", def: "" },
+              { k: "priceUsd", label: "USD price", ph: "$6,400", def: "$5,000" },
+              { k: "priceEur", label: "EUR price", ph: "\u20AC5,800", def: "\u20AC4,600" },
+              { k: "priceGbp", label: "GBP price", ph: "\xA34,950", def: "\xA33,900" },
+              { k: "period", label: "Billing period", ph: "/ month", def: "/ month" },
+              { k: "ctaText", label: "Button label", ph: "Select tier", def: "Get started" },
+              { k: "href", label: "Button link", ph: "conflict-check.html", def: "" },
+              { k: "summary", label: "Summary", ph: "One-sentence tier scope", def: "", area: 1 },
+              { k: "features", label: "Features (one per line)", ph: "Feature one\nFeature two", def: "", area: 1 }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--tr-accent", label: "Accent colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-surface", label: "Card surface", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-ink", label: "Text colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-feat-bg", label: "Featured fill", r: 1, layout: "inline" },
+          { t: "color", c: "--tr-feat-ink", label: "Featured text", r: 1, layout: "inline" },
+          { t: "unit", c: "--tr-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    qapills: {
+      label: "Question pills",
+      icon: "qapills",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          pillAlign: "center",
+          items: [
+            { q: "Why submit only counterparty names first?", a: "Screening corporate entity names before confidential facts are shared protects both existing clients and your privilege.", note: "ABA Model Rule 1.18 compliant", href: "", linkLabel: "" },
+            { q: "How fast is emergency clearance?", a: "Standard docket screening completes within 24 hours; active TRO or customs seizure matters clear in two hours.", note: "24/7 duty partner desk", href: "", linkLabel: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--qp-accent": cvar("brand"),
+            "--qp-surface": cvar("surface"),
+            "--qp-ink": cvar("ink"),
+            "--qp-muted": cvar("muted"),
+            "--qp-line": cvar("line"),
+            "--qp-radius": "2px",
+            "--qp-pill-radius": "999px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "pick", k: "pillAlign", label: "Alignment", opts: [["start", "Left"], ["center", "Center"]], text: 1 },
+          {
+            t: "qa",
+            k: "items",
+            label: "Questions",
+            addLabel: "Add question",
+            rowFields: [
+              { k: "q", label: "Question pill", ph: "Short question", def: "New question?" },
+              { k: "note", label: "Policy / rule note", ph: "ABA Rule 1.18", def: "" },
+              { k: "href", label: "Action link", ph: "#check-desk", def: "" },
+              { k: "linkLabel", label: "Link label", ph: "Proceed to intake", def: "" },
+              { k: "a", label: "Full answer", ph: "Direct answer shown in panel", def: "", area: 1 }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--qp-accent", label: "Active pill accent", r: 1, layout: "inline" },
+          { t: "color", c: "--qp-surface", label: "Panel surface", r: 1, layout: "inline" },
+          { t: "color", c: "--qp-ink", label: "Question colour", r: 1, layout: "inline" },
+          { t: "color", c: "--qp-muted", label: "Answer colour", r: 1, layout: "inline" },
+          { t: "color", c: "--qp-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "unit", c: "--qp-radius", label: "Panel radius", layout: "inline", r: 1, units: U.radius },
+          { t: "unit", c: "--qp-pill-radius", label: "Pill radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    dockbar: {
+      label: "Docked intake bar",
+      icon: "dockbar",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          submitLabel: "Screen Conflict \u2192",
+          destHref: "",
+          ariaLabel: "Quick screening bar",
+          items: [
+            { fieldLabel: "Requesting Entity", fieldType: "text", ph: "Helios Silicon GmbH", choices: "" },
+            { fieldLabel: "Counterparty Entity", fieldType: "text", ph: "Entity name only", choices: "" },
+            { fieldLabel: "Primary Forum", fieldType: "select", ph: "", choices: "U.S. Federal Circuit, Unified Patent Court, PTAB Inter Partes, EU AI Act Audit" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--db-accent": cvar("brand"),
+            "--db-surface": cvar("surface"),
+            "--db-ink": cvar("ink"),
+            "--db-muted": cvar("muted"),
+            "--db-line": cvar("line"),
+            "--db-radius": "2px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "submitLabel", label: "Submit button", ph: "Screen Conflict \u2192" },
+          { t: "link", k: "destHref", label: "Destination page" },
+          { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick screening bar" },
+          {
+            t: "qa",
+            k: "items",
+            label: "Fields",
+            addLabel: "Add field",
+            rowFields: [
+              { k: "fieldLabel", label: "Field label", ph: "Requesting Entity", def: "Field" },
+              { k: "fieldType", label: "Type (text or select)", ph: "text", def: "text" },
+              { k: "ph", label: "Placeholder", ph: "Enter value", def: "" },
+              { k: "choices", label: "Select options (comma-separated)", ph: "Option A, Option B", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--db-accent", label: "Button & focus accent", r: 1, layout: "inline" },
+          { t: "color", c: "--db-surface", label: "Bar surface", r: 1, layout: "inline" },
+          { t: "color", c: "--db-ink", label: "Text colour", r: 1, layout: "inline" },
+          { t: "color", c: "--db-muted", label: "Placeholder colour", r: 1, layout: "inline" },
+          { t: "color", c: "--db-line", label: "Divider line", r: 1, layout: "inline" },
+          { t: "unit", c: "--db-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
     }
@@ -36642,6 +37825,11 @@ function runPreviewRuntime(html, editing = false) {
     [/data-switcher/.test(html), SWITCHER_JS],
     [/data-exhibit/.test(html), EXHIBIT_JS],
     [/data-scrolly/.test(html), SCROLLY_JS],
+    [/data-clocks/.test(html), CLOCKS_JS],
+    [/data-roster/.test(html), ROSTER_JS],
+    [/data-tiers/.test(html), TIERS_JS],
+    [/data-qapills/.test(html), QAPILLS_JS],
+    [/data-dockbar/.test(html), DOCKBAR_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

@@ -96,7 +96,12 @@ const IC: Record<string, string> = {
   strips:'<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
   switcher:'<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
   exhibit:'<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
-  scrolly:'<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>'
+  scrolly:'<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>',
+  clocks:'<circle cx="5" cy="8" r="3.5"/><path d="M5 6v2l1.2 1" stroke-linecap="round"/><circle cx="12" cy="8" r="2.6" opacity=".55"/><path d="M12 6.8V8h.9" stroke-linecap="round" opacity=".55"/>',
+  roster:'<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
+  tiers:'<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
+  qapills:'<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
+  dockbar:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

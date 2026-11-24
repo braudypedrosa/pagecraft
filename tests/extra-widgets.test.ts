@@ -421,7 +421,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(C.U.len).toContain('svh');
     expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
 
-    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly'] as const) {
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar'] as const) {
       expect(C.DEF[type]).toBeTruthy();
       expect(C.DEF[type].caps).toContain('spacing');
       expect(C.DEF[type].caps).toContain('animation');
@@ -439,7 +439,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const swNode = C.N('switcher', { items: [{ label: 'Stage 1', src: 'asset:stage-photo', title: 'Stage', detail: 'Detail' }] });
     const exNode = C.N('exhibit', { items: [{ title: 'Entry 1', src: 'asset:exhibit-photo', alt: 'Exhibit' }] });
     const scNode = C.N('scrolly', { items: [{ title: 'Step 1', src: 'asset:scrolly-photo', alt: 'Scrolly' }] });
-    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode])])])];
+    const ckNode = C.N('clocks', { items: [{ city: 'London', tz: 'Europe/London', src: 'asset:clock-office', alt: 'London' }] });
+    const rsNode = C.N('roster', { items: [{ name: 'Claire', src: 'asset:roster-partner', alt: 'Claire' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode])])])];
     const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
     expect(assetIds).toContain('cmp-before');
     expect(assetIds).toContain('cmp-after');
@@ -448,6 +450,8 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(assetIds).toContain('stage-photo');
     expect(assetIds).toContain('exhibit-photo');
     expect(assetIds).toContain('scrolly-photo');
+    expect(assetIds).toContain('clock-office');
+    expect(assetIds).toContain('roster-partner');
 
     // Zero-drift when absent
     const plainHtml = C.buildPage(C.state.pages[0]);
@@ -460,6 +464,11 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(plainHtml).not.toContain('.pagecraft-switcher');
     expect(plainHtml).not.toContain('.pagecraft-exhibit');
     expect(plainHtml).not.toContain('.pagecraft-scrolly');
+    expect(plainHtml).not.toContain('.pagecraft-clocks');
+    expect(plainHtml).not.toContain('.pagecraft-roster');
+    expect(plainHtml).not.toContain('.pagecraft-tiers');
+    expect(plainHtml).not.toContain('.pagecraft-qapills');
+    expect(plainHtml).not.toContain('.pagecraft-dockbar');
 
     // Floating header & 100dvh hero
     const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
@@ -628,5 +637,81 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     scDispose!();
     expect(scWin.document.querySelector('.pagecraft-scrolly')?.hasAttribute('data-pc-sc-ready')).toBe(false);
     scDom.window.close();
+
+    // Office clocks live timezone tick + dispose
+    const ckHtml = C.renderNode(C.N('clocks', {
+      hour12: 0, opens: '0', closes: '24', openLabel: 'Chambers open', closedLabel: 'After hours',
+      items: [
+        { city: 'Washington, D.C.', tz: 'America/New_York', address: '700 K Street NW', phone: '+1 202 555 0114', href: 'https://maps.example/dc', linkLabel: 'Open in Maps', src: 'https://example.test/dc.jpg', alt: 'Washington office' },
+        { city: 'Munich', tz: 'Europe/Berlin', address: 'Maximilianstraße 35a', phone: '+49 89 555 0190' }
+      ]
+    }), { edit: false });
+    const ckDom = domFor(ckHtml);
+    const ckWin = ckDom.window as any;
+    let ckDispose: (() => void) | null = null;
+    ckWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { ckDispose = fn; };
+    ckWin.eval(scriptBody(C.CLOCKS_JS));
+    const ckTimes = [...ckWin.document.querySelectorAll('[data-clocks-time]')] as HTMLElement[];
+    expect(ckTimes).toHaveLength(2);
+    expect(ckTimes[0].textContent).toMatch(/^\d{2}:\d{2}$/);
+    expect(ckTimes[0].getAttribute('datetime')).toBeTruthy();
+    expect(ckWin.document.querySelectorAll('.pagecraft-clocks-img')).toHaveLength(1);
+    ckDispose!();
+    expect(ckWin.document.querySelector('.pagecraft-clocks')?.hasAttribute('data-pc-ck-ready')).toBe(false);
+    ckDom.window.close();
+
+    // Roster partner spotlight switching
+    const rsHtml = C.renderNode(C.N('roster', {
+      items: [
+        { name: 'Claire Mercer', role: 'Partner', seat: 'DC', src: 'https://example.test/p1.jpg', alt: 'Claire' },
+        { name: 'David Quinn', role: 'Partner', seat: 'London', src: 'https://example.test/p2.jpg', alt: 'David' }
+      ]
+    }), { edit: false });
+    const rsDom = domFor(rsHtml);
+    const rsWin = rsDom.window as any;
+    let rsDispose: (() => void) | null = null;
+    rsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rsDispose = fn; };
+    rsWin.eval(scriptBody(C.ROSTER_JS));
+    const rsTabs = [...rsWin.document.querySelectorAll('.pagecraft-roster-tab')] as HTMLElement[];
+    const rsPanels = [...rsWin.document.querySelectorAll('.pagecraft-roster-panel')] as HTMLElement[];
+    rsTabs[1].click();
+    expect(rsTabs[1].getAttribute('aria-selected')).toBe('true');
+    expect(rsPanels[1].getAttribute('data-active')).toBe('1');
+    rsDispose!();
+    rsDom.window.close();
+
+    // Tiers currency switching
+    const trHtml = C.renderNode(C.N('tiers', {
+      defaultCurrency: 'usd',
+      items: [{ tierName: 'Audit', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200' }]
+    }), { edit: false });
+    const trDom = domFor(trHtml);
+    const trWin = trDom.window as any;
+    let trDispose: (() => void) | null = null;
+    trWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { trDispose = fn; };
+    trWin.eval(scriptBody(C.TIERS_JS));
+    const eurBtn = trWin.document.querySelector('[data-tiers-cur="eur"]') as HTMLElement;
+    eurBtn.click();
+    expect(trWin.document.querySelector('.pagecraft-tiers-price')?.textContent).toBe('€16,500');
+    trDispose!();
+    trDom.window.close();
+
+    // QApills pill switching
+    const qpHtml = C.renderNode(C.N('qapills', {
+      items: [{ q: 'Q1?', a: 'A1.' }, { q: 'Q2?', a: 'A2.' }]
+    }), { edit: false });
+    const qpDom = domFor(qpHtml);
+    const qpWin = qpDom.window as any;
+    let qpDispose: (() => void) | null = null;
+    qpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { qpDispose = fn; };
+    qpWin.eval(scriptBody(C.QAPILLS_JS));
+    const qpPills = [...qpWin.document.querySelectorAll('.pagecraft-qapills-pill')] as HTMLElement[];
+    const qpPanels = [...qpWin.document.querySelectorAll('.pagecraft-qapills-panel')] as HTMLElement[];
+    qpPills[1].click();
+    expect(qpPills[1].getAttribute('aria-selected')).toBe('true');
+    expect(qpPanels[0].hasAttribute('hidden')).toBe(true);
+    expect(qpPanels[1].hasAttribute('hidden')).toBe(false);
+    qpDispose!();
+    qpDom.window.close();
   });
 });

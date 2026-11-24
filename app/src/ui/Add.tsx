@@ -53,7 +53,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['clocks', 'Office clocks'], ['roster', 'Partner spotlight'], ['tiers', 'Currency tiers'], ['qapills', 'Question pills'], ['dockbar', 'Docked intake bar'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -106,6 +106,11 @@ const ALIASES: Record<string, string> = {
   switcher: 'stage visual switcher process steps showcase tabs',
   exhibit: 'monograph ledger hover preview index projects exhibitions',
   scrolly: 'sticky scroll steps narrative scrollytelling sequence',
+  clocks: 'office locations time zones local time world clock addresses',
+  roster: 'team leadership partners spotlight directory members bios',
+  tiers: 'pricing plans retainers currency switcher usd eur gbp rates',
+  qapills: 'faq questions pills answers selector help desk',
+  dockbar: 'search bar intake booking filter horizontal hero dock',
   list: 'collection cms dynamic',
 };
 

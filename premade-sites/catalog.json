@@ -1680,7 +1680,7 @@
       "version": "1.0.0",
       "name": "MERCER QUINN",
       "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
-      "description": "Four-page Swiss broadsheet intellectual property and AI systems litigation counsel site featuring a hairline silver-parchment floating header over a 100dvh manifesto grid, precedent ledger, practice switcher tabs, SPDX dataset provenance code specimen, Article 53 countdown, oral-argument audio player, fee table, and conflict check desk.",
+      "description": "Four-page cross-border patent, silicon architecture, and AI systems trial counsel site featuring a centered masthead header, centered broadsheet hero with three-plate architectural triptych, law-firm practice grid beside framed consultation plate, interactive trial-partner spotlight roster, client-tabbed GC endorsements, live three-chambers world clocks, photo-paired practice tabs, dark code-first SPDX 3.0 provenance split, four-stage sprint trial rows, law review broadsheet front page, oral-argument audio booth dispatch, year-grouped amicus archive, multi-currency USD/EUR/GBP retainer tiers, interactive question pills, and centered ethics-wall intake desk.",
       "categories": [
         "Legal & Advisory",
         "Enterprise Tech"
@@ -1698,7 +1698,7 @@
         },
         {
           "id": "mrq-page-briefings",
-          "name": "Precedent & Briefings",
+          "name": "Briefings",
           "slug": "briefings"
         },
         {
@@ -1708,10 +1708,10 @@
         }
       ],
       "packageFile": "site.pagecraft-site.zip",
-      "packageSha256": "a5d3656ae718fdd8a9dcd12bf91e599545ac93866086426aa3c890152017a14d",
+      "packageSha256": "01e2cf1e93c949bfdcba0b65a22c3eb7c69030049b2d79a352b4cc7c1a629f6b",
       "previewPage": "index.html",
-      "assetCount": 7,
-      "assetBytes": 483979
+      "assetCount": 20,
+      "assetBytes": 1716233
     },
     {
       "format": "pagecraft.site-template.v1",

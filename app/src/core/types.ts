@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -279,6 +279,16 @@ export interface ExhibitItem { title?: string; location?: string; scope?: string
 export interface ExhibitProps { previewRatio?: string; items?: ExhibitItem[] }
 export interface ScrollyItem { title?: string; detail?: string; fact?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface ScrollyProps { stickyRatio?: string; items?: ScrollyItem[] }
+export interface ClocksItem { city?: string; tz?: string; address?: string; phone?: string; href?: string; linkLabel?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface ClocksProps { hour12?: number; opens?: string; closes?: string; openLabel?: string; closedLabel?: string; items?: ClocksItem[] }
+export interface RosterItem { name?: string; role?: string; seat?: string; credential?: string; quote?: string; href?: string; linkLabel?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface RosterProps { portraitRatio?: string; items?: RosterItem[] }
+export interface TiersItem { tierName?: string; badge?: string; priceUsd?: string; priceEur?: string; priceGbp?: string; period?: string; summary?: string; features?: string; ctaText?: string; href?: string; featured?: number }
+export interface TiersProps { defaultCurrency?: string; usdLabel?: string; eurLabel?: string; gbpLabel?: string; items?: TiersItem[] }
+export interface QapillsItem { q?: string; a?: string; note?: string; href?: string; linkLabel?: string }
+export interface QapillsProps { pillAlign?: string; items?: QapillsItem[] }
+export interface DockbarItem { fieldLabel?: string; fieldType?: string; ph?: string; choices?: string }
+export interface DockbarProps { submitLabel?: string; destHref?: string; ariaLabel?: string; items?: DockbarItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -289,7 +299,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

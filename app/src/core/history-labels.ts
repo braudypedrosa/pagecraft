@@ -7,7 +7,7 @@ const KIND: Record<string, string> = {
   accordion: 'accordion', tabs: 'tabs', table: 'table', code: 'code', crumbs: 'breadcrumbs', slider: 'slider',
   embed: 'embed', countdown: 'countdown', marquee: 'marquee', filter: 'tag filter',
   compare: 'image compare', timeline: 'timeline', progress: 'progress bars', hotspot: 'image hotspots',
-  strips: 'expanding strips', switcher: 'stage switcher', exhibit: 'exhibit index', scrolly: 'sticky steps',
+  strips: 'expanding strips', switcher: 'stage switcher', exhibit: 'exhibit index', scrolly: 'sticky steps', clocks: 'office clocks', roster: 'partner roster', tiers: 'currency tiers', qapills: 'question pills', dockbar: 'docked intake bar',
   spacer: 'spacer', divider: 'divider', list: 'list'
 };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
