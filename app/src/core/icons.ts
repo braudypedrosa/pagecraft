@@ -114,7 +114,9 @@ const IC: Record<string, string> = {
   roicalc: '<path d="M3 6.5h18M3 12h18"/><rect x="7" y="4.5" width="3" height="4" rx="1"/><rect x="14" y="10" width="3" height="4" rx="1"/><rect x="3" y="16" width="18" height="3.5" rx="1.25"/>',
   stackcards: '<path d="M6.5 4.5h11M5 8h14"/><rect x="3" y="11" width="18" height="8.5" rx="2"/>',
   showbill: '<rect x="3.5" y="4" width="5" height="6.5" rx="1.2"/><path d="M11 6h9.5M11 9h7"/><rect x="3.5" y="13.5" width="5" height="6.5" rx="1.2"/><path d="M11 15.5h9.5M11 18.5h7"/>',
-  masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>'
+  masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>',
+  maplist: '<rect x="3" y="4.5" width="7.5" height="4" rx="1"/><rect x="3" y="10" width="7.5" height="4" rx="1"/><rect x="3" y="15.5" width="7.5" height="4" rx="1"/><rect x="12.5" y="4.5" width="8.5" height="15" rx="1.8"/><circle cx="16.75" cy="10.5" r="1.6"/>',
+  thumbviewer: '<rect x="3" y="3.5" width="18" height="11" rx="2"/><rect x="3" y="16.5" width="4.8" height="4" rx="1"/><rect x="9.6" y="16.5" width="4.8" height="4" rx="1"/><rect x="16.2" y="16.5" width="4.8" height="4" rx="1"/>'
 };
 /* The grid's outer unit is spare, so it is cropped: 12px chrome icons stay legible. */
 const IC_VIEW = '1 1 22 22';

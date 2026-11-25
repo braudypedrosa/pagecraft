@@ -35,6 +35,7 @@ const KNOWN: Record<string, string[]> = {
   'cala-marina': [],
   'vesterport': [],
   'subbass-halle': [],
+  'kanaal-living': [],
 };
 
 /* Drafts of the next release of a template. Each must open clean apart from the listed reminders. */
@@ -78,7 +79,7 @@ for (const [spec, expected] of Object.entries(DRAFTS)) {
 
 /* Settings › Typography › Heading font reaches every heading only when no heading text style
    names a font of its own (Cloud editing QA, 20 Nov 2026). */
-const GUARDED = ['stillwood', 'salt-house', 'architecture-studio', 'coastal-rentals', 'culinary-school', 'bramble-vet', 'devon-park', 'fieldwork-radio', 'kairn-climbing', 'maren-and-tomas', 'masuda-optical', 'alder-and-silt', 'mercer-quinn', 'soraia-thermal', 'kestrel-cargo', 'skarven-alpine', 'cala-marina', 'vesterport', 'subbass-halle'];
+const GUARDED = ['stillwood', 'salt-house', 'architecture-studio', 'coastal-rentals', 'culinary-school', 'bramble-vet', 'devon-park', 'fieldwork-radio', 'kairn-climbing', 'maren-and-tomas', 'masuda-optical', 'alder-and-silt', 'mercer-quinn', 'soraia-thermal', 'kestrel-cargo', 'skarven-alpine', 'cala-marina', 'vesterport', 'subbass-halle', 'kanaal-living'];
 for (const spec of GUARDED.map(id => `${id}/${released.get(id)}`)) {
   test(`${spec} headings follow the Heading font setting`, async () => {
     const document = await templateDocument(`premade-sites/${spec}`);

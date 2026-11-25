@@ -66,7 +66,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
       ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps'],
       ['dragstrip', 'Draggable filmstrip'], ['stayfilter', 'Stay finder'],
       ['roicalc', 'ROI calculator'], ['stackcards', 'Stacked cards'],
-      ['showbill', 'Venue bill'], ['masonry', 'Masonry archive']
+      ['showbill', 'Venue bill'], ['masonry', 'Masonry archive'],
+      ['maplist', 'Map listings'], ['thumbviewer', 'Thumbnail viewer']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -97,7 +98,9 @@ export const PURPOSE: Record<string, string> = {
   roicalc: 'Dual range sliders that model annual savings and comparison bars live.',
   stackcards: 'Protocol or feature cards that pin and stack neatly as you scroll.',
   showbill: 'Date-block schedule of performances or sessions with room filter buttons.',
-  masonry: 'Mixed-aspect media archive grid with an integrated lightbox viewer.'
+  masonry: 'Mixed-aspect media archive grid with an integrated lightbox viewer.',
+  maplist: 'Synchronized residence cards paired with clickable price pins on a district map.',
+  thumbviewer: 'Large stage image with previous/next controls and synchronized thumbnail strip.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -166,6 +169,8 @@ const ALIASES: Record<string, string> = {
   stackcards: 'sticky stacking protocol cards scroll pin sequence deck',
   showbill: 'events lineup concert club schedule date block tickets bill',
   masonry: 'masonry gallery archive mixed aspect vinyl lookbook lightbox',
+  maplist: 'map pins listings apartments lofts residences neighborhood interactive split',
+  thumbviewer: 'thumbnail viewer gallery stage floorplan interior plates',
   list: 'collection cms dynamic',
 };
 

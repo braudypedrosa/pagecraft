@@ -246,6 +246,8 @@ test('all 51 module renderers emit their representative authored value', () => {
     stackcards: { expected: /data-stackcards.*QA Protocol Card/, configure: n => { n.props.cards = [{ stepNum: '01', title: 'QA Protocol Card', detail: 'Step detail', src: 'https://example.com/sc.jpg' }]; } },
     showbill: { expected: /data-showbill.*QA Club Night/, configure: n => { n.props.shows = [{ dayNum: '06', month: 'NOV', title: 'QA Club Night', room: 'Main' }]; } },
     masonry: { expected: /data-masonry.*QA Vinyl Plate/, configure: n => { n.props.items = [{ src: 'https://example.com/v1.jpg', title: 'QA Vinyl Plate', ratio: '4 / 5' }]; } },
+    maplist: { expected: /data-maplist.*QA Canal Loft/, configure: n => { n.props.items = [{ pinLabel: '€2,150', price: '€2,150 / mo', title: 'QA Canal Loft', x: '40', y: '45', src: 'https://example.com/m1.jpg' }]; } },
+    thumbviewer: { expected: /data-thumbviewer.*QA South View/, configure: n => { n.props.items = [{ src: 'https://example.com/t1.jpg', label: '01 View', title: 'QA South View' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -310,7 +312,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(226);
+  expect(declarations).toHaveLength(229);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -358,7 +360,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(350);
+  expect(declarations).toHaveLength(366);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

@@ -1,0 +1,201 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "kanaal-living",
+  "version": "1.0.0",
+  "name": "KANAAL LIVING · Canal Warehouse Lofts",
+  "sampleName": "KANAAL LIVING — Converted 1894 Canal Warehouse Lofts in Amsterdam East",
+  "description": "Four-page canal warehouse residential living site featuring a 100dvh south-facing warehouse stage with floating lot card, synchronized interactive Entrepotdok district map and price-pin residence switcher, five-plate architectural thumbnail viewer with 1:100 floor plan, neighbourhood walkability hotspots, CLT spruce before-and-after comparison slider, adaptive-reuse structural table, and private viewing booking form.",
+  "categories": [
+    "Real Estate",
+    "Residential"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 236,
+      "height": 40
+    },
+    {
+      "id": "canal-district-map",
+      "file": "assets/canal-district-map.svg",
+      "name": "canal-district-map.svg",
+      "width": 960,
+      "height": 720
+    },
+    {
+      "id": "lot-04b-floorplan",
+      "file": "assets/lot-04b-floorplan.svg",
+      "name": "lot-04b-floorplan.svg",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "hero-canal-bg",
+      "file": "assets/hero-canal-bg.webp",
+      "name": "hero-canal-bg.webp",
+      "width": 1600,
+      "height": 960
+    },
+    {
+      "id": "closing-canal-bg",
+      "file": "assets/closing-canal-bg.webp",
+      "name": "closing-canal-bg.webp",
+      "width": 1600,
+      "height": 760
+    },
+    {
+      "id": "banner-canal",
+      "file": "assets/banner-canal.webp",
+      "name": "banner-canal.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-timber",
+      "file": "assets/banner-timber.webp",
+      "name": "banner-timber.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-viewings",
+      "file": "assets/banner-viewings.webp",
+      "name": "banner-viewings.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "apt-wharf",
+      "file": "assets/apt-wharf.webp",
+      "name": "apt-wharf.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "apt-penthouse",
+      "file": "assets/apt-penthouse.webp",
+      "name": "apt-penthouse.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "apt-silo",
+      "file": "assets/apt-silo.webp",
+      "name": "apt-silo.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "apt-mill",
+      "file": "assets/apt-mill.webp",
+      "name": "apt-mill.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "viewer-living",
+      "file": "assets/viewer-living.webp",
+      "name": "viewer-living.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "viewer-kitchen",
+      "file": "assets/viewer-kitchen.webp",
+      "name": "viewer-kitchen.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "viewer-study",
+      "file": "assets/viewer-study.webp",
+      "name": "viewer-study.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "viewer-pontoon",
+      "file": "assets/viewer-pontoon.webp",
+      "name": "viewer-pontoon.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "entrepotdok-aerial",
+      "file": "assets/entrepotdok-aerial.webp",
+      "name": "entrepotdok-aerial.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "brick-restoration",
+      "file": "assets/brick-restoration.webp",
+      "name": "brick-restoration.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "timber-mezzanine",
+      "file": "assets/timber-mezzanine.webp",
+      "name": "timber-mezzanine.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "footer-quay",
+      "file": "assets/footer-quay.webp",
+      "name": "footer-quay.webp",
+      "width": 720,
+      "height": 480
+    },
+    {
+      "id": "lead-hendrik",
+      "file": "assets/lead-hendrik.webp",
+      "name": "lead-hendrik.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "lead-lotte",
+      "file": "assets/lead-lotte.webp",
+      "name": "lead-lotte.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "lead-bram",
+      "file": "assets/lead-bram.webp",
+      "name": "lead-bram.webp",
+      "width": 960,
+      "height": 1200
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:kanaal-living:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "3192f14e3910292c2785c593de4fef1c08fb1b74e782f17d9478887d116b3c39"
+}

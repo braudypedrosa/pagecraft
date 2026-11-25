@@ -2548,7 +2548,9 @@ var IC = {
   roicalc: '<path d="M3 6.5h18M3 12h18"/><rect x="7" y="4.5" width="3" height="4" rx="1"/><rect x="14" y="10" width="3" height="4" rx="1"/><rect x="3" y="16" width="18" height="3.5" rx="1.25"/>',
   stackcards: '<path d="M6.5 4.5h11M5 8h14"/><rect x="3" y="11" width="18" height="8.5" rx="2"/>',
   showbill: '<rect x="3.5" y="4" width="5" height="6.5" rx="1.2"/><path d="M11 6h9.5M11 9h7"/><rect x="3.5" y="13.5" width="5" height="6.5" rx="1.2"/><path d="M11 15.5h9.5M11 18.5h7"/>',
-  masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>'
+  masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>',
+  maplist: '<rect x="3" y="4.5" width="7.5" height="4" rx="1"/><rect x="3" y="10" width="7.5" height="4" rx="1"/><rect x="3" y="15.5" width="7.5" height="4" rx="1"/><rect x="12.5" y="4.5" width="8.5" height="15" rx="1.8"/><circle cx="16.75" cy="10.5" r="1.6"/>',
+  thumbviewer: '<rect x="3" y="3.5" width="18" height="11" rx="2"/><rect x="3" y="16.5" width="4.8" height="4" rx="1"/><rect x="9.6" y="16.5" width="4.8" height="4" rx="1"/><rect x="16.2" y="16.5" width="4.8" height="4" rx="1"/>'
 };
 var IC_VIEW = "1 1 22 22";
 var icStroke = (size) => size < 16 ? 2 : 1.75;
@@ -4190,6 +4192,8 @@ var KIND = {
   stackcards: "stacked cards",
   showbill: "venue bill",
   masonry: "masonry archive",
+  maplist: "map listings",
+  thumbviewer: "thumbnail viewer",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -6575,6 +6579,175 @@ var MASONRY_JS = `<script>
 })();
 <\/script>
 `;
+var MAPLIST_CSS = `
+.pagecraft-maplist{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr);gap:24px;align-items:stretch;width:100%;color:var(--ml-ink,#17231E)}
+.pagecraft-maplist-list{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pagecraft-maplist-card{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);color:inherit;font:inherit;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.pagecraft-maplist-card:hover{border-color:var(--ml-accent,#136B52)}
+.pagecraft-maplist-card[data-selected="1"]{border-color:var(--ml-accent,#136B52);box-shadow:0 0 0 2px color-mix(in srgb,var(--ml-accent,#136B52) 22%,transparent),0 10px 24px rgba(16,26,22,.08)}
+.pagecraft-maplist-card:focus-visible,.pagecraft-maplist-pin:focus-visible,.pagecraft-maplist-cta:focus-visible{outline:2px solid var(--ml-accent,#136B52);outline-offset:2px}
+.pagecraft-maplist-thumb{width:88px;height:72px;object-fit:cover;border-radius:calc(var(--ml-radius,12px) * .65);display:block}
+.pagecraft-maplist-body{min-width:0;display:flex;flex-direction:column;gap:3px}
+.pagecraft-maplist-price{font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--ml-accent,#136B52);font-variant-numeric:tabular-nums}
+.pagecraft-maplist-title{margin:0;font-size:16.5px;font-weight:700;line-height:1.22;color:var(--ml-ink,#17231E)}
+.pagecraft-maplist-meta{margin:0;font-size:13px;font-weight:600;color:var(--ml-muted,#4E6058)}
+.pagecraft-maplist-detail{margin:0;font-size:12.5px;line-height:1.45;color:var(--ml-muted,#4E6058)}
+.pagecraft-maplist-pane{min-width:0;display:flex;flex-direction:column;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);overflow:hidden}
+.pagecraft-maplist-stage{position:relative;flex:1 1 auto;min-height:360px;aspect-ratio:4 / 3;background:var(--ml-bg,#DCE5DF);overflow:hidden}
+.pagecraft-maplist-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pagecraft-maplist-pin{appearance:none;position:absolute;transform:translate(-50%,-50%);min-height:34px;padding:0 12px;border-radius:999px;border:2px solid #FFFFFF;background:var(--ml-pin,#17231E);color:var(--ml-on,#FFFFFF);font:inherit;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer;box-shadow:0 6px 16px rgba(16,26,22,.22);transition:background-color .16s ease,transform .16s ease}
+.pagecraft-maplist-pin:hover{transform:translate(-50%,-50%) scale(1.05)}
+.pagecraft-maplist-pin[data-selected="1"]{background:var(--ml-accent,#136B52);color:var(--ml-on,#FFFFFF);z-index:2;transform:translate(-50%,-50%) scale(1.08)}
+.pagecraft-maplist-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--ml-line,#D2DCD6);background:var(--ml-surface,#FFFFFF)}
+.pagecraft-maplist-bar-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.pagecraft-maplist-bar-title{font-size:15.5px;font-weight:700;color:var(--ml-ink,#17231E)}
+.pagecraft-maplist-bar-meta{font-size:13px;color:var(--ml-muted,#4E6058)}
+.pagecraft-maplist-cta{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:calc(var(--ml-radius,12px) * .7);background:var(--ml-accent,#136B52);color:var(--ml-on,#FFFFFF);font-size:13.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.pagecraft-maplist-cta[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.pagecraft-maplist-card,.pagecraft-maplist-pin{transition:none}}
+@media(max-width:899px){
+  .pagecraft-maplist{grid-template-columns:1fr}
+  .pagecraft-maplist-stage{min-height:280px}
+}
+`;
+var MAPLIST_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-maplist]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ml-ready'))return;
+    root.setAttribute('data-pc-ml-ready','1');
+    var cards=[].slice.call(root.querySelectorAll('[data-ml-pick]'));
+    var pins=[].slice.call(root.querySelectorAll('[data-ml-pin]'));
+    var priceEl=root.querySelector('[data-ml-active-price]');
+    var titleEl=root.querySelector('[data-ml-active-title]');
+    var metaEl=root.querySelector('[data-ml-active-meta]');
+    var ctaEl=root.querySelector('[data-ml-cta]');
+    function select(idx){
+      cards.forEach(function(card,i){
+        var on=i===idx;
+        card.setAttribute('data-selected',on?'1':'0');
+        card.setAttribute('aria-pressed',on?'true':'false');
+      });
+      pins.forEach(function(pin,i){
+        var on=i===idx;
+        pin.setAttribute('data-selected',on?'1':'0');
+        pin.setAttribute('aria-pressed',on?'true':'false');
+      });
+      var srcNode=cards[idx]||pins[idx];
+      if(!srcNode)return;
+      if(priceEl)priceEl.textContent=srcNode.getAttribute('data-ml-price')||'';
+      if(titleEl)titleEl.textContent=srcNode.getAttribute('data-ml-title')||'';
+      if(metaEl)metaEl.textContent=srcNode.getAttribute('data-ml-meta')||'';
+      if(ctaEl){
+        var href=srcNode.getAttribute('data-ml-href')||'';
+        var label=srcNode.getAttribute('data-ml-cta-label')||'';
+        if(href&&ctaEl.tagName==='A')ctaEl.setAttribute('href',href);
+        if(label)ctaEl.textContent=label;
+        ctaEl.hidden=!href;
+      }
+    }
+    var offs=[];
+    cards.forEach(function(card,i){
+      function onClick(){select(i);}
+      card.addEventListener('click',onClick);
+      offs.push(function(){card.removeEventListener('click',onClick);});
+    });
+    pins.forEach(function(pin,i){
+      function onClick(){select(i);}
+      pin.addEventListener('click',onClick);
+      offs.push(function(){pin.removeEventListener('click',onClick);});
+    });
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-ml-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var THUMBVIEWER_CSS = `
+.pagecraft-thumbviewer{display:flex;flex-direction:column;gap:14px;width:100%;color:var(--tv-ink,#17231E)}
+.pagecraft-thumbviewer-stage{position:relative;aspect-ratio:var(--tv-ratio,16 / 10);border:1px solid var(--tv-line,#D2DCD6);border-radius:var(--tv-radius,12px);background:var(--tv-surface,#FFFFFF);overflow:hidden}
+.pagecraft-thumbviewer-main{width:100%;height:100%;object-fit:cover;display:block}
+.pagecraft-thumbviewer-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 18px;border:1px solid var(--tv-line,#D2DCD6);border-radius:var(--tv-radius,12px);background:var(--tv-surface,#FFFFFF)}
+.pagecraft-thumbviewer-info{min-width:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pagecraft-thumbviewer-count{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--tv-accent,#136B52);font-variant-numeric:tabular-nums}
+.pagecraft-thumbviewer-title{font-size:16px;font-weight:700;color:var(--tv-ink,#17231E)}
+.pagecraft-thumbviewer-meta{font-size:13.5px;color:var(--tv-muted,#4E6058)}
+.pagecraft-thumbviewer-nav{display:flex;gap:8px}
+.pagecraft-thumbviewer-nbtn{appearance:none;min-height:38px;padding:0 14px;border:1px solid var(--tv-line,#D2DCD6);border-radius:calc(var(--tv-radius,12px) * .67);background:var(--tv-surface,#FFFFFF);color:var(--tv-ink,#17231E);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .16s ease,background-color .16s ease,color .16s ease}
+.pagecraft-thumbviewer-nbtn:hover{border-color:var(--tv-accent,#136B52);background:var(--tv-accent,#136B52);color:var(--tv-on,#FFFFFF)}
+.pagecraft-thumbviewer-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.pagecraft-thumbviewer-thumb{appearance:none;padding:6px;border:1px solid var(--tv-line,#D2DCD6);border-radius:calc(var(--tv-radius,12px) * .85);background:var(--tv-surface,#FFFFFF);color:inherit;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .16s ease,box-shadow .16s ease}
+.pagecraft-thumbviewer-thumb[data-active="1"]{border-color:var(--tv-accent,#136B52);box-shadow:0 0 0 2px color-mix(in srgb,var(--tv-accent,#136B52) 22%,transparent)}
+.pagecraft-thumbviewer-timg{width:100%;aspect-ratio:16 / 10;background-size:cover;background-position:center;border-radius:calc(var(--tv-radius,12px) * .5);display:block}
+.pagecraft-thumbviewer-tlbl{font-size:12.5px;font-weight:600;color:var(--tv-ink,#17231E);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pagecraft-thumbviewer-nbtn:focus-visible,.pagecraft-thumbviewer-thumb:focus-visible{outline:2px solid var(--tv-accent,#136B52);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.pagecraft-thumbviewer-nbtn,.pagecraft-thumbviewer-thumb{transition:none}}
+@media(max-width:639px){
+  .pagecraft-thumbviewer-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+`;
+var THUMBVIEWER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-thumbviewer]').forEach(function(root){
+    if(root.hasAttribute('data-pc-tv-ready'))return;
+    root.setAttribute('data-pc-tv-ready','1');
+    var img=root.querySelector('[data-tv-img]');
+    var countEl=root.querySelector('[data-tv-count]');
+    var titleEl=root.querySelector('[data-tv-title]');
+    var metaEl=root.querySelector('[data-tv-meta]');
+    var prevBtn=root.querySelector('[data-tv-prev]');
+    var nextBtn=root.querySelector('[data-tv-next]');
+    var thumbs=[].slice.call(root.querySelectorAll('[data-tv-thumb]'));
+    var idx=0;
+    function pad(n){return n<9?'0'+(n+1):String(n+1);}
+    function show(nextIdx){
+      if(!thumbs.length)return;
+      idx=(nextIdx+thumbs.length)%thumbs.length;
+      thumbs.forEach(function(btn,i){
+        var on=i===idx;
+        btn.setAttribute('data-active',on?'1':'0');
+        btn.setAttribute('aria-pressed',on?'true':'false');
+      });
+      var btn=thumbs[idx];
+      if(img){
+        img.src=btn.getAttribute('data-tv-src')||'';
+        img.alt=btn.getAttribute('data-tv-alt')||'';
+      }
+      if(countEl)countEl.textContent=pad(idx)+' / '+pad(thumbs.length-1);
+      if(titleEl)titleEl.textContent=btn.getAttribute('data-tv-title')||'';
+      if(metaEl)metaEl.textContent=btn.getAttribute('data-tv-meta')||'';
+    }
+    var offs=[];
+    thumbs.forEach(function(btn,i){
+      function onPick(){show(i);}
+      btn.addEventListener('click',onPick);
+      offs.push(function(){btn.removeEventListener('click',onPick);});
+    });
+    function onPrev(){show(idx-1);}
+    function onNext(){show(idx+1);}
+    if(prevBtn){prevBtn.addEventListener('click',onPrev);offs.push(function(){prevBtn.removeEventListener('click',onPrev);});}
+    if(nextBtn){nextBtn.addEventListener('click',onNext);offs.push(function(){nextBtn.removeEventListener('click',onNext);});}
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-tv-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -6603,9 +6776,9 @@ function mediaReferences(document) {
     const base = [...path, i];
     const where = { ...context, nodeId: node.id };
     const props = node.props;
-    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : node.type === "typemask" ? ["maskSrc"] : [];
+    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : node.type === "typemask" ? ["maskSrc"] : node.type === "maplist" ? ["mapSrc"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
-    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches" || node.type === "masonry") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches" || node.type === "masonry" || node.type === "maplist" || node.type === "thumbviewer") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
     if (node.type === "chapters" && Array.isArray(props.chapters)) props.chapters.forEach((item, j) => scan(item?.src, [...base, "props", "chapters", j, "src"], where));
     if (node.type === "fullmenu" && Array.isArray(props.menuItems)) props.menuItems.forEach((item, j) => scan(item?.src, [...base, "props", "menuItems", j, "src"], where));
     if (node.type === "swatchshop" && Array.isArray(props.products)) props.products.forEach((item, j) => {
@@ -9967,6 +10140,130 @@ var DEF = {
         { t: "unit", c: "--ms-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  maplist: {
+    label: "Map listings",
+    icon: "maplist",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        mapSrc: "",
+        mapAlt: "Entrepotdok canal district map",
+        items: [
+          { pinLabel: "\u20AC2,150", price: "\u20AC2,150 / mo", title: "Wharf Loft 2B", meta: "2 Bed \xB7 94 m\xB2 \xB7 South Quay Balcony", detail: "Four-metre arched steel glazing with direct spruce mezzanine.", x: "34", y: "44", src: "", alt: "Wharf Loft 2B living room", ctaLabel: "Schedule Tour \u2192", href: "viewings.html#book" },
+          { pinLabel: "\u20AC2,890", price: "\u20AC2,890 / mo", title: "Lockkeeper Penthouse", meta: "3 Bed \xB7 138 m\xB2 \xB7 Private Roof Terrace", detail: "Corner top-floor loft overlooking the eastern basin.", x: "66", y: "34", src: "", alt: "Lockkeeper Penthouse terrace", ctaLabel: "Schedule Tour \u2192", href: "viewings.html#book" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ml-surface": "#FFFFFF",
+          "--ml-bg": "#DCE5DF",
+          "--ml-ink": cvar("ink"),
+          "--ml-muted": cvar("muted"),
+          "--ml-accent": cvar("brand"),
+          "--ml-on": "#FFFFFF",
+          "--ml-pin": cvar("ink"),
+          "--ml-line": cvar("line"),
+          "--ml-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "img", k: "mapSrc", label: "Map background" },
+        { t: "text", k: "mapAlt", label: "Map description", ph: "District or site plan" },
+        {
+          t: "qa",
+          k: "items",
+          label: "Mapped residences",
+          addLabel: "Add listing",
+          rowFields: [
+            { k: "pinLabel", label: "Pin pill label", ph: "\u20AC2,150", def: "Lot" },
+            { k: "price", label: "Price / rate", ph: "\u20AC2,150 / mo", def: "\u20AC2,000 / mo" },
+            { k: "title", label: "Listing title", ph: "Wharf Loft 2B", def: "New residence" },
+            { k: "meta", label: "Specifications", ph: "2 Bed \xB7 94 m\xB2", def: "" },
+            { k: "detail", label: "Short summary", ph: "South quay exposure", def: "" },
+            { k: "x", label: "Pin X (%)", ph: "34", def: "50" },
+            { k: "y", label: "Pin Y (%)", ph: "44", def: "50" },
+            { k: "src", label: "Thumbnail image", ph: "asset:listing", def: "", img: 1 },
+            { k: "alt", label: "Image alt text", ph: "Describe room", def: "" },
+            { k: "ctaLabel", label: "Bar button label", ph: "Schedule Tour \u2192", def: "Schedule Tour \u2192" },
+            { k: "href", label: "Bar button link", ph: "viewings.html#book", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ml-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-bg", label: "Map backdrop", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-muted", label: "Meta colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-accent", label: "Active accent", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-on", label: "Text on pin/CTA", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-pin", label: "Default pin fill", r: 1, layout: "inline" },
+        { t: "color", c: "--ml-line", label: "Border rule", r: 1, layout: "inline" },
+        { t: "unit", c: "--ml-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  thumbviewer: {
+    label: "Thumbnail viewer",
+    icon: "thumbviewer",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        ratio: "16 / 10",
+        items: [
+          { src: "", alt: "Double-height south quay living space", label: "01 Living", title: "Lot 04B \xB7 South Quay Living Hall", meta: "Four-metre triple-glazed arches & wide-plank oak" },
+          { src: "", alt: "Open timber kitchen island", label: "02 Kitchen", title: "Lot 04B \xB7 Solid Spruce Kitchen Island", meta: "Induction downdraft & aquathermal manifold core" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tv-surface": "#FFFFFF",
+          "--tv-ink": cvar("ink"),
+          "--tv-muted": cvar("muted"),
+          "--tv-accent": cvar("brand"),
+          "--tv-on": "#FFFFFF",
+          "--tv-line": cvar("line"),
+          "--tv-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "ratio", label: "Stage aspect", opts: [["16 / 10", "16:10 Editorial"], ["16 / 9", "16:9 Widescreen"], ["4 / 3", "4:3 Architectural"]] },
+        {
+          t: "qa",
+          k: "items",
+          label: "Gallery views",
+          addLabel: "Add view",
+          rowFields: [
+            { k: "src", label: "Plate image", ph: "asset:plate", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe view", def: "" },
+            { k: "label", label: "Thumb caption", ph: "01 Living", def: "View" },
+            { k: "title", label: "Bar heading", ph: "Room or elevation title", def: "Architectural view" },
+            { k: "meta", label: "Bar details", ph: "Dimensions & finish", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--tv-surface", label: "Frame surface", r: 1, layout: "inline" },
+        { t: "color", c: "--tv-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tv-muted", label: "Meta colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tv-accent", label: "Active ring & CTA", r: 1, layout: "inline" },
+        { t: "color", c: "--tv-on", label: "Hover button ink", r: 1, layout: "inline" },
+        { t: "color", c: "--tv-line", label: "Border rule", r: 1, layout: "inline" },
+        { t: "unit", c: "--tv-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -10478,6 +10775,8 @@ var nameOf = (n) => {
   if (n.type === "stackcards") return `Stacked cards \xB7 ${(n.props.cards || []).length} card${(n.props.cards || []).length === 1 ? "" : "s"}`;
   if (n.type === "showbill") return `Venue bill \xB7 ${(n.props.shows || []).length} date${(n.props.shows || []).length === 1 ? "" : "s"}`;
   if (n.type === "masonry") return `Masonry \xB7 ${(n.props.items || []).length} plate${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "maplist") return `Map listings \xB7 ${(n.props.items || []).length} unit${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "thumbviewer") return `Thumbnail viewer \xB7 ${(n.props.items || []).length} view${(n.props.items || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -13171,7 +13470,9 @@ var TEXT_SLOTS = {
   roicalc: ["heading", "summary", "slider1Label", "slider1Unit", "slider2Label", "slider2Unit", "currencySymbol", "baselineLabel", "optimizedLabel", "savingsLabel", "co2Label", "ctaLabel"],
   stackcards: [["cards", "stepNum", "badge", "title", "detail", "stat", "alt"]],
   showbill: ["allLabel", ["shows", "dayNum", "month", "title", "artists", "room", "doors", "price", "ctaLabel"]],
-  masonry: [["items", "alt", "title", "meta"]]
+  masonry: [["items", "alt", "title", "meta"]],
+  maplist: ["mapAlt", ["items", "pinLabel", "price", "title", "meta", "detail", "ctaLabel", "alt"]],
+  thumbviewer: [["items", "alt", "label", "title", "meta"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -17238,7 +17539,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -17273,9 +17574,11 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "stackcards") stackcards = true;
     else if (node.type === "showbill") showbill = true;
     else if (node.type === "masonry") masonry = true;
+    else if (node.type === "maplist") maplist = true;
+    else if (node.type === "thumbviewer") thumbviewer = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -17310,7 +17613,9 @@ ${STAYFILTER_CSS}` : "") + (used.roicalc ? `
 ${ROICALC_CSS}` : "") + (used.stackcards ? `
 ${STACKCARDS_CSS}` : "") + (used.showbill ? `
 ${SHOWBILL_CSS}` : "") + (used.masonry ? `
-${MASONRY_CSS}` : "") + (used.videoLightbox ? `
+${MASONRY_CSS}` : "") + (used.maplist ? `
+${MAPLIST_CSS}` : "") + (used.thumbviewer ? `
+${THUMBVIEWER_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -19128,6 +19433,65 @@ function renderNode(n, o) {
       const dlg = o.edit ? "" : `<dialog class="pagecraft-masonry-dlg" aria-label="Image viewer"><div class="pagecraft-masonry-stage"><img class="pagecraft-masonry-dlg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${esc(String(first.alt || ""))}"><div class="pagecraft-masonry-bar"><div><strong data-ms-dtitle>${esc(String(first.title || ""))}</strong> <span class="pagecraft-masonry-meta" data-ms-dmeta>${esc(String(first.meta || ""))}</span></div><div class="pagecraft-masonry-nav"><button type="button" class="pagecraft-masonry-btn" data-ms-prev>Prev</button><button type="button" class="pagecraft-masonry-btn" data-ms-next>Next</button><button type="button" class="pagecraft-masonry-btn" data-ms-close>Close</button></div></div></div></dialog>`;
       return `<div ${at()} ${cx("pagecraft-masonry")} data-masonry style="--ms-cols:${cols2}"><div class="pagecraft-masonry-grid">${tiles}</div>${dlg}</div>`;
     }
+    case "maplist": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const mapSrc = esc(String(p.mapSrc || PH));
+      const mapAlt = esc(String(p.mapAlt || "Interactive neighbourhood map"));
+      const first = items[0] || {};
+      const firstHref = safeUrl(String(first.href || "").trim());
+      const firstLink = firstHref && !o.edit ? pageHref(firstHref, o) : "";
+      const firstCta = String(first.ctaLabel || "Schedule Tour \u2192");
+      const cards = items.map((it, i) => {
+        const sel = i === 0 ? "1" : "0";
+        const price = String(it.price || "");
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || "");
+        const detail = String(it.detail || "");
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const cta = String(it.ctaLabel || "Schedule Tour \u2192");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        return `<button type="button" class="pagecraft-maplist-card" data-ml-pick="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? "true" : "false"}" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}"><img class="pagecraft-maplist-thumb" src="${src}" alt="${alt}"${dim} decoding="async"><span class="pagecraft-maplist-body">` + (price ? `<span class="pagecraft-maplist-price">${esc(price)}</span>` : "") + `<span class="pagecraft-maplist-title">${esc(title)}</span>` + (meta ? `<span class="pagecraft-maplist-meta">${esc(meta)}</span>` : "") + (detail ? `<span class="pagecraft-maplist-detail">${esc(detail)}</span>` : "") + `</span></button>`;
+      }).join("");
+      const pins = items.map((it, i) => {
+        const sel = i === 0 ? "1" : "0";
+        const xNum = parseFloat(String(it.x ?? "50"));
+        const yNum = parseFloat(String(it.y ?? "50"));
+        const x = Number.isFinite(xNum) ? Math.max(8, Math.min(92, xNum)) : 50;
+        const y = Number.isFinite(yNum) ? Math.max(10, Math.min(90, yNum)) : 50;
+        const lbl = String(it.pinLabel || it.price || `#${i + 1}`);
+        const price = String(it.price || "");
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || "");
+        const cta = String(it.ctaLabel || "Schedule Tour \u2192");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        return `<button type="button" class="pagecraft-maplist-pin" data-ml-pin="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? "true" : "false"}" style="left:${x}%;top:${y}%" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}" aria-label="${esc(title)}">${esc(lbl)}</button>`;
+      }).join("");
+      const bar = `<div class="pagecraft-maplist-bar"><div class="pagecraft-maplist-bar-copy"><span class="pagecraft-maplist-price" data-ml-active-price>${esc(String(first.price || ""))}</span><strong class="pagecraft-maplist-bar-title" data-ml-active-title>${esc(String(first.title || ""))}</strong><span class="pagecraft-maplist-bar-meta" data-ml-active-meta>${esc(String(first.meta || ""))}</span></div><a class="pagecraft-maplist-cta" data-ml-cta${firstLink ? ` href="${esc(firstLink)}"` : " hidden"}>${esc(firstCta)}</a></div>`;
+      return `<div ${at()} ${cx("pagecraft-maplist")} data-maplist><div class="pagecraft-maplist-list">${cards}</div><div class="pagecraft-maplist-pane"><div class="pagecraft-maplist-stage"><img class="pagecraft-maplist-bg" src="${mapSrc}" alt="${mapAlt}" decoding="async">${pins}</div>${bar}</div></div>`;
+    }
+    case "thumbviewer": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || "16 / 10";
+      const first = items[0] || {};
+      const mainSrc = esc(String(first.src || PH));
+      const mainAlt = esc(String(first.alt || first.title || "Selected view"));
+      const countText = items.length ? `01 / ${String(items.length).padStart(2, "0")}` : "00 / 00";
+      const thumbs = items.map((it, i) => {
+        const active = i === 0 ? "1" : "0";
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `View ${i + 1}`));
+        const label = String(it.label || it.title || `View ${i + 1}`);
+        const title = String(it.title || label);
+        const meta = String(it.meta || "");
+        return `<button type="button" class="pagecraft-thumbviewer-thumb" data-tv-thumb="${i}" data-active="${active}" aria-pressed="${i === 0 ? "true" : "false"}" data-tv-src="${src}" data-tv-alt="${alt}" data-tv-title="${esc(title)}" data-tv-meta="${esc(meta)}"><span class="pagecraft-thumbviewer-timg" style="background-image:url('${src}')" aria-hidden="true"></span><span class="pagecraft-thumbviewer-tlbl">${esc(label)}</span></button>`;
+      }).join("");
+      const mainDim = first.w && first.h ? ` width="${parseInt(String(first.w), 10)}" height="${parseInt(String(first.h), 10)}"` : "";
+      return `<div ${at()} ${cx("pagecraft-thumbviewer")} data-thumbviewer style="--tv-ratio:${esc(ratio)}"><div class="pagecraft-thumbviewer-stage"><img class="pagecraft-thumbviewer-main" data-tv-img src="${mainSrc}" alt="${mainAlt}"${mainDim} decoding="async"></div><div class="pagecraft-thumbviewer-bar"><div class="pagecraft-thumbviewer-info"><span class="pagecraft-thumbviewer-count" data-tv-count>${countText}</span><strong class="pagecraft-thumbviewer-title" data-tv-title>${esc(String(first.title || ""))}</strong><span class="pagecraft-thumbviewer-meta" data-tv-meta>${esc(String(first.meta || ""))}</span></div><div class="pagecraft-thumbviewer-nav"><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-prev>Prev</button><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-next>Next</button></div></div><div class="pagecraft-thumbviewer-strip">${thumbs}</div></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -19642,7 +20006,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${/data-roicalc/.test(body) ? ROICALC_JS : ""}${/data-showbill/.test(body) ? SHOWBILL_JS : ""}${/data-masonry/.test(body) ? MASONRY_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${/data-roicalc/.test(body) ? ROICALC_JS : ""}${/data-showbill/.test(body) ? SHOWBILL_JS : ""}${/data-masonry/.test(body) ? MASONRY_JS : ""}${/data-maplist/.test(body) ? MAPLIST_JS : ""}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -20180,6 +20544,8 @@ var __CORE = {
   LB_JS,
   LIGHTBOX_FAILURE_CSS,
   LINK_TARGET,
+  MAPLIST_CSS,
+  MAPLIST_JS,
   MARQUEE_CSS,
   MASONRY_CSS,
   MASONRY_JS,
@@ -20242,6 +20608,8 @@ var __CORE = {
   TABS_JS,
   TEMPLATES,
   TEXT_SLOTS,
+  THUMBVIEWER_CSS,
+  THUMBVIEWER_JS,
   TIERS_CSS,
   TIERS_JS,
   TIMELINE_CSS,
@@ -26631,7 +26999,9 @@ var PC_UI = (() => {
         ["roicalc", "ROI calculator"],
         ["stackcards", "Stacked cards"],
         ["showbill", "Venue bill"],
-        ["masonry", "Masonry archive"]
+        ["masonry", "Masonry archive"],
+        ["maplist", "Map listings"],
+        ["thumbviewer", "Thumbnail viewer"]
       ]
     },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
@@ -26660,7 +27030,9 @@ var PC_UI = (() => {
     roicalc: "Dual range sliders that model annual savings and comparison bars live.",
     stackcards: "Protocol or feature cards that pin and stack neatly as you scroll.",
     showbill: "Date-block schedule of performances or sessions with room filter buttons.",
-    masonry: "Mixed-aspect media archive grid with an integrated lightbox viewer."
+    masonry: "Mixed-aspect media archive grid with an integrated lightbox viewer.",
+    maplist: "Synchronized residence cards paired with clickable price pins on a district map.",
+    thumbviewer: "Large stage image with previous/next controls and synchronized thumbnail strip."
   };
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
   var QUICK_ADD_LIMIT = 7;
@@ -26719,6 +27091,8 @@ var PC_UI = (() => {
     stackcards: "sticky stacking protocol cards scroll pin sequence deck",
     showbill: "events lineup concert club schedule date block tickets bill",
     masonry: "masonry gallery archive mixed aspect vinyl lookbook lightbox",
+    maplist: "map pins listings apartments lofts residences neighborhood interactive split",
+    thumbviewer: "thumbnail viewer gallery stage floorplan interior plates",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -37588,6 +37962,130 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "unit", c: "--ms-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
+    },
+    maplist: {
+      label: "Map listings",
+      icon: "maplist",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          mapSrc: "",
+          mapAlt: "Entrepotdok canal district map",
+          items: [
+            { pinLabel: "\u20AC2,150", price: "\u20AC2,150 / mo", title: "Wharf Loft 2B", meta: "2 Bed \xB7 94 m\xB2 \xB7 South Quay Balcony", detail: "Four-metre arched steel glazing with direct spruce mezzanine.", x: "34", y: "44", src: "", alt: "Wharf Loft 2B living room", ctaLabel: "Schedule Tour \u2192", href: "viewings.html#book" },
+            { pinLabel: "\u20AC2,890", price: "\u20AC2,890 / mo", title: "Lockkeeper Penthouse", meta: "3 Bed \xB7 138 m\xB2 \xB7 Private Roof Terrace", detail: "Corner top-floor loft overlooking the eastern basin.", x: "66", y: "34", src: "", alt: "Lockkeeper Penthouse terrace", ctaLabel: "Schedule Tour \u2192", href: "viewings.html#book" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ml-surface": "#FFFFFF",
+            "--ml-bg": "#DCE5DF",
+            "--ml-ink": cvar("ink"),
+            "--ml-muted": cvar("muted"),
+            "--ml-accent": cvar("brand"),
+            "--ml-on": "#FFFFFF",
+            "--ml-pin": cvar("ink"),
+            "--ml-line": cvar("line"),
+            "--ml-radius": "12px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "img", k: "mapSrc", label: "Map background" },
+          { t: "text", k: "mapAlt", label: "Map description", ph: "District or site plan" },
+          {
+            t: "qa",
+            k: "items",
+            label: "Mapped residences",
+            addLabel: "Add listing",
+            rowFields: [
+              { k: "pinLabel", label: "Pin pill label", ph: "\u20AC2,150", def: "Lot" },
+              { k: "price", label: "Price / rate", ph: "\u20AC2,150 / mo", def: "\u20AC2,000 / mo" },
+              { k: "title", label: "Listing title", ph: "Wharf Loft 2B", def: "New residence" },
+              { k: "meta", label: "Specifications", ph: "2 Bed \xB7 94 m\xB2", def: "" },
+              { k: "detail", label: "Short summary", ph: "South quay exposure", def: "" },
+              { k: "x", label: "Pin X (%)", ph: "34", def: "50" },
+              { k: "y", label: "Pin Y (%)", ph: "44", def: "50" },
+              { k: "src", label: "Thumbnail image", ph: "asset:listing", def: "", img: 1 },
+              { k: "alt", label: "Image alt text", ph: "Describe room", def: "" },
+              { k: "ctaLabel", label: "Bar button label", ph: "Schedule Tour \u2192", def: "Schedule Tour \u2192" },
+              { k: "href", label: "Bar button link", ph: "viewings.html#book", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ml-surface", label: "Card surface", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-bg", label: "Map backdrop", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-muted", label: "Meta colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-accent", label: "Active accent", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-on", label: "Text on pin/CTA", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-pin", label: "Default pin fill", r: 1, layout: "inline" },
+          { t: "color", c: "--ml-line", label: "Border rule", r: 1, layout: "inline" },
+          { t: "unit", c: "--ml-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    thumbviewer: {
+      label: "Thumbnail viewer",
+      icon: "thumbviewer",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          ratio: "16 / 10",
+          items: [
+            { src: "", alt: "Double-height south quay living space", label: "01 Living", title: "Lot 04B \xB7 South Quay Living Hall", meta: "Four-metre triple-glazed arches & wide-plank oak" },
+            { src: "", alt: "Open timber kitchen island", label: "02 Kitchen", title: "Lot 04B \xB7 Solid Spruce Kitchen Island", meta: "Induction downdraft & aquathermal manifold core" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tv-surface": "#FFFFFF",
+            "--tv-ink": cvar("ink"),
+            "--tv-muted": cvar("muted"),
+            "--tv-accent": cvar("brand"),
+            "--tv-on": "#FFFFFF",
+            "--tv-line": cvar("line"),
+            "--tv-radius": "12px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "ratio", label: "Stage aspect", opts: [["16 / 10", "16:10 Editorial"], ["16 / 9", "16:9 Widescreen"], ["4 / 3", "4:3 Architectural"]] },
+          {
+            t: "qa",
+            k: "items",
+            label: "Gallery views",
+            addLabel: "Add view",
+            rowFields: [
+              { k: "src", label: "Plate image", ph: "asset:plate", def: "", img: 1 },
+              { k: "alt", label: "Alt text", ph: "Describe view", def: "" },
+              { k: "label", label: "Thumb caption", ph: "01 Living", def: "View" },
+              { k: "title", label: "Bar heading", ph: "Room or elevation title", def: "Architectural view" },
+              { k: "meta", label: "Bar details", ph: "Dimensions & finish", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--tv-surface", label: "Frame surface", r: 1, layout: "inline" },
+          { t: "color", c: "--tv-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tv-muted", label: "Meta colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tv-accent", label: "Active ring & CTA", r: 1, layout: "inline" },
+          { t: "color", c: "--tv-on", label: "Hover button ink", r: 1, layout: "inline" },
+          { t: "color", c: "--tv-line", label: "Border rule", r: 1, layout: "inline" },
+          { t: "unit", c: "--tv-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
     }
   };
   var CODE_LANGS = {
@@ -41385,6 +41883,8 @@ function runPreviewRuntime(html, editing = false) {
     [/data-roicalc/.test(html), ROICALC_JS],
     [/data-showbill/.test(html), SHOWBILL_JS],
     [/data-masonry/.test(html), MASONRY_JS],
+    [/data-maplist/.test(html), MAPLIST_JS],
+    [/data-thumbviewer/.test(html), THUMBVIEWER_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

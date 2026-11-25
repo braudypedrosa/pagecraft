@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+  <rect width="1200" height="750" fill="#F4F7F5"/>
+  <path d="M60 120 H1140 M60 260 H1140 M60 400 H1140 M60 540 H1140 M240 80 V660 M480 80 V660 M720 80 V660 M960 80 V660" stroke="#E4EBE6" stroke-width="1"/>
+  <rect x="88" y="88" width="1024" height="574" fill="#FFFFFF" stroke="#C5D2CB" stroke-width="1.5"/>
+  <text x="120" y="132" fill="#136B52" font-family="ui-monospace, monospace" font-size="13" font-weight="700" letter-spacing="1.8">LOT 04B · THE GRAIN WEIGHHOUSE · PLAN 1:100</text>
+  <text x="1080" y="132" text-anchor="end" fill="#4E6058" font-family="ui-monospace, monospace" font-size="13" font-weight="600">94 M² INTERIOR + 14 M² QUAY LOGGIA</text>
+  <rect x="136" y="492" width="928" height="96" fill="#E3ECE7" stroke="#136B52" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <rect x="136" y="176" width="928" height="316" fill="#FAFBF9" stroke="#222E29" stroke-width="8"/>
+  <line x1="628" y1="176" x2="628" y2="386" stroke="#222E29" stroke-width="5"/>
+  <line x1="628" y1="306" x2="1064" y2="306" stroke="#136B52" stroke-width="3" stroke-dasharray="8 5"/>
+  <rect x="646" y="196" width="398" height="96" fill="#EDE4D5" stroke="#8C7355" stroke-width="1.5"/>
+  <rect x="200" y="218" width="224" height="56" rx="4" fill="#DCE5DF" stroke="#136B52" stroke-width="1.5"/>
+  <g stroke="#136B52" stroke-width="4">
+    <line x1="210" y1="492" x2="380" y2="492"/><line x1="430" y1="492" x2="600" y2="492"/><line x1="680" y1="492" x2="850" y2="492"/>
+  </g>
+  <text x="380" y="392" text-anchor="middle" fill="#17231E" font-family="Georgia, serif" font-size="22" font-weight="700">Double-Height Living Hall</text>
+  <text x="380" y="420" text-anchor="middle" fill="#4E6058" font-family="ui-monospace, monospace" font-size="13">36 M² · 4.0 M SOUTH STEEL ARCHES</text>
+  <text x="312" y="251" text-anchor="middle" fill="#17231E" font-family="ui-monospace, monospace" font-size="12.5" font-weight="700">SPRUCE KITCHEN ISLAND</text>
+  <text x="845" y="250" text-anchor="middle" fill="#17231E" font-family="Georgia, serif" font-size="19" font-weight="700">CLT Spruce Mezzanine</text>
+  <text x="845" y="274" text-anchor="middle" fill="#4E6058" font-family="ui-monospace, monospace" font-size="12">22 M² SLEEPING LOFT + STUDY</text>
+  <text x="845" y="394" text-anchor="middle" fill="#17231E" font-family="Georgia, serif" font-size="19" font-weight="700">North Suite &amp; Manifold Core</text>
+  <text x="845" y="418" text-anchor="middle" fill="#4E6058" font-family="ui-monospace, monospace" font-size="12">A+++ AQUATHERMAL HEAT EXCHANGE</text>
+  <text x="600" y="546" text-anchor="middle" fill="#136B52" font-family="ui-monospace, monospace" font-size="13.5" font-weight="700" letter-spacing="1.6">SOUTH QUAY CANTILEVER BALCONY &amp; KAYAK ACCESS · 14 M²</text>
+  <text x="136" y="624" fill="#4E6058" font-family="ui-monospace, monospace" font-size="12" font-weight="700">11.20 M CANAL FRONTAGE</text>
+  <text x="1064" y="624" text-anchor="end" fill="#4E6058" font-family="ui-monospace, monospace" font-size="12" font-weight="700">ENERGY CLASS A+++ · TRIPLE GLAZING</text>
+</svg>

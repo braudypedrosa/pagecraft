@@ -2064,6 +2064,45 @@
       "previewPage": "index.html",
       "assetCount": 21,
       "assetBytes": 1376019
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kanaal-living",
+      "version": "1.0.0",
+      "name": "KANAAL LIVING · Canal Warehouse Lofts",
+      "sampleName": "KANAAL LIVING — Converted 1894 Canal Warehouse Lofts in Amsterdam East",
+      "description": "Four-page canal warehouse residential living site featuring a 100dvh south-facing warehouse stage with floating lot card, synchronized interactive Entrepotdok district map and price-pin residence switcher, five-plate architectural thumbnail viewer with 1:100 floor plan, neighbourhood walkability hotspots, CLT spruce before-and-after comparison slider, adaptive-reuse structural table, and private viewing booking form.",
+      "categories": [
+        "Real Estate",
+        "Residential"
+      ],
+      "pages": [
+        {
+          "id": "kl-page-index",
+          "name": "Residences",
+          "slug": "index"
+        },
+        {
+          "id": "kl-page-canal-map",
+          "name": "Canal Map",
+          "slug": "canal-map"
+        },
+        {
+          "id": "kl-page-timber-spec",
+          "name": "Timber Spec",
+          "slug": "timber-spec"
+        },
+        {
+          "id": "kl-page-viewings",
+          "name": "Viewings",
+          "slug": "viewings"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "3192f14e3910292c2785c593de4fef1c08fb1b74e782f17d9478887d116b3c39",
+      "previewPage": "index.html",
+      "assetCount": 25,
+      "assetBytes": 2379616
     }
   ]
 }

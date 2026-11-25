@@ -82,6 +82,8 @@ const runtimeSource = [
   Core.ROICALC_JS,
   Core.SHOWBILL_JS,
   Core.MASONRY_JS,
+  Core.MAPLIST_JS,
+  Core.THUMBVIEWER_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {

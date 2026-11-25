@@ -40,7 +40,7 @@ import {
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
   TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
   DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS,
-  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS
+  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2768,6 +2768,107 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--ms-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  maplist: {
+    label: 'Map listings', icon: 'maplist', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        mapSrc: '',
+        mapAlt: 'Entrepotdok canal district map',
+        items: [
+          { pinLabel: '€2,150', price: '€2,150 / mo', title: 'Wharf Loft 2B', meta: '2 Bed · 94 m² · South Quay Balcony', detail: 'Four-metre arched steel glazing with direct spruce mezzanine.', x: '34', y: '44', src: '', alt: 'Wharf Loft 2B living room', ctaLabel: 'Schedule Tour →', href: 'viewings.html#book' },
+          { pinLabel: '€2,890', price: '€2,890 / mo', title: 'Lockkeeper Penthouse', meta: '3 Bed · 138 m² · Private Roof Terrace', detail: 'Corner top-floor loft overlooking the eastern basin.', x: '66', y: '34', src: '', alt: 'Lockkeeper Penthouse terrace', ctaLabel: 'Schedule Tour →', href: 'viewings.html#book' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ml-surface': '#FFFFFF', '--ml-bg': '#DCE5DF',
+          '--ml-ink': cvar('ink'), '--ml-muted': cvar('muted'),
+          '--ml-accent': cvar('brand'), '--ml-on': '#FFFFFF',
+          '--ml-pin': cvar('ink'), '--ml-line': cvar('line'), '--ml-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'mapSrc', label: 'Map background' },
+        { t: 'text', k: 'mapAlt', label: 'Map description', ph: 'District or site plan' },
+        {
+          t: 'qa', k: 'items', label: 'Mapped residences', addLabel: 'Add listing',
+          rowFields: [
+            { k: 'pinLabel', label: 'Pin pill label', ph: '€2,150', def: 'Lot' },
+            { k: 'price', label: 'Price / rate', ph: '€2,150 / mo', def: '€2,000 / mo' },
+            { k: 'title', label: 'Listing title', ph: 'Wharf Loft 2B', def: 'New residence' },
+            { k: 'meta', label: 'Specifications', ph: '2 Bed · 94 m²', def: '' },
+            { k: 'detail', label: 'Short summary', ph: 'South quay exposure', def: '' },
+            { k: 'x', label: 'Pin X (%)', ph: '34', def: '50' },
+            { k: 'y', label: 'Pin Y (%)', ph: '44', def: '50' },
+            { k: 'src', label: 'Thumbnail image', ph: 'asset:listing', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe room', def: '' },
+            { k: 'ctaLabel', label: 'Bar button label', ph: 'Schedule Tour →', def: 'Schedule Tour →' },
+            { k: 'href', label: 'Bar button link', ph: 'viewings.html#book', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ml-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-bg', label: 'Map backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-on', label: 'Text on pin/CTA', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-pin', label: 'Default pin fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ml-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  thumbviewer: {
+    label: 'Thumbnail viewer', icon: 'thumbviewer', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '16 / 10',
+        items: [
+          { src: '', alt: 'Double-height south quay living space', label: '01 Living', title: 'Lot 04B · South Quay Living Hall', meta: 'Four-metre triple-glazed arches & wide-plank oak' },
+          { src: '', alt: 'Open timber kitchen island', label: '02 Kitchen', title: 'Lot 04B · Solid Spruce Kitchen Island', meta: 'Induction downdraft & aquathermal manifold core' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tv-surface': '#FFFFFF', '--tv-ink': cvar('ink'),
+          '--tv-muted': cvar('muted'), '--tv-accent': cvar('brand'),
+          '--tv-on': '#FFFFFF', '--tv-line': cvar('line'), '--tv-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'ratio', label: 'Stage aspect', opts: [['16 / 10', '16:10 Editorial'], ['16 / 9', '16:9 Widescreen'], ['4 / 3', '4:3 Architectural']] },
+        {
+          t: 'qa', k: 'items', label: 'Gallery views', addLabel: 'Add view',
+          rowFields: [
+            { k: 'src', label: 'Plate image', ph: 'asset:plate', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe view', def: '' },
+            { k: 'label', label: 'Thumb caption', ph: '01 Living', def: 'View' },
+            { k: 'title', label: 'Bar heading', ph: 'Room or elevation title', def: 'Architectural view' },
+            { k: 'meta', label: 'Bar details', ph: 'Dimensions & finish', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tv-surface', label: 'Frame surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-accent', label: 'Active ring & CTA', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-on', label: 'Hover button ink', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tv-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -3375,6 +3476,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'stackcards') return `Stacked cards · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'showbill') return `Venue bill · ${((n.props.shows as any[]) || []).length} date${((n.props.shows as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'masonry') return `Masonry · ${((n.props.items as any[]) || []).length} plate${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'maplist') return `Map listings · ${((n.props.items as any[]) || []).length} unit${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'thumbviewer') return `Thumbnail viewer · ${((n.props.items as any[]) || []).length} view${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -6607,6 +6710,8 @@ const TEXT_SLOTS = {
   stackcards: [['cards', 'stepNum', 'badge', 'title', 'detail', 'stat', 'alt']],
   showbill: ['allLabel', ['shows', 'dayNum', 'month', 'title', 'artists', 'room', 'doors', 'price', 'ctaLabel']],
   masonry: [['items', 'alt', 'title', 'meta']],
+  maplist: ['mapAlt', ['items', 'pinLabel', 'price', 'title', 'meta', 'detail', 'ctaLabel', 'alt']],
+  thumbviewer: [['items', 'alt', 'label', 'title', 'meta']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -11105,7 +11210,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -11140,14 +11245,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'stackcards') stackcards = true;
     else if (node.type === 'showbill') showbill = true;
     else if (node.type === 'masonry') masonry = true;
+    else if (node.type === 'maplist') maplist = true;
+    else if (node.type === 'thumbviewer') thumbviewer = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean; maplist?: boolean; thumbviewer?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -11181,6 +11288,8 @@ function extraWidgetCss(used: {
     + (used.stackcards ? `\n${STACKCARDS_CSS}` : '')
     + (used.showbill ? `\n${SHOWBILL_CSS}` : '')
     + (used.masonry ? `\n${MASONRY_CSS}` : '')
+    + (used.maplist ? `\n${MAPLIST_CSS}` : '')
+    + (used.thumbviewer ? `\n${THUMBVIEWER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -13610,6 +13719,92 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `</div></div></dialog>`;
       return `<div ${at()} ${cx('pagecraft-masonry')} data-masonry style="--ms-cols:${cols}"><div class="pagecraft-masonry-grid">${tiles}</div>${dlg}</div>`;
     }
+    case 'maplist': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const mapSrc = esc(String(p.mapSrc || PH));
+      const mapAlt = esc(String(p.mapAlt || 'Interactive neighbourhood map'));
+      const first = items[0] || {};
+      const firstHref = safeUrl(String(first.href || '').trim());
+      const firstLink = firstHref && !o.edit ? pageHref(firstHref, o) : '';
+      const firstCta = String(first.ctaLabel || 'Schedule Tour →');
+      const cards = items.map((it, i) => {
+        const sel = i === 0 ? '1' : '0';
+        const price = String(it.price || '');
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || '');
+        const detail = String(it.detail || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const cta = String(it.ctaLabel || 'Schedule Tour →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<button type="button" class="pagecraft-maplist-card" data-ml-pick="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? 'true' : 'false'}" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}">`
+          + `<img class="pagecraft-maplist-thumb" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<span class="pagecraft-maplist-body">`
+          + (price ? `<span class="pagecraft-maplist-price">${esc(price)}</span>` : '')
+          + `<span class="pagecraft-maplist-title">${esc(title)}</span>`
+          + (meta ? `<span class="pagecraft-maplist-meta">${esc(meta)}</span>` : '')
+          + (detail ? `<span class="pagecraft-maplist-detail">${esc(detail)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      const pins = items.map((it, i) => {
+        const sel = i === 0 ? '1' : '0';
+        const xNum = parseFloat(String(it.x ?? '50'));
+        const yNum = parseFloat(String(it.y ?? '50'));
+        const x = Number.isFinite(xNum) ? Math.max(8, Math.min(92, xNum)) : 50;
+        const y = Number.isFinite(yNum) ? Math.max(10, Math.min(90, yNum)) : 50;
+        const lbl = String(it.pinLabel || it.price || `#${i + 1}`);
+        const price = String(it.price || '');
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || '');
+        const cta = String(it.ctaLabel || 'Schedule Tour →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<button type="button" class="pagecraft-maplist-pin" data-ml-pin="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? 'true' : 'false'}" style="left:${x}%;top:${y}%" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}" aria-label="${esc(title)}">${esc(lbl)}</button>`;
+      }).join('');
+      const bar = `<div class="pagecraft-maplist-bar">`
+        + `<div class="pagecraft-maplist-bar-copy">`
+        + `<span class="pagecraft-maplist-price" data-ml-active-price>${esc(String(first.price || ''))}</span>`
+        + `<strong class="pagecraft-maplist-bar-title" data-ml-active-title>${esc(String(first.title || ''))}</strong>`
+        + `<span class="pagecraft-maplist-bar-meta" data-ml-active-meta>${esc(String(first.meta || ''))}</span>`
+        + `</div>`
+        + `<a class="pagecraft-maplist-cta" data-ml-cta${firstLink ? ` href="${esc(firstLink)}"` : ' hidden'}>${esc(firstCta)}</a>`
+        + `</div>`;
+      return `<div ${at()} ${cx('pagecraft-maplist')} data-maplist>`
+        + `<div class="pagecraft-maplist-list">${cards}</div>`
+        + `<div class="pagecraft-maplist-pane"><div class="pagecraft-maplist-stage"><img class="pagecraft-maplist-bg" src="${mapSrc}" alt="${mapAlt}" decoding="async">${pins}</div>${bar}</div>`
+        + `</div>`;
+    }
+    case 'thumbviewer': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || '16 / 10';
+      const first = items[0] || {};
+      const mainSrc = esc(String(first.src || PH));
+      const mainAlt = esc(String(first.alt || first.title || 'Selected view'));
+      const countText = items.length ? `01 / ${String(items.length).padStart(2, '0')}` : '00 / 00';
+      const thumbs = items.map((it, i) => {
+        const active = i === 0 ? '1' : '0';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `View ${i + 1}`));
+        const label = String(it.label || it.title || `View ${i + 1}`);
+        const title = String(it.title || label);
+        const meta = String(it.meta || '');
+        return `<button type="button" class="pagecraft-thumbviewer-thumb" data-tv-thumb="${i}" data-active="${active}" aria-pressed="${i === 0 ? 'true' : 'false'}" data-tv-src="${src}" data-tv-alt="${alt}" data-tv-title="${esc(title)}" data-tv-meta="${esc(meta)}">`
+          + `<span class="pagecraft-thumbviewer-timg" style="background-image:url('${src}')" aria-hidden="true"></span>`
+          + `<span class="pagecraft-thumbviewer-tlbl">${esc(label)}</span>`
+          + `</button>`;
+      }).join('');
+      const mainDim = (first.w && first.h) ? ` width="${parseInt(String(first.w), 10)}" height="${parseInt(String(first.h), 10)}"` : '';
+      return `<div ${at()} ${cx('pagecraft-thumbviewer')} data-thumbviewer style="--tv-ratio:${esc(ratio)}">`
+        + `<div class="pagecraft-thumbviewer-stage"><img class="pagecraft-thumbviewer-main" data-tv-img src="${mainSrc}" alt="${mainAlt}"${mainDim} decoding="async"></div>`
+        + `<div class="pagecraft-thumbviewer-bar">`
+        + `<div class="pagecraft-thumbviewer-info"><span class="pagecraft-thumbviewer-count" data-tv-count>${countText}</span><strong class="pagecraft-thumbviewer-title" data-tv-title>${esc(String(first.title || ''))}</strong><span class="pagecraft-thumbviewer-meta" data-tv-meta>${esc(String(first.meta || ''))}</span></div>`
+        + `<div class="pagecraft-thumbviewer-nav"><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-prev>Prev</button><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-next>Next</button></div>`
+        + `</div>`
+        + `<div class="pagecraft-thumbviewer-strip">${thumbs}</div>`
+        + `</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -14231,7 +14426,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${/data-maplist/.test(body) ? MAPLIST_JS : ''}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14741,7 +14936,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

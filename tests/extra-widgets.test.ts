@@ -968,5 +968,29 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(msWin.document.querySelector('[data-ms-dtitle]')?.textContent).toContain('SUB-015');
     msDispose!();
     msDom.window.close();
+
+    const mlDom = domFor(C.renderNode(C.N('maplist'), { edit: false }));
+    const mlWin = mlDom.window as any;
+    let mlDispose: (() => void) | null = null;
+    mlWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { mlDispose = fn; };
+    mlWin.eval(scriptBody(C.MAPLIST_JS));
+    (mlWin.document.querySelector('[data-ml-pin="1"]') as HTMLElement).click();
+    expect(mlWin.document.querySelector('[data-ml-pick="1"]')?.getAttribute('data-selected')).toBe('1');
+    expect(mlWin.document.querySelector('[data-ml-pick="0"]')?.getAttribute('data-selected')).toBe('0');
+    expect(mlWin.document.querySelector('[data-ml-active-title]')?.textContent).toContain('Lockkeeper');
+    mlDispose!();
+    mlDom.window.close();
+
+    const tvDom = domFor(C.renderNode(C.N('thumbviewer'), { edit: false }));
+    const tvWin = tvDom.window as any;
+    let tvDispose: (() => void) | null = null;
+    tvWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { tvDispose = fn; };
+    tvWin.eval(scriptBody(C.THUMBVIEWER_JS));
+    (tvWin.document.querySelector('[data-tv-next]') as HTMLElement).click();
+    expect(tvWin.document.querySelector('[data-tv-count]')?.textContent).toBe('02 / 02');
+    expect(tvWin.document.querySelector('[data-tv-thumb="1"]')?.getAttribute('data-active')).toBe('1');
+    expect(tvWin.document.querySelector('[data-tv-title]')?.textContent).toContain('Kitchen');
+    tvDispose!();
+    tvDom.window.close();
   });
 });

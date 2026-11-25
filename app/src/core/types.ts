@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards' | 'showbill' | 'masonry'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards' | 'showbill' | 'masonry' | 'maplist' | 'thumbviewer'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -326,6 +326,13 @@ export interface ShowbillItem { dayNum?: string; month?: string; title?: string;
 export interface ShowbillProps { allLabel?: string; shows?: ShowbillItem[] }
 export interface MasonryItem { src?: string; alt?: string; title?: string; meta?: string; ratio?: string; w?: string; h?: string }
 export interface MasonryProps { cols?: string; items?: MasonryItem[] }
+export interface MaplistItem {
+  pinLabel?: string; price?: string; title?: string; meta?: string; detail?: string;
+  x?: string; y?: string; src?: string; alt?: string; ctaLabel?: string; href?: string; w?: string; h?: string;
+}
+export interface MaplistProps { mapSrc?: string; mapAlt?: string; items?: MaplistItem[] }
+export interface ThumbviewerItem { src?: string; alt?: string; label?: string; title?: string; meta?: string; w?: string; h?: string }
+export interface ThumbviewerProps { ratio?: string; items?: ThumbviewerItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -336,7 +343,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps; showbill: ShowbillProps; masonry: MasonryProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps; showbill: ShowbillProps; masonry: MasonryProps; maplist: MaplistProps; thumbviewer: ThumbviewerProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
