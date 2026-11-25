@@ -1,0 +1,201 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "soraia-thermal",
+  "version": "1.0.1",
+  "name": "SORAIA",
+  "sampleName": "SORAIA — Thermal Basalt Reserve",
+  "description": "Four-page Iberian mountain bathhouse and geothermal travertine sanctuary featuring a fanned five-arch editorial hero, obsidian chapter-progress sanctuary frame, sanctuary film lightbox, categorised bathhouse ritual menu, borehole hydrochemical assay, architectural chamber slideshow, material swatch gallery, interactive session slot configurator, and etiquette host desk.",
+  "categories": [
+    "Wellness & Hospitality",
+    "Architecture"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "../1.0.0/assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "../1.0.0/assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "../1.0.0/assets/logo.svg",
+      "name": "logo.svg",
+      "width": 224,
+      "height": 40
+    },
+    {
+      "id": "logo-light",
+      "file": "../1.0.0/assets/logo-light.svg",
+      "name": "logo-light.svg",
+      "width": 224,
+      "height": 40
+    },
+    {
+      "id": "arch-flax",
+      "file": "../1.0.0/assets/arch-flax.webp",
+      "name": "arch-flax.webp",
+      "width": 960,
+      "height": 1440
+    },
+    {
+      "id": "arch-tisane",
+      "file": "../1.0.0/assets/arch-tisane.webp",
+      "name": "arch-tisane.webp",
+      "width": 960,
+      "height": 1440
+    },
+    {
+      "id": "arch-morning",
+      "file": "../1.0.0/assets/arch-morning.webp",
+      "name": "arch-morning.webp",
+      "width": 960,
+      "height": 1440
+    },
+    {
+      "id": "arch-table",
+      "file": "../1.0.0/assets/arch-table.webp",
+      "name": "arch-table.webp",
+      "width": 960,
+      "height": 1440
+    },
+    {
+      "id": "arch-slumber",
+      "file": "../1.0.0/assets/arch-slumber.webp",
+      "name": "arch-slumber.webp",
+      "width": 960,
+      "height": 1440
+    },
+    {
+      "id": "thermal-twilight",
+      "file": "../1.0.0/assets/thermal-twilight.webp",
+      "name": "thermal-twilight.webp",
+      "width": 1264,
+      "height": 711
+    },
+    {
+      "id": "copper-rinse",
+      "file": "../1.0.0/assets/copper-rinse.webp",
+      "name": "copper-rinse.webp",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "horizon-deck",
+      "file": "../1.0.0/assets/horizon-deck.webp",
+      "name": "horizon-deck.webp",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "id": "plaster-skylight",
+      "file": "../1.0.0/assets/plaster-skylight.webp",
+      "name": "plaster-skylight.webp",
+      "width": 1264,
+      "height": 711
+    },
+    {
+      "id": "linen-stack",
+      "file": "../1.0.0/assets/linen-stack.webp",
+      "name": "linen-stack.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "stone-courtyard",
+      "file": "../1.0.0/assets/stone-courtyard.webp",
+      "name": "stone-courtyard.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "botanical-balm",
+      "file": "../1.0.0/assets/botanical-balm.webp",
+      "name": "botanical-balm.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "member-sanctuary-bg",
+      "file": "../1.0.0/assets/member-sanctuary-bg.webp",
+      "name": "member-sanctuary-bg.webp",
+      "width": 1440,
+      "height": 820
+    },
+    {
+      "id": "colonnade-threshold",
+      "file": "../1.0.0/assets/colonnade-threshold.webp",
+      "name": "colonnade-threshold.webp",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "id": "host-practitioner",
+      "file": "../1.0.0/assets/host-practitioner.webp",
+      "name": "host-practitioner.webp",
+      "width": 1000,
+      "height": 1200
+    },
+    {
+      "id": "banner-circuit",
+      "file": "../1.0.0/assets/banner-circuit.webp",
+      "name": "banner-circuit.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "banner-architecture",
+      "file": "../1.0.0/assets/banner-architecture.webp",
+      "name": "banner-architecture.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "banner-reserve",
+      "file": "../1.0.0/assets/banner-reserve.webp",
+      "name": "banner-reserve.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "dusk-terrace",
+      "file": "../1.0.0/assets/dusk-terrace.webp",
+      "name": "dusk-terrace.webp",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "id": "hinoki-joinery",
+      "file": "../1.0.0/assets/hinoki-joinery.webp",
+      "name": "hinoki-joinery.webp",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "id": "timber-sanctuary",
+      "file": "../1.0.0/assets/timber-sanctuary.webp",
+      "name": "timber-sanctuary.webp",
+      "width": 1200,
+      "height": 900
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:soraia-thermal:1.0.1",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "50d63fd31c3408cd1a23350fdc6a73ce46be66c18340a4f16981def6889be286"
+}

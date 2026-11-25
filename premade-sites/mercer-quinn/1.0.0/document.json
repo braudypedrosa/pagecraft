@@ -1597,42 +1597,29 @@
                   "hide": {},
                   "id": "mrq-hero-dockbar",
                   "props": {
-                    "action": "",
-                    "aria": "24-hour conflict pre-screening bar",
-                    "fields": [
+                    "ariaLabel": "24-hour conflict pre-screening bar",
+                    "destHref": "conflict-check.html#check-desk",
+                    "items": [
                       {
-                        "label": "Requesting Entity",
-                        "name": "",
-                        "required": 1,
-                        "type": "text",
+                        "choices": "",
+                        "fieldLabel": "Requesting Entity",
+                        "fieldType": "text",
                         "ph": "Helios Silicon GmbH"
                       },
                       {
-                        "label": "Adverse Counterparty",
-                        "name": "",
-                        "required": 1,
-                        "type": "text",
+                        "choices": "",
+                        "fieldLabel": "Adverse Counterparty",
+                        "fieldType": "text",
                         "ph": "Entity name only — zero secrets"
                       },
                       {
-                        "label": "Work Email",
-                        "name": "work_email",
-                        "ph": "m.lindner@company.example",
-                        "required": 1,
-                        "type": "email"
-                      },
-                      {
-                        "label": "Primary Forum",
-                        "name": "",
-                        "required": 1,
-                        "type": "select",
-                        "opts": "U.S. Federal Circuit & District, Unified Patent Court (Munich), PTAB Inter Partes Review, EU AI Act Art. 53 Audit"
+                        "choices": "U.S. Federal Circuit & District, Unified Patent Court (Munich), PTAB Inter Partes Review, EU AI Act Art. 53 Audit",
+                        "fieldLabel": "Primary Forum",
+                        "fieldType": "select",
+                        "ph": ""
                       }
                     ],
-                    "method": "post",
-                    "mode": "external",
-                    "submit": "Screen Conflict →",
-                    "success": "Thank you. The conflicts desk will screen these entities and reply by email."
+                    "submitLabel": "Screen Conflict →"
                   },
                   "type": "dockbar"
                 }

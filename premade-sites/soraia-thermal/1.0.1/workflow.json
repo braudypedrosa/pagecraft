@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "soraia-thermal",
+  "version": "1.0.1",
+  "sampleName": "SORAIA — Thermal Basalt Reserve",
+  "packageSha256": "50d63fd31c3408cd1a23350fdc6a73ce46be66c18340a4f16981def6889be286",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

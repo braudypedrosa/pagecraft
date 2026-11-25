@@ -3,7 +3,7 @@
   "id": "alder-and-silt",
   "version": "1.0.0",
   "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
-  "packageSha256": "07713b868015b0d65a46a688fd013c64159eee9745c50d4ce20b526a870e8b53",
+  "packageSha256": "53d58bbfbf540b701c78a3a76a88c91446f7db8dce8ebe035a5d8a680326d0ed",
   "customCssPolicy": "native-only",
   "gates": {
     "packageValidation": "passed",
