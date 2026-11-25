@@ -35,15 +35,15 @@ const managedFormsAvailable = () => L.managedForms();
     have. A legacy managed value gets its own explicit recovery action below; omitting its
     select here avoids both a blank native select and a choice that cannot be saved. */
 function formControlForHost(n: PcNode, c: Control): Control | null {
-  if (n.type !== 'form' || c.k !== 'mode' || C.cloudFormsEnabled() || managedFormsAvailable()) return c;
-  if (n.props.mode === 'wordpress') return null;
+  if (!C.isFormType(n.type) || c.k !== 'mode' || C.cloudFormsEnabled() || managedFormsAvailable()) return c;
+  if ((n.props as any).mode === 'wordpress') return null;
   return { ...c, opts: [['external', 'External HTTPS endpoint']] };
 }
 
 function UnsupportedManagedForm({ n }: { n: PcNode }) {
-  if (n.type !== 'form' || n.props.mode !== 'wordpress' || C.cloudFormsEnabled() || managedFormsAvailable()) return null;
+  if (!C.isFormType(n.type) || (n.props as any).mode !== 'wordpress' || C.cloudFormsEnabled() || managedFormsAvailable()) return null;
   const useExternal = () => {
-    C.edit(() => { n.props.mode = 'external'; }, 'Use external HTTPS form handling');
+    C.edit(() => { (n.props as any).mode = 'external'; }, 'Use external HTTPS form handling');
     repaint('right');
   };
   return (
@@ -64,7 +64,7 @@ function Group({ title, n, items, gk, collapsed = false }: { title: string; n: P
   /* `when` lets a control depend on the node: a background's position appears once
      there is a background, the collection filter's operator once a field is chosen. */
   const shown = items ? items
-    .filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && c.k === 'mode'))
+    .filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && C.isFormType(n.type) && c.k === 'mode'))
     .map(c => formControlForHost(n, c)).filter((c): c is Control => c !== null) : null;
   /* A group whose every control is out of scope for this widget is not an empty group,
      it is no group — a heading has no Background section to collapse. */
@@ -972,8 +972,8 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
   const content = commonControlsFirst(keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all);
   const advanced = advControls(n);
   const many = C.selIds().length > 1;
-  const formHandling = n.type === 'form' && C.cloudFormsEnabled()
-    ? C.resolveFormHandling(n.props, n.id) : null;
+  const formHandling = C.isFormType(n.type) && C.cloudFormsEnabled()
+    ? C.resolveFormHandling(n.props as any, n.id) : null;
   const inspectorTabs = [['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']];
   const chooseTab = (key: string) => { C.state.ui.stab = key; repaint('right'); };
   const tabKey = (e: KeyboardEvent, key: string) => {

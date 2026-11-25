@@ -1082,52 +1082,24 @@ export const QAPILLS_JS = `<script>
 </script>
 `;
 
-export const DOCKBAR_CSS = `.pagecraft-dockbar{position:relative;z-index:3;width:100%}
-.pagecraft-dockbar-form{margin:0;padding:8px;display:flex;align-items:stretch;gap:0;background:var(--db-surface,#FFFFFF);border:1px solid var(--db-line,#C8D0DF);border-radius:var(--db-radius,4px);box-shadow:0 22px 52px rgba(12,18,32,.14)}
-.pagecraft-dockbar-field{margin:0;padding:12px 18px;flex:1 1 0%;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;border-radius:0;cursor:text}
-.pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:1px solid var(--db-line,#C8D0DF)}
-.pagecraft-dockbar-lbl{font-size:11.5px;line-height:1.35;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--db-ink,#0C1220)}
-.pagecraft-dockbar-input,.pagecraft-dockbar-select{appearance:none;width:100%;min-width:0;margin:0;padding:2px 0;border:0;background:transparent;font-family:inherit;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
-.pagecraft-dockbar-input::placeholder{color:var(--db-muted,#4A566E);opacity:1}
-.pagecraft-dockbar-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
-.pagecraft-dockbar-submit{appearance:none;margin:0 0 0 8px;padding:0 26px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:var(--db-on,#FFFFFF);font-family:inherit;font-size:14.5px;font-weight:600;line-height:1.3;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .16s ease}
-.pagecraft-dockbar-submit:hover,.pagecraft-dockbar-submit:focus-visible{background:var(--db-ink,#0C1220)}
-.pagecraft-dockbar-submit:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
-@media (max-width:860px){
-  .pagecraft-dockbar-form{flex-direction:column;padding:10px}
-  .pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:0;border-top:1px solid var(--db-line,#C8D0DF)}
-  .pagecraft-dockbar-submit{margin:8px 0 0;width:100%;min-height:48px}
+export const DOCKBAR_CSS = `.pagecraft-form.pagecraft-dockbar{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:stretch;gap:0;padding:8px;background:var(--db-surface,#FFFFFF);border:1px solid var(--db-line,#C8D0DF);border-radius:var(--db-radius,4px);box-shadow:0 22px 52px rgba(12,18,32,.14)}
+.pagecraft-dockbar>.pagecraft-field,.pagecraft-dockbar>.pagecraft-field.half{flex:1 1 170px;min-width:0;padding:12px 18px;justify-content:center;gap:4px}
+.pagecraft-dockbar>.pagecraft-field+.pagecraft-field{border-inline-start:1px solid var(--db-line,#C8D0DF)}
+.pagecraft-dockbar>.pagecraft-field label{font-size:11.5px;line-height:1.35;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--db-ink,#0C1220)}
+.pagecraft-dockbar>.pagecraft-field :is(input:not([type=checkbox]),select,textarea){min-width:0;padding:2px 0;border:0;border-radius:0;background:transparent;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
+.pagecraft-dockbar>.pagecraft-field textarea{height:1.9em;resize:none}
+.pagecraft-dockbar>.pagecraft-field :is(input,textarea)::placeholder{color:var(--db-muted,#4A566E);opacity:1}
+.pagecraft-dockbar>.pagecraft-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
+.pagecraft-dockbar>.pagecraft-form-button{flex:0 0 auto;align-self:stretch;margin:0 0 0 8px;padding:0 26px;min-height:54px;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:var(--db-on,#FFFFFF);font-size:14.5px;line-height:1.3;transition:background-color .16s ease}
+.pagecraft-dockbar>.pagecraft-form-button:is(:hover,:focus-visible):not(:disabled){background:var(--db-ink,#0C1220);color:var(--db-surface,#FFFFFF)}
+.pagecraft-dockbar>.pagecraft-form-button:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
+.pagecraft-dockbar>.pagecraft-form-status{padding:8px 18px 4px;color:var(--db-muted,#4A566E)}
+@media (max-width:767px){
+  .pagecraft-dockbar>.pagecraft-field,.pagecraft-dockbar>.pagecraft-field.half{flex-basis:100%}
+  .pagecraft-dockbar>.pagecraft-field+.pagecraft-field{border-inline-start:0;border-top:1px solid var(--db-line,#C8D0DF)}
+  .pagecraft-dockbar>.pagecraft-form-button{flex:1 1 100%;margin:8px 0 0;min-height:48px}
 }
-@media (prefers-reduced-motion:reduce){.pagecraft-dockbar-submit{transition:none}}`;
-
-export const DOCKBAR_JS = `<script>
-(function(){
-  var disposers=[];
-  document.querySelectorAll('.pagecraft-dockbar[data-dockbar]').forEach(function(root){
-    if(root.hasAttribute('data-pc-db-ready'))return;
-    root.setAttribute('data-pc-db-ready','1');
-    var form=root.querySelector('.pagecraft-dockbar-form');
-    if(!form)return;
-    function onSubmit(e){
-      var dest=form.getAttribute('data-dest')||'';
-      if(!dest){e.preventDefault();return;}
-      e.preventDefault();
-      window.location.href=dest;
-    }
-    form.addEventListener('submit',onSubmit);
-    disposers.push(function(){
-      form.removeEventListener('submit',onSubmit);
-      root.removeAttribute('data-pc-db-ready');
-    });
-  });
-  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
-    window.__pagecraftRegisterPreviewDispose(function(){
-      disposers.forEach(function(dispose){dispose();});
-    });
-  }
-})();
-</script>
-`;
+@media (prefers-reduced-motion:reduce){.pagecraft-dockbar>.pagecraft-form-button{transition:none}}`;
 
 export const ARCHES_CSS = `.pagecraft-arches{width:100%;padding:14px 0 32px}
 .pagecraft-arches-list{list-style:none;margin:0 auto;padding:0;max-width:1080px;display:flex;align-items:flex-end;justify-content:center}
@@ -1245,7 +1217,17 @@ export const CHAPTERS_JS = `<script>
 </script>
 `;
 
-export const SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:36px;align-items:start}
+export const SLOTPICKER_CSS = `.pagecraft-form.pagecraft-slotpicker{width:100%;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:36px;align-items:start}
+.pagecraft-slotpicker:not([data-ready]) .pagecraft-sp-buttons{display:none}
+.pagecraft-slotpicker[data-ready] .pagecraft-sp-native{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pagecraft-sp-group{position:relative}
+.pagecraft-sp-contact{--f-gap:14px;--f-bg:var(--sp-surface,#FAF7F2);--f-text:var(--sp-ink,#181512);--f-label:var(--sp-muted,#5E5349);--f-border:var(--sp-line,#DCD3C6);--f-radius:var(--sp-radius,10px);--f-btn-bg:var(--sp-accent,#8F3D22);display:flex;flex-wrap:wrap;gap:var(--f-gap);font-size:15px}
+.pagecraft-sp-percent>.pagecraft-field{flex:0 0 100%}
+.pagecraft-sp-percent>.field-width-50{flex-basis:calc((100% - var(--f-gap)) / 2)}
+.pagecraft-sp-percent>.field-width-33{flex-basis:calc((100% - var(--f-gap) * 2) / 3)}
+.pagecraft-sp-percent>.field-width-25{flex-basis:calc((100% - var(--f-gap) * 3) / 4)}
+.pagecraft-sp-percent>.field-width-20{flex-basis:calc((100% - var(--f-gap) * 4) / 5)}
+.pagecraft-sp-pass:disabled,.pagecraft-sp-pill:disabled{cursor:not-allowed}
 .pagecraft-sp-steps{display:flex;flex-direction:column;gap:26px}
 .pagecraft-sp-group{display:flex;flex-direction:column;gap:12px}
 .pagecraft-sp-step-h{margin:0;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
@@ -1266,63 +1248,63 @@ export const SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;gri
 .pagecraft-sp-row strong{color:var(--sp-ink,#181512);font-weight:600;text-align:right}
 .pagecraft-sp-total-row{padding-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
 .pagecraft-sp-total{font-size:28px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sp-accent,#8F3D22)}
-.pagecraft-sp-confirm{padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF);border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
-.pagecraft-sp-confirm:hover,.pagecraft-sp-confirm:focus-visible{opacity:.9}
+.pagecraft-slotpicker .pagecraft-form-button{align-self:stretch;padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF);border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
+.pagecraft-slotpicker .pagecraft-form-button:is(:hover,:focus-visible):not(:disabled){opacity:.9}
 .pagecraft-sp-note{margin:0;font-size:13px;line-height:1.5;color:var(--sp-muted,#5E5349)}
-@media (max-width:860px){.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
-@media (prefers-reduced-motion:reduce){.pagecraft-sp-pass,.pagecraft-sp-pill,.pagecraft-sp-confirm{transition:none}}`;
+@media (max-width:860px){.pagecraft-form.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
+@media (max-width:767px){.pagecraft-sp-percent>.pagecraft-field{flex-basis:100%}}
+@media (prefers-reduced-motion:reduce){.pagecraft-sp-pass,.pagecraft-sp-pill,.pagecraft-slotpicker .pagecraft-form-button{align-self:stretch;transition:none}}`;
 
 export const SLOTPICKER_JS = `<script>
 (function(){
   var disposers=[];
   document.querySelectorAll('.pagecraft-slotpicker[data-slotpicker]').forEach(function(root){
-    if(root.hasAttribute('data-pc-sp-ready'))return;
-    root.setAttribute('data-pc-sp-ready','1');
-    var sym=root.getAttribute('data-sym')||'€';
-    var passes=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pass[data-sp-pass]'));
-    var guests=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-guests]'));
-    var slots=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-slot]'));
-    var outPass=root.querySelector('[data-sp-pass-out]');
-    var outGuest=root.querySelector('[data-sp-guest-out]');
-    var outSlot=root.querySelector('[data-sp-slot-out]');
-    var outTotal=root.querySelector('[data-sp-total]');
-    var pIdx=0,gCnt=1,sIdx=0;
+    if(root.hasAttribute('data-ready'))return;
+    var groups=Array.prototype.slice.call(root.querySelectorAll('[data-sp-choice]')).map(function(el){
+      return {key:el.getAttribute('data-sp-choice'),select:el.querySelector('select'),buttons:Array.prototype.slice.call(el.querySelectorAll('[data-sp-value]'))};
+    }).filter(function(g){return g.select;});
+    root.setAttribute('data-ready','');
+    var totalEl=root.querySelector('[data-sp-total]');
     function sync(){
-      passes.forEach(function(b,i){b.setAttribute('aria-pressed',i===pIdx?'true':'false');});
-      guests.forEach(function(b){b.setAttribute('aria-pressed',parseInt(b.getAttribute('data-sp-guests')||'1',10)===gCnt?'true':'false');});
-      slots.forEach(function(b,i){b.setAttribute('aria-pressed',i===sIdx?'true':'false');});
-      var pEl=passes[pIdx];
-      if(pEl){
-        var nm=pEl.getAttribute('data-name')||'';
-        var unit=parseFloat(pEl.getAttribute('data-price')||'0');
-        var fixed=pEl.getAttribute('data-fixed')==='1';
-        var total=fixed?unit:unit*gCnt;
-        if(outPass)outPass.textContent=nm;
-        if(outTotal)outTotal.textContent=sym+(total%1?total.toFixed(2):total);
+      var price=NaN,fixed=false,guests=1;
+      groups.forEach(function(g){
+        g.buttons.forEach(function(b){
+          var on=b.getAttribute('data-sp-value')===g.select.value;
+          b.setAttribute('aria-pressed',on?'true':'false');
+          b.disabled=g.select.disabled;
+          if(on&&g.key==='service'){price=parseFloat(b.getAttribute('data-price'));fixed=b.getAttribute('data-fixed')==='1';}
+        });
+        if(g.key==='guests')guests=parseInt(g.select.value,10)||1;
+        var out=root.querySelector('[data-sp-out="'+g.key+'"]');
+        if(out)out.textContent=g.select.value;
+      });
+      if(totalEl){
+        var total=fixed?price:price*guests;
+        totalEl.textContent=isFinite(total)?totalEl.getAttribute('data-sym')+(total%1?total.toFixed(2):total):'—';
       }
-      if(outGuest)outGuest.textContent=gCnt+(gCnt===1?' Guest':' Guests');
-      if(slots[sIdx]&&outSlot)outSlot.textContent=slots[sIdx].getAttribute('data-sp-slot')||'';
     }
     var offs=[];
-    passes.forEach(function(b,i){
-      function fn(){pIdx=i;sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
+    groups.forEach(function(g){
+      g.select.setAttribute('tabindex','-1');
+      g.select.addEventListener('change',sync);
+      offs.push(function(){g.select.removeEventListener('change',sync);g.select.removeAttribute('tabindex');});
+      g.buttons.forEach(function(b){
+        function pick(){
+          g.select.value=b.getAttribute('data-sp-value');
+          g.select.dispatchEvent(new Event('input',{bubbles:true}));
+          g.select.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+        b.addEventListener('click',pick);
+        offs.push(function(){b.removeEventListener('click',pick);});
+      });
     });
-    guests.forEach(function(b){
-      function fn(){gCnt=parseInt(b.getAttribute('data-sp-guests')||'1',10);sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
-    });
-    slots.forEach(function(b,i){
-      function fn(){sIdx=i;sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
-    });
+    function onShow(){sync();}
+    window.addEventListener('pageshow',onShow);
+    offs.push(function(){window.removeEventListener('pageshow',onShow);});
     sync();
     disposers.push(function(){
       offs.forEach(function(off){off();});
-      root.removeAttribute('data-pc-sp-ready');
+      root.removeAttribute('data-ready');
     });
   });
   if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){

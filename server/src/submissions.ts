@@ -3,10 +3,14 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile, rm, link, unlink, stat, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Doc, FormField, Node } from '../../app/src/core/types.ts';
-import { slugify } from '../../app/src/core/index.ts';
+import { slugify, isFormType, formFieldsOf, bookingTotal } from '../../app/src/core/index.ts';
 
 export type SubmissionStatus = 'new' | 'read' | 'archived' | 'success' | 'failed';
-export interface SiteForm { id: string; name: string; pages: string[]; fields: FormField[] }
+export interface SiteForm { id: string; name: string; pages: string[]; fields: FormField[];
+  /** Shown after a successful submission instead of the general thank-you. */
+  success?: string;
+  /** A Booking request's own settings: its total is worked out here, never taken from the visitor. */
+  booking?: Record<string, any> }
 export interface Submission {
   id: string; formId: string; formName: string; createdAt: string; status: SubmissionStatus;
   error?: string;
@@ -28,11 +32,13 @@ export function siteForms(doc: Doc): SiteForm[] {
       if (node.use) {
         const def = doc.meta.components?.find(c => c.id === node.use);
         if (def && !stack.has(def.id)) visit([{ ...def.node, id: node.id }], page, new Set([...stack, def.id]));
-      } else if (node.type === 'form') {
+      } else if (isFormType(node.type)) {
         const id = node.id.replace(/[^A-Za-z0-9_-]/g, '');
         const prior = forms.get(id);
         if (prior) { if (!prior.pages.includes(page)) prior.pages.push(page); }
-        else forms.set(id, { id, name: String(node.props.aria || 'Form'), pages: [page], fields: Array.isArray(node.props.fields) ? node.props.fields : [] });
+        else forms.set(id, { id, name: String((node.props as any).aria || 'Form'), pages: [page], fields: formFieldsOf(node.type, node.props as any),
+          ...(String((node.props as any).success || '').trim() ? { success: String((node.props as any).success).trim().slice(0, 500) } : {}),
+          ...(node.type === 'slotpicker' ? { booking: node.props as Record<string, any> } : {}) });
       }
       visit(node.children, page, stack);
     }
@@ -47,7 +53,7 @@ export function siteForms(doc: Doc): SiteForm[] {
   return [...forms.values()];
 }
 export function submissionValues(form: SiteForm, body: URLSearchParams) {
-  return form.fields.map((field, i) => {
+  const values = form.fields.map((field, i) => {
     const name = field.name || slugify(field.label) || 'field-' + (i + 1);
     const all = body.getAll(name);
     if (all.length > 1) throw new Error('Check ' + (field.label || name) + '.');
@@ -61,6 +67,11 @@ export function submissionValues(form: SiteForm, body: URLSearchParams) {
     if (value && field.type === 'checkbox' && value !== 'on') throw new Error('Check the selected option.');
     return { label: field.label || name, value };
   });
+  if (form.booking) {
+    const total = bookingTotal(form.booking, (body.get('booking-service') || '').trim(), (body.get('booking-guests') || '1').trim());
+    if (total) values.push({ label: String(form.booking.totalLabel || 'Estimated total'), value: total });
+  }
+  return values;
 }
 /* Successful entries count toward the inbox limit. Failed attempts are anonymous and free to send,
    so they live in their own `failed/` folder, capped separately, and never take a real entry's place. */

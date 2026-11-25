@@ -71,7 +71,6 @@ const runtimeSource = [
   Core.ROSTER_JS,
   Core.TIERS_JS,
   Core.QAPILLS_JS,
-  Core.DOCKBAR_JS,
   Core.CHAPTERS_JS,
   Core.SLOTPICKER_JS,
   `<script>\n${ANIM_JS}\n</script>`

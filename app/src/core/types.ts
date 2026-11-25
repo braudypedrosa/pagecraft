@@ -288,12 +288,18 @@ export interface TiersProps { defaultCurrency?: string; usdLabel?: string; eurLa
 export interface QapillsItem { q?: string; a?: string; note?: string; href?: string; linkLabel?: string }
 export interface QapillsProps { pillAlign?: string; items?: QapillsItem[] }
 export interface DockbarItem { fieldLabel?: string; fieldType?: string; ph?: string; choices?: string }
-export interface DockbarProps { submitLabel?: string; destHref?: string; ariaLabel?: string; items?: DockbarItem[] }
+interface FormBlockProps { mode?: string; action?: string; method?: string; submit?: string; aria?: string; success?: string; fields?: FormField[] }
+export interface DockbarProps extends FormBlockProps { items?: DockbarItem[] }
 export interface ArchesProps { archSpread?: string; items?: GalleryTile[] }
 export interface ChaptersItem { chapterTitle?: string; chapterSub?: string; overlayText?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface ChaptersProps { frameRatio?: string; autoSeconds?: string; chapters?: ChaptersItem[] }
 export interface SlotpickerItem { passName?: string; passMeta?: string; unitPrice?: string; fixedTotal?: number }
-export interface SlotpickerProps { passHeading?: string; guestHeading?: string; slotHeading?: string; currencySymbol?: string; timeSlots?: string; confirmLabel?: string; confirmHref?: string; summaryTitle?: string; phoneNote?: string; passes?: SlotpickerItem[] }
+export interface SlotpickerProps extends FormBlockProps {
+  note?: string; currencySymbol?: string; showPrices?: number; showTotal?: number; showGuests?: number; maxGuests?: string; showTimes?: number;
+  passHeading?: string; guestHeading?: string; slotHeading?: string; contactHeading?: string; summaryTitle?: string;
+  serviceLabel?: string; guestLabel?: string; timeLabel?: string; totalLabel?: string; perGuestLabel?: string; fixedLabel?: string;
+  passes?: SlotpickerItem[]; slots?: { time?: string }[];
+}
 export interface SpacerProps { }
 export interface DividerProps { }
 

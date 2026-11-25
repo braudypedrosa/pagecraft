@@ -44,7 +44,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
   {
     g: 'Content', items: [
       ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
-      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches'], ['video', 'Video'], ['audio', 'Audio'],
+      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['video', 'Video'], ['audio', 'Audio'],
       ['timeline', 'Timeline'], ['progress', 'Progress bars'], ['icon', 'Icon']
     ]
   },
@@ -53,11 +53,36 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['clocks', 'Office clocks'], ['roster', 'Team spotlight'], ['tiers', 'Currency tiers'], ['qapills', 'Question pills'], ['dockbar', 'Docked intake bar'], ['chapters', 'Chapter frame'], ['slotpicker', 'Slot picker'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+    ]
+  },
+  {
+    /* Built for one job each, so they stay out of the way of the everyday elements above. */
+    g: 'Special blocks', items: [
+      ['slotpicker', 'Booking request'], ['dockbar', 'Docked bar'], ['tiers', 'Pricing table'], ['qapills', 'Question pills'],
+      ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
+      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
 ];
+
+/** What each special block is for, so its name does not have to say it. */
+export const PURPOSE: Record<string, string> = {
+  slotpicker: 'Visitors choose a service, guests and time, then send a request you confirm.',
+  dockbar: 'A short form in one row, for a hero or page top.',
+  tiers: 'Plans side by side, with an optional currency switch.',
+  qapills: 'A short FAQ with one answer showing at a time.',
+  roster: 'Introduce a few people, one large profile at a time.',
+  clocks: 'Office addresses with the local time and open hours.',
+  hotspot: 'Pins on an image that open short notes.',
+  strips: 'Photos that widen when selected.',
+  switcher: 'Steps that change a large image and caption.',
+  scrolly: 'An image that stays in view and changes as visitors read.',
+  chapters: 'A large image sequence that plays by itself, with titles.',
+  exhibit: 'A project list that previews an image on hover.',
+  arches: 'Up to five photos in a decorative fan of arches.'
+};
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
    palette with the same words the Add panel's search understands. */
@@ -110,10 +135,10 @@ const ALIASES: Record<string, string> = {
   roster: 'team leadership partners spotlight directory members bios',
   tiers: 'pricing plans retainers currency switcher usd eur gbp rates',
   qapills: 'faq questions pills answers selector help desk',
-  dockbar: 'search bar intake booking filter horizontal hero dock',
+  dockbar: 'form enquiry intake lead contact bar horizontal hero dock',
   arches: 'fanned arc collage arch showcase triptych wellness hero',
   chapters: 'cinematic frame chapters story progress showcase',
-  slotpicker: 'booking appointment session time slot summary configurator',
+  slotpicker: 'booking appointment reservation session time slot form request',
   list: 'collection cms dynamic',
 };
 
@@ -159,7 +184,7 @@ function WidgetTiles({ group }: { group: PaletteGroup }) {
   return (
     <div class="pgrid">
       {group.items.map(([k, label]) => (
-        <button type="button" class="pitem" key={k} title={L.insertionHint(k)}
+        <button type="button" class="pitem" key={k} title={[PURPOSE[k], L.insertionHint(k)].filter(Boolean).join('\n')}
           onFocus={() => L.previewInsertion(k)}
           onMouseEnter={() => L.previewInsertion(k)}
           onBlur={() => L.previewInsertion(null)}

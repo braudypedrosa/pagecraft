@@ -11186,9 +11186,41 @@
               "hide": {},
               "id": "sra-session-picker",
               "props": {
-                "confirmHref": "#soak-desk",
-                "confirmLabel": "Proceed to Guest Check-In →",
+                "action": "",
+                "aria": "Thermal circuit request",
+                "contactHeading": "Your details",
                 "currencySymbol": "€",
+                "fields": [
+                  {
+                    "label": "Date",
+                    "name": "date",
+                    "ph": "",
+                    "required": 1,
+                    "type": "date"
+                  },
+                  {
+                    "label": "Name",
+                    "name": "guest_name",
+                    "ph": "Sofia Almeida",
+                    "required": 1,
+                    "type": "text"
+                  },
+                  {
+                    "label": "Email",
+                    "name": "email",
+                    "ph": "sofia@example.com",
+                    "required": 1,
+                    "type": "email"
+                  }
+                ],
+                "fixedLabel": "flat",
+                "guestHeading": "Guests in party",
+                "guestLabel": "Party",
+                "maxGuests": "2",
+                "method": "post",
+                "mode": "external",
+                "note": "No prepayment charged until reception confirms your time slot.",
+                "passHeading": "Choose immersion pass",
                 "passes": [
                   {
                     "fixedTotal": 0,
@@ -11209,9 +11241,32 @@
                     "unitPrice": "240"
                   }
                 ],
-                "phoneNote": "No prepayment charged until reception confirms your time slot.",
+                "perGuestLabel": "/ guest",
+                "serviceLabel": "Pass",
+                "showGuests": 1,
+                "showPrices": 1,
+                "showTimes": 1,
+                "showTotal": 1,
+                "slotHeading": "Preferred arrival window",
+                "slots": [
+                  {
+                    "time": "06:30 Dawn Vapor"
+                  },
+                  {
+                    "time": "10:30 Midday Light"
+                  },
+                  {
+                    "time": "15:00 Quiet Afternoon"
+                  },
+                  {
+                    "time": "19:30 Nocturne Beeswax"
+                  }
+                ],
+                "submit": "Request this window",
+                "success": "Thank you. Reception will confirm your window by email.",
                 "summaryTitle": "Selected sanctuary hold",
-                "timeSlots": "06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Beeswax"
+                "timeLabel": "Arrival",
+                "totalLabel": "Estimated total"
               },
               "type": "slotpicker"
             }
