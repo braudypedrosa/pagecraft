@@ -183,7 +183,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 49 module renderers emit their representative authored value', () => {
+test('all 51 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -240,6 +240,8 @@ test('all 49 module renderers emit their representative authored value', () => {
     swatchshop: { expected: /data-swatchshop.*QA Jacket/, configure: n => { n.props.products = [{ prodName: 'QA Jacket', prodPrice: '$290', c1Name: 'Pine', c1Hex: '#145C3E', c1Src: 'https://example.com/j1.jpg' }]; } },
     snaprail: { expected: /data-snaprail.*QA Rail Card/, configure: n => { n.props.railCards = [{ title: 'QA Rail Card', detail: 'Detail', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }]; } },
     scrollsteps: { expected: /data-scrollsteps.*QA Seam Step/, configure: n => { n.props.steps = [{ title: 'QA Seam Step', badge: '48h', detail: 'Detail', src: 'https://example.com/st.jpg' }]; } },
+    dragstrip: { expected: /data-dragstrip.*QA Filmstrip Suite/, configure: n => { n.props.slides = [{ title: 'QA Filmstrip Suite', meta: 'Cliffside', src: 'https://example.com/ds.jpg' }]; } },
+    stayfilter: { expected: /data-stayfilter.*QA Cliff Villa/, configure: n => { n.props.stays = [{ stayName: 'QA Cliff Villa', sleeps: '4', lowRate: '420', midRate: '560', highRate: '720', src: 'https://example.com/v1.jpg' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -304,7 +306,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(185);
+  expect(declarations).toHaveLength(199);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -352,7 +354,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(302);
+  expect(declarations).toHaveLength(316);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

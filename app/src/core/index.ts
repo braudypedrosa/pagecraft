@@ -38,7 +38,8 @@ import {
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
-  TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS
+  TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
+  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2421,6 +2422,130 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--ss-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  dragstrip: {
+    label: 'Draggable filmstrip', icon: 'dragstrip', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        cardRatio: '3 / 2',
+        ariaLabel: 'Scroll gallery',
+        slides: [
+          { title: 'First space', meta: 'Ground floor', src: '', alt: '', href: '' },
+          { title: 'Second space', meta: 'Courtyard wing', src: '', alt: '', href: '' },
+          { title: 'Third space', meta: 'Upper terrace', src: '', alt: '', href: '' },
+          { title: 'Fourth space', meta: 'Garden pavilion', src: '', alt: '', href: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ds-accent': cvar('brand'), '--ds-ink': cvar('ink'),
+          '--ds-muted': cvar('muted'), '--ds-line': cvar('line'),
+          '--ds-card-w': '440px', '--ds-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'cardRatio', label: 'Image ratio', opts: [['3 / 2', '3:2 landscape'], ['16 / 10', '16:10 wide'], ['4 / 3', '4:3 classic'], ['4 / 5', '4:5 portrait']] },
+        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Scroll gallery' },
+        {
+          t: 'qa', k: 'slides', label: 'Filmstrip frames', addLabel: 'Add frame',
+          rowFields: [
+            { k: 'title', label: 'Title', ph: 'Space or suite', def: 'New frame' },
+            { k: 'meta', label: 'Detail', ph: 'Optional note', def: '' },
+            { k: 'src', label: 'Image', ph: 'asset:frame', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'href', label: 'Optional link', ph: 'villas.html', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ds-accent', label: 'Scrollbar thumb', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-line', label: 'Scrollbar track', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ds-card-w', label: 'Frame max width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--ds-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  stayfilter: {
+    label: 'Stay finder', icon: 'stayfilter', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        currencySymbol: '$',
+        defaultGuests: '2',
+        maxGuests: '8',
+        defaultSeason: 'mid',
+        lowLabel: 'Low season',
+        midLabel: 'Mid season',
+        highLabel: 'High season',
+        guestsLabel: 'Guests',
+        singularLabel: 'stay',
+        unitLabel: 'stays',
+        perNightLabel: 'per night',
+        emptyText: 'No single stay sleeps that many guests. Try fewer guests or ask about combining two.',
+        stays: [
+          { stayName: 'First house', location: 'Coastal wing', summary: 'Add a short description of the space and outlook.', sleeps: '4', tags: 'Sleeps 4, 2 bedrooms, Terrace', lowRate: '320', midRate: '420', highRate: '540', ctaLabel: 'Check dates', href: '', src: '', alt: '' },
+          { stayName: 'Second house', location: 'Harbour side', summary: 'Visitors step guest count or switch season to compare rates.', sleeps: '6', tags: 'Sleeps 6, 3 bedrooms, Private garden', lowRate: '460', midRate: '580', highRate: '740', ctaLabel: 'Check dates', href: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sf-accent': cvar('brand'), '--sf-on': brandActionForeground(),
+          '--sf-surface': cvar('surface'), '--sf-bg': cvar('bg'),
+          '--sf-ink': cvar('ink'), '--sf-muted': cvar('muted'), '--sf-line': cvar('line'),
+          '--sf-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'stays', label: 'Stays', addLabel: 'Add stay',
+          rowFields: [
+            { k: 'stayName', label: 'Name', ph: 'House or suite', def: 'New stay' },
+            { k: 'location', label: 'Setting / wing', ph: 'Cliffside terrace', def: '' },
+            { k: 'sleeps', label: 'Max guests', ph: '4', def: '4' },
+            { k: 'lowRate', label: 'Low season rate', ph: '320', def: '320' },
+            { k: 'midRate', label: 'Mid season rate', ph: '420', def: '420' },
+            { k: 'highRate', label: 'High season rate', ph: '540', def: '540' },
+            { k: 'tags', label: 'Highlights (comma-separated)', ph: 'Sleeps 4, 2 bedrooms, Pool', def: '' },
+            { k: 'src', label: 'Photo', ph: 'asset:stay', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe stay', def: '' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Check dates', def: 'Check dates' },
+            { k: 'href', label: 'Button link', ph: 'contact.html', def: '' },
+            { k: 'summary', label: 'Description', ph: 'One-sentence overview', def: '', area: 1 }
+          ]
+        },
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '$' },
+        { t: 'unit', k: 'defaultGuests', label: 'Starting guests', integer: 1, min: 1, max: 24, units: [''] },
+        { t: 'unit', k: 'maxGuests', label: 'Maximum guests', integer: 1, min: 1, max: 24, units: [''] },
+        { t: 'select', k: 'defaultSeason', label: 'Default season', opts: [['low', 'Low season'], ['mid', 'Mid season'], ['high', 'High season']] },
+        { t: 'text', k: 'lowLabel', label: 'Low season label', ph: 'Nov to Mar' },
+        { t: 'text', k: 'midLabel', label: 'Mid season label', ph: 'Apr, May & Oct' },
+        { t: 'text', k: 'highLabel', label: 'High season label', ph: 'Jun to Sep' },
+        { t: 'text', k: 'guestsLabel', label: 'Guests label', ph: 'Guests' },
+        { t: 'text', k: 'singularLabel', label: 'Singular noun', ph: 'villa' },
+        { t: 'text', k: 'unitLabel', label: 'Plural noun', ph: 'villas' },
+        { t: 'text', k: 'perNightLabel', label: 'Rate period label', ph: 'per night' },
+        { t: 'area', k: 'emptyText', label: 'Empty state message', ph: 'No stay sleeps that many guests.' }
+      ],
+      style: [
+        { t: 'color', c: '--sf-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-bg', label: 'Pill track fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sf-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -3022,6 +3147,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'swatchshop') return `Product swatches · ${((n.props.products as any[]) || []).length} item${((n.props.products as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'snaprail') return `Snap rail · ${((n.props.railCards as any[]) || []).length} card${((n.props.railCards as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'scrollsteps') return `Scroll steps · ${((n.props.steps as any[]) || []).length} step${((n.props.steps as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'dragstrip') return `Filmstrip · ${((n.props.slides as any[]) || []).length} frame${((n.props.slides as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'stayfilter') return `Stay finder · ${((n.props.stays as any[]) || []).length} stay${((n.props.stays as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -6247,6 +6374,8 @@ const TEXT_SLOTS = {
   swatchshop: [['products', 'prodName', 'prodPrice', 'prodSpec', 'ctaLabel', 'c1Name', 'c2Name', 'c3Name', 'alt']],
   snaprail: ['prevLabel', 'nextLabel', ['railCards', 'cardTag', 'title', 'detail', 'stat']],
   scrollsteps: [['steps', 'title', 'badge', 'detail', 'alt']],
+  dragstrip: ['ariaLabel', ['slides', 'title', 'meta', 'alt']],
+  stayfilter: ['currencySymbol', 'lowLabel', 'midLabel', 'highLabel', 'guestsLabel', 'singularLabel', 'unitLabel', 'perNightLabel', 'emptyText', ['stays', 'stayName', 'location', 'summary', 'tags', 'lowRate', 'midRate', 'highRate', 'ctaLabel', 'alt']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -6277,7 +6406,10 @@ const SLOT_LABEL = {
   wordmark: 'Wordmark', maskAlt: 'Accessible label', triggerLabel: 'Trigger label', closeLabel: 'Close label',
   menuNote: 'Drawer note', prodName: 'Product name', prodPrice: 'Price', prodSpec: 'Specification',
   ctaLabel: 'Link label', c1Name: 'Swatch 1', c2Name: 'Swatch 2', c3Name: 'Swatch 3',
-  prevLabel: 'Previous button', nextLabel: 'Next button', cardTag: 'Card tag', stat: 'Metric'
+  prevLabel: 'Previous button', nextLabel: 'Next button', cardTag: 'Card tag', stat: 'Metric',
+  stayName: 'Stay name', lowLabel: 'Low season', midLabel: 'Mid season', highLabel: 'High season',
+  guestsLabel: 'Guests label', singularLabel: 'Singular noun', unitLabel: 'Plural noun',
+  perNightLabel: 'Rate period', emptyText: 'Empty message', lowRate: 'Low rate', midRate: 'Mid rate', highRate: 'High rate'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -6308,7 +6440,9 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   typemask: ['maskSrc'],
   fullmenu: [['menuItems', 'src']],
   swatchshop: [['products', 'c1Src', 'c2Src', 'c3Src']],
-  scrollsteps: [['steps', 'src']]
+  scrollsteps: [['steps', 'src']],
+  dragstrip: [['slides', 'src']],
+  stayfilter: [['stays', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -7162,6 +7296,12 @@ function relink(from: string, to: string) {
     }
     if (node.type === 'swatchshop' && Array.isArray(p.products)) {
       (p.products as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'dragstrip' && Array.isArray(p.slides)) {
+      (p.slides as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'stayfilter' && Array.isArray(p.stays)) {
+      (p.stays as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
       p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
@@ -10734,7 +10874,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10763,14 +10903,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'swatchshop') swatchshop = true;
     else if (node.type === 'snaprail') snaprail = true;
     else if (node.type === 'scrollsteps') scrollsteps = true;
+    else if (node.type === 'dragstrip') dragstrip = true;
+    else if (node.type === 'stayfilter') stayfilter = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10798,6 +10940,8 @@ function extraWidgetCss(used: {
     + (used.swatchshop ? `\n${SWATCHSHOP_CSS}` : '')
     + (used.snaprail ? `\n${SNAPRAIL_CSS}` : '')
     + (used.scrollsteps ? `\n${SCROLLSTEPS_CSS}` : '')
+    + (used.dragstrip ? `\n${DRAGSTRIP_CSS}` : '')
+    + (used.stayfilter ? `\n${STAYFILTER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10853,6 +10997,8 @@ function wordpressStylesFor(pg: Page) {
         swatchshop: pageExtra.swatchshop && !globalExtra.swatchshop,
         snaprail: pageExtra.snaprail && !globalExtra.snaprail,
         scrollsteps: pageExtra.scrollsteps && !globalExtra.scrollsteps,
+        dragstrip: pageExtra.dragstrip && !globalExtra.dragstrip,
+        stayfilter: pageExtra.stayfilter && !globalExtra.stayfilter,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -11751,6 +11897,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       family.push(root + '-caption');
     } else if (n.type === 'typemask') {
       family.push(root + '-clip');
+    } else if (n.type === 'dragstrip') {
+      family.push(root + '-strip');
     } else if (ITEM_ID_PARTS[n.type]) {
       const rows = n.type === 'chapters' ? (p as any).chapters : p.items;
       if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type]!.forEach(part => family.push(`${root}-${part}-${i}`)));
@@ -12981,6 +13129,101 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-scrollsteps-spine" aria-hidden="true"><div class="pagecraft-scrollsteps-fill"></div></div>`
         + `<ol class="pagecraft-scrollsteps-list">${rows}</ol></div>`;
     }
+    case 'dragstrip': {
+      const ratio = cssRatio(p.cardRatio);
+      const ratioStyle = ratio ? ` style="--ds-ratio:${esc(ratio)}"` : '';
+      const aria = String(p.ariaLabel || 'Scroll gallery');
+      const items = (Array.isArray(p.slides) ? p.slides as any[] : []).filter(Boolean);
+      const stripId = `${domId()}-strip`;
+      const slidesHtml = items.map((it, i) => {
+        const title = String(it.title || `Frame ${i + 1}`);
+        const meta = String(it.meta || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const inner = `<img class="pagecraft-dragstrip-img" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false">`
+          + `<p class="pagecraft-dragstrip-cap"><strong class="pagecraft-dragstrip-title">${esc(title)}</strong>`
+          + (meta ? `<span class="pagecraft-dragstrip-meta">${esc(meta)}</span>` : '')
+          + `</p>`;
+        return `<li class="pagecraft-dragstrip-item">`
+          + (link ? `<a class="pagecraft-dragstrip-link" href="${esc(link)}" draggable="false">${inner}</a>` : inner)
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-dragstrip')} data-dragstrip${ratioStyle}>`
+        + `<ul class="pagecraft-dragstrip-rail" id="${stripId}" role="list" tabindex="0" aria-label="${esc(aria)}" data-ds-strip>${slidesHtml}</ul>`
+        + `<div class="pagecraft-dragstrip-track" role="scrollbar" aria-controls="${stripId}" aria-orientation="horizontal" aria-label="${esc(aria)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" data-ds-track><span class="pagecraft-dragstrip-bar" data-ds-bar></span></div>`
+        + `</div>`;
+    }
+    case 'stayfilter': {
+      const sym = String(p.currencySymbol ?? '$');
+      const maxG = Math.max(1, Math.min(24, Math.round(Number(p.maxGuests) || 8)));
+      const initG = Math.max(1, Math.min(maxG, Math.round(Number(p.defaultGuests) || 2)));
+      const defSeason = ['low', 'mid', 'high'].includes(String(p.defaultSeason)) ? String(p.defaultSeason) : 'mid';
+      const gLbl = String(p.guestsLabel || 'Guests');
+      const sing = String(p.singularLabel || 'stay');
+      const plur = String(p.unitLabel || 'stays');
+      const perNight = String(p.perNightLabel || 'per night');
+      const emptyTxt = String(p.emptyText || 'No single stay sleeps that many guests.');
+      const seasons = [
+        ['low', String(p.lowLabel || 'Low season')],
+        ['mid', String(p.midLabel || 'Mid season')],
+        ['high', String(p.highLabel || 'High season')],
+      ] as const;
+      const items = (Array.isArray(p.stays) ? p.stays as any[] : []).filter(Boolean);
+      let initShown = 0;
+      const rowsHtml = items.map((it, i) => {
+        const nm = String(it.stayName || `Stay ${i + 1}`);
+        const loc = String(it.location || '');
+        const sum = String(it.summary || '');
+        const sleeps = Math.max(1, Math.round(Number(it.sleeps) || 4));
+        const fit = sleeps >= initG;
+        if (fit) initShown++;
+        const lowR = String(it.lowRate || '300').replace(/^[^0-9]+/, '');
+        const midR = String(it.midRate || lowR).replace(/^[^0-9]+/, '');
+        const highR = String(it.highRate || midR).replace(/^[^0-9]+/, '');
+        const initRate = defSeason === 'low' ? lowR : defSeason === 'high' ? highR : midR;
+        const tags = String(it.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+        const tagsHtml = tags.length ? `<ul class="pagecraft-stay-tags" role="list">${tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || nm));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const cta = String(it.ctaLabel || 'Check dates');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<li class="pagecraft-stay-row" data-sleeps="${sleeps}" data-low="${esc(lowR)}" data-mid="${esc(midR)}" data-high="${esc(highR)}"${fit ? '' : ' hidden'}>`
+          + `<img class="pagecraft-stay-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<div class="pagecraft-stay-body">`
+          + (loc ? `<p class="pagecraft-stay-where">${esc(loc)}</p>` : '')
+          + `<h3 class="pagecraft-stay-name">${esc(nm)}</h3>`
+          + (sum ? `<p class="pagecraft-stay-line">${esc(sum)}</p>` : '')
+          + tagsHtml
+          + `</div>`
+          + `<div class="pagecraft-stay-buy">`
+          + `<p class="pagecraft-stay-price"><strong data-sf-price>${esc(sym + initRate)}</strong><span>${esc(perNight)}</span></p>`
+          + (link ? `<a class="pagecraft-stay-cta" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-stay-cta">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      const seasonBtns = seasons.map(([code, lbl]) =>
+        `<button type="button" class="pagecraft-stay-sbtn" role="radio" aria-checked="${code === defSeason ? 'true' : 'false'}" data-sf-season="${code}">${esc(lbl)}</button>`
+      ).join('');
+      const countLbl = `${initShown} ${initShown === 1 ? sing : plur}`;
+      return `<div ${at()} ${cx('pagecraft-stayfilter')} data-stayfilter data-init-guests="${initG}" data-max-guests="${maxG}" data-sym="${esc(sym)}" data-singular="${esc(sing)}" data-plural="${esc(plur)}">`
+        + `<div class="pagecraft-stay-bar">`
+        + `<div class="pagecraft-stay-guests" role="group" aria-label="${esc(gLbl)}">`
+        + `<span class="pagecraft-stay-glbl">${esc(gLbl)}</span>`
+        + `<button type="button" class="pagecraft-stay-step" data-sf-step="-1" aria-label="Fewer guests"${initG <= 1 ? ' disabled' : ''}>−</button>`
+        + `<output class="pagecraft-stay-count" data-sf-guests aria-live="polite">${initG}</output>`
+        + `<button type="button" class="pagecraft-stay-step" data-sf-step="1" aria-label="More guests"${initG >= maxG ? ' disabled' : ''}>+</button>`
+        + `</div>`
+        + `<div class="pagecraft-stay-seasons" role="radiogroup" aria-label="Season">${seasonBtns}</div>`
+        + `<p class="pagecraft-stay-result" data-sf-result aria-live="polite">${esc(countLbl)}</p>`
+        + `</div>`
+        + `<ul class="pagecraft-stay-list" role="list">${rowsHtml}</ul>`
+        + `<p class="pagecraft-stay-empty" data-sf-empty${initShown > 0 ? ' hidden' : ''}>${esc(emptyTxt)}</p>`
+        + `</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -13602,7 +13845,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14112,7 +14355,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

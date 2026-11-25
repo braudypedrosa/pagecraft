@@ -28,7 +28,7 @@ test('repainting Preview after a mobile menu opens restores canvas scrolling', (
   Object.assign(w, {
     cwin: w, cdoc: d, canvasNonce: 'test', NAV_JS,
     SLIDE_JS: '', CODE_JS: '', TABS_JS: '', ACCORDION_JS: '', FACADE_JS: '', VIDEO_LIGHTBOX_JS: '', LB_JS: '',
-    PUBLIC_SELECT_JS: '', PUBLIC_DATE_JS: '', AUDIO_JS: '', COUNTDOWN_JS: '', FILTER_JS: '', COMPARE_JS: '', HOTSPOT_JS: '', STRIPS_JS: '', SWITCHER_JS: '', EXHIBIT_JS: '', SCROLLY_JS: '', CLOCKS_JS: '', ROSTER_JS: '', TIERS_JS: '', QAPILLS_JS: '', CHAPTERS_JS: '', SLOTPICKER_JS: '', FULLMENU_JS: '', SWATCHSHOP_JS: '', SNAPRAIL_JS: '', SCROLLSTEPS_JS: '', ANIM_JS: '', ANIM_CSS: '', ANIM_CALM: '',
+    PUBLIC_SELECT_JS: '', PUBLIC_DATE_JS: '', AUDIO_JS: '', COUNTDOWN_JS: '', FILTER_JS: '', COMPARE_JS: '', HOTSPOT_JS: '', STRIPS_JS: '', SWITCHER_JS: '', EXHIBIT_JS: '', SCROLLY_JS: '', CLOCKS_JS: '', ROSTER_JS: '', TIERS_JS: '', QAPILLS_JS: '', CHAPTERS_JS: '', SLOTPICKER_JS: '', FULLMENU_JS: '', SWATCHSHOP_JS: '', SNAPRAIL_JS: '', SCROLLSTEPS_JS: '', DRAGSTRIP_JS: '', STAYFILTER_JS: '', ANIM_JS: '', ANIM_CSS: '', ANIM_CALM: '',
     $$: (selector, root = d) => [...root.querySelectorAll(selector)]
   });
   const runtime = builder.slice(builder.indexOf('let previewDispose = () => {};'), builder.indexOf('\nlet canvasReadyCleanup'));

@@ -60,6 +60,10 @@ export function mediaReferences(document: Doc): MediaReference[] {
     });
     if (node.type === 'scrollsteps' && Array.isArray(props.steps)) props.steps.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'steps', j, 'src'], where));
+    if (node.type === 'dragstrip' && Array.isArray(props.slides)) props.slides.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'slides', j, 'src'], where));
+    if (node.type === 'stayfilter' && Array.isArray(props.stays)) props.stays.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'stays', j, 'src'], where));
     const definition = document.meta.components?.find(def => def.id === node.use);
     definition?.props.filter(prop => prop.t === 'img').forEach(prop =>
       scan(node.vals?.[prop.k], [...base, 'vals', prop.k], where));

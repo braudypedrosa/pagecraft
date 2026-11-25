@@ -1947,6 +1947,45 @@
       "previewPage": "index.html",
       "assetCount": 28,
       "assetBytes": 2687817
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "cala-marina",
+      "version": "1.0.0",
+      "name": "CALA MARINA · Cliffside Sanctuary & Moorings",
+      "sampleName": "CALA MARINA — Cliffside Aegean Sanctuary, Dining & Yacht Mooring",
+      "description": "Four-page Cycladic cliffside villa sanctuary, wood-fired sea table, and stern-to yacht mooring quay featuring a 100dvh sunset infinity horizon with docked availability form, mouse-draggable room filmstrip, interactive guest-stepper and seasonal villa rate finder, culinary bento showcase, and harbour sounding diagram.",
+      "categories": [
+        "Travel & Hospitality",
+        "Accommodation"
+      ],
+      "pages": [
+        {
+          "id": "cmr-page-index",
+          "name": "Sanctuary",
+          "slug": "index"
+        },
+        {
+          "id": "cmr-page-villas",
+          "name": "Villas",
+          "slug": "villas"
+        },
+        {
+          "id": "cmr-page-dining",
+          "name": "Table & Cellar",
+          "slug": "dining"
+        },
+        {
+          "id": "cmr-page-moorings",
+          "name": "Yacht Moorings",
+          "slug": "moorings"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "2d04d344ed4a62d746eb9a37be40ad8557d14578ff4d13057769b42c465889dd",
+      "previewPage": "index.html",
+      "assetCount": 27,
+      "assetBytes": 2861881
     }
   ]
 }

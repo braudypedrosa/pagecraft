@@ -96,6 +96,7 @@ test("template picker renders the twelve named templates and represented facets"
     "ALDER & SILT · Landscape Architecture",
     "Common Ground · Architecture Studio",
     "Bramble Vet · Veterinary Clinic",
+    "CALA MARINA · Cliffside Sanctuary & Moorings",
     "Marea · Coastal Stays",
     "Sorrel & Stone · Culinary School",
     "Linden Dental · Dental Clinic",
@@ -183,7 +184,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 18);
+  a.equal(visibleCards(document).length, 19);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

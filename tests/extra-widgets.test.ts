@@ -797,7 +797,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(overnight('2026-11-30T03:00:00Z')).toEqual([false, 'Closed']);    // Sunday's shift, Monday 3 am
     expect(overnight('2026-11-25T12:00:00Z')).toEqual([false, 'Closed']);
 
-    for (const type of ['roster', 'qapills', 'chapters', 'typemask'] as const) {
+    for (const type of ['roster', 'qapills', 'chapters', 'typemask', 'dragstrip'] as const) {
       const node = C.N(type);
       node.adv = { ...(node.adv || {}), htmlId: 'team' } as any;
       const html = C.renderNode(node, { edit: false });
@@ -898,5 +898,34 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     stepItems[2].dispatchEvent(new ssWin.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(stepItems[2].getAttribute('data-active')).toBe('1');
     ssDom.window.close();
+
+    const dsDom = domFor(C.renderNode(C.N('dragstrip'), { edit: false }));
+    const dsWin = dsDom.window as any;
+    let dsDispose: (() => void) | null = null;
+    dsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { dsDispose = fn; };
+    dsWin.eval(scriptBody(C.DRAGSTRIP_JS));
+    expect(dsWin.document.querySelector('[data-ds-track]')?.getAttribute('aria-valuenow')).toBe('0');
+    dsDispose!();
+    dsDom.window.close();
+
+    const sfDom = domFor(C.renderNode(C.N('stayfilter', {
+      currencySymbol: '€', defaultGuests: '2', maxGuests: '8', singularLabel: 'villa', unitLabel: 'villas',
+      stays: [
+        { stayName: 'Cove Suite', sleeps: '2', lowRate: '380', midRate: '490', highRate: '640' },
+        { stayName: 'Cliff House', sleeps: '6', lowRate: '620', midRate: '790', highRate: '980' }
+      ]
+    }), { edit: false }));
+    const sfWin = sfDom.window as any;
+    let sfDispose: (() => void) | null = null;
+    sfWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { sfDispose = fn; };
+    sfWin.eval(scriptBody(C.STAYFILTER_JS));
+    expect(sfWin.document.querySelector('[data-sf-result]')?.textContent).toBe('2 villas');
+    (sfWin.document.querySelectorAll('[data-sf-step]')[1] as HTMLElement).click();
+    expect(sfWin.document.querySelector('[data-sf-guests]')?.textContent).toBe('3');
+    expect(sfWin.document.querySelector('[data-sf-result]')?.textContent).toBe('1 villa');
+    (sfWin.document.querySelector('[data-sf-season="high"]') as HTMLElement).click();
+    expect(sfWin.document.querySelectorAll('[data-sf-price]')[1]?.textContent).toBe('€980');
+    sfDispose!();
+    sfDom.window.close();
   });
 });

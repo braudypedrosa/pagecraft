@@ -77,6 +77,8 @@ const runtimeSource = [
   Core.SWATCHSHOP_JS,
   Core.SNAPRAIL_JS,
   Core.SCROLLSTEPS_JS,
+  Core.DRAGSTRIP_JS,
+  Core.STAYFILTER_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {

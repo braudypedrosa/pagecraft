@@ -63,7 +63,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
       ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
       ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'],
       ['arches', 'Fanned arches'], ['typemask', 'Masked wordmark'], ['fullmenu', 'Fullscreen menu'],
-      ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps']
+      ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps'],
+      ['dragstrip', 'Draggable filmstrip'], ['stayfilter', 'Stay finder']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -88,7 +89,9 @@ export const PURPOSE: Record<string, string> = {
   fullmenu: 'A menu button that opens a full-screen link list with preview images.',
   swatchshop: 'Product cards with colour dots that swap the image.',
   snaprail: 'Colour cards in a horizontal row with next and back buttons.',
-  scrollsteps: 'Steps along a vertical line that fills as visitors scroll.'
+  scrollsteps: 'Steps along a vertical line that fills as visitors scroll.',
+  dragstrip: 'A horizontal image strip visitors drag or scrub with a bar below.',
+  stayfilter: 'A list of rooms or houses filtered by guest count and season.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -151,6 +154,8 @@ const ALIASES: Record<string, string> = {
   swatchshop: 'product cards colourways swatches store gear shop',
   snaprail: 'horizontal colour cards snap rail features',
   scrollsteps: 'vertical line scroll steps process sequence',
+  dragstrip: 'filmstrip horizontal rooms scrubbar progress drag showcase',
+  stayfilter: 'villas houses rooms guests stepper season rates availability hospitality',
   list: 'collection cms dynamic',
 };
 

@@ -216,6 +216,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('swatchshop', { gridCols: '2', products: [{ prodName: 'Storm Jacket', prodPrice: '$480', prodSpec: '310 g', href: 'https://example.test/jacket', ctaLabel: 'Inspect', c1Name: 'Spruce', c1Hex: '#145C3E', c1Src: 'https://example.test/j1.webp', alt: 'Jacket' }] }),
     C.N('snaprail', { prevLabel: 'Previous', nextLabel: 'Next', railCards: [{ cardTag: '01', title: 'Seam Weld', detail: 'Ultrasonic micro-tape.', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }] }),
     C.N('scrollsteps', { steps: [{ title: 'Batch Tag', badge: '48h', detail: 'Laser serial.', src: 'https://example.test/st1.webp', alt: 'Batch tag' }] }),
+    C.N('dragstrip', { cardRatio: '3 / 2', ariaLabel: 'Rooms', slides: [{ title: 'Caldera Suite', meta: 'Terrace', src: 'https://example.test/ds1.webp', alt: 'Suite' }] }),
+    C.N('stayfilter', { currencySymbol: '€', defaultGuests: '2', maxGuests: '8', stays: [{ stayName: 'Cliff Villa', location: 'West Ridge', summary: 'Plunge pool.', sleeps: '4', tags: 'Sleeps 4, Plunge pool', lowRate: '480', midRate: '640', highRate: '820', src: 'https://example.test/sf1.webp', alt: 'Cliff Villa' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -249,14 +251,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 52 Add choices map to stable persisted module shapes', () => {
+  test('all 54 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(52);
-    expect(new Set(choices)).toHaveLength(52);
+    expect(choices).toHaveLength(54);
+    expect(new Set(choices)).toHaveLength(54);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

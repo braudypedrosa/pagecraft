@@ -2542,7 +2542,9 @@ var IC = {
   fullmenu: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M6.5 9h5M6.5 12h5M6.5 15h4"/><rect x="13.5" y="8.5" width="4" height="7" rx="1"/>',
   swatchshop: '<rect x="4" y="4" width="16" height="10.5" rx="2"/><circle cx="7" cy="18.5" r="1.5"/><circle cx="12" cy="18.5" r="1.5"/><circle cx="17" cy="18.5" r="1.5"/>',
   snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
-  scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>'
+  scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>',
+  dragstrip: '<rect x="3" y="4" width="8" height="10.5" rx="1.8"/><rect x="13" y="4" width="8" height="10.5" rx="1.8"/><path d="M3 19h5.5M15.5 19H21"/><rect x="8.5" y="18" width="7" height="2" rx="1"/>',
+  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>'
 };
 var IC_VIEW = "1 1 22 22";
 var icStroke = (size) => size < 16 ? 2 : 1.75;
@@ -4178,6 +4180,8 @@ var KIND = {
   swatchshop: "product swatches",
   snaprail: "snap card rail",
   scrollsteps: "scroll steps",
+  dragstrip: "draggable filmstrip",
+  stayfilter: "stay finder",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -6069,6 +6073,252 @@ var SCROLLSTEPS_JS = `<script>
 })();
 <\/script>
 `;
+var DRAGSTRIP_CSS = `
+.pagecraft-dragstrip{display:block;width:100%;overflow:hidden}
+.pagecraft-dragstrip-rail{list-style:none;margin:0;padding:0 0 6px;display:flex;gap:20px;overflow-x:auto;scrollbar-width:none;cursor:grab;user-select:none}
+.pagecraft-dragstrip-rail::-webkit-scrollbar{display:none}
+.pagecraft-dragstrip-rail.is-dragging{cursor:grabbing}
+.pagecraft-dragstrip-rail:focus-visible,.pagecraft-dragstrip-track:focus-visible,.pagecraft-dragstrip-link:focus-visible{outline:2px solid var(--ds-accent,#1456A0);outline-offset:4px;border-radius:6px}
+.pagecraft-dragstrip-item{flex:0 0 clamp(280px,42vw,var(--ds-card-w,440px));min-width:0}
+.pagecraft-dragstrip-link{display:block;color:inherit;text-decoration:none}
+.pagecraft-dragstrip-img{display:block;width:100%;height:auto;aspect-ratio:var(--ds-ratio,3 / 2);object-fit:cover;border-radius:var(--ds-radius,10px);pointer-events:none}
+.pagecraft-dragstrip-cap{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin:12px 0 0;font-size:14px;line-height:1.4;color:var(--ds-muted,#4E5F78)}
+.pagecraft-dragstrip-title{font-size:18px;font-weight:600;color:var(--ds-ink,#122136)}
+.pagecraft-dragstrip-meta{white-space:nowrap;font-size:13px;color:var(--ds-muted,#4E5F78)}
+.pagecraft-dragstrip-track{position:relative;height:24px;margin-top:16px;cursor:pointer;touch-action:none}
+.pagecraft-dragstrip-track::before{content:"";position:absolute;left:0;right:0;top:10px;height:4px;border-radius:4px;background:var(--ds-line,#D5DFEC)}
+.pagecraft-dragstrip-bar{position:absolute;top:8px;left:0;display:block;width:28%;height:8px;border-radius:8px;background:var(--ds-accent,#1456A0);cursor:grab;transition:height .15s ease,top .15s ease}
+.pagecraft-dragstrip-track:hover .pagecraft-dragstrip-bar,.pagecraft-dragstrip-track.is-dragging .pagecraft-dragstrip-bar{top:7px;height:10px}
+.pagecraft-dragstrip-track.is-dragging .pagecraft-dragstrip-bar{cursor:grabbing}
+@media(prefers-reduced-motion:reduce){.pagecraft-dragstrip-bar{transition:none}}
+@media(max-width:767px){
+  .pagecraft-dragstrip-item{flex-basis:84%}
+  .pagecraft-dragstrip-cap{flex-direction:column;gap:3px}
+}
+`;
+var DRAGSTRIP_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-dragstrip]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ds-ready'))return;
+    root.setAttribute('data-pc-ds-ready','1');
+    var strip=root.querySelector('[data-ds-strip]');
+    var track=root.querySelector('[data-ds-track]');
+    var bar=root.querySelector('[data-ds-bar]');
+    if(!strip||!track||!bar)return;
+    function maxScroll(){return Math.max(0,strip.scrollWidth-strip.clientWidth);}
+    function update(){
+      var sw=strip.scrollWidth||1,cw=strip.clientWidth||1;
+      var share=Math.min(1,Math.max(0.14,cw/sw));
+      var m=maxScroll();
+      var ratio=m>0?Math.min(1,Math.max(0,strip.scrollLeft/m)):0;
+      bar.style.width=(share*100).toFixed(2)+'%';
+      bar.style.left=(ratio*(1-share)*100).toFixed(2)+'%';
+      track.setAttribute('aria-valuenow',String(Math.round(ratio*100)));
+    }
+    var startX=0,startLeft=0,dragging=false,moved=false;
+    function onDown(e){
+      if(e.pointerType&&e.pointerType!=='mouse')return;
+      dragging=true;moved=false;startX=e.clientX;startLeft=strip.scrollLeft;
+      if(typeof strip.setPointerCapture==='function'){try{strip.setPointerCapture(e.pointerId);}catch(_e){}}
+      strip.classList.add('is-dragging');
+    }
+    function onMove(e){
+      if(!dragging)return;
+      var dx=e.clientX-startX;
+      if(Math.abs(dx)>3)moved=true;
+      strip.scrollLeft=startLeft-dx;
+    }
+    function onEnd(){dragging=false;strip.classList.remove('is-dragging');}
+    function onClickCap(e){if(moved){e.preventDefault();moved=false;}}
+    var thumbStart=0,thumbLeft=0,thumbDrag=false;
+    function scale(){return maxScroll()/Math.max(1,(track.clientWidth-bar.offsetWidth)||1);}
+    function onTrackDown(e){
+      if(typeof track.setPointerCapture==='function'){try{track.setPointerCapture(e.pointerId);}catch(_e){}}
+      thumbDrag=true;track.classList.add('is-dragging');
+      if(e.target!==bar){
+        var r=track.getBoundingClientRect();
+        strip.scrollLeft=(e.clientX-r.left-(bar.offsetWidth||40)/2)*scale();
+      }
+      thumbStart=e.clientX;thumbLeft=strip.scrollLeft;
+      update();
+    }
+    function onTrackMove(e){if(thumbDrag){strip.scrollLeft=thumbLeft+(e.clientX-thumbStart)*scale();update();}}
+    function onTrackEnd(){thumbDrag=false;track.classList.remove('is-dragging');}
+    function onKey(e){
+      var step=Math.max(220,(strip.clientWidth||600)*0.5);
+      if(e.key==='ArrowRight')strip.scrollLeft+=step;
+      else if(e.key==='ArrowLeft')strip.scrollLeft-=step;
+      else if(e.key==='Home')strip.scrollLeft=0;
+      else if(e.key==='End')strip.scrollLeft=maxScroll();
+      else return;
+      e.preventDefault();
+      update();
+    }
+    strip.addEventListener('pointerdown',onDown);
+    strip.addEventListener('pointermove',onMove);
+    strip.addEventListener('pointerup',onEnd);
+    strip.addEventListener('pointercancel',onEnd);
+    strip.addEventListener('click',onClickCap,true);
+    strip.addEventListener('scroll',update,{passive:true});
+    strip.addEventListener('keydown',onKey);
+    track.addEventListener('pointerdown',onTrackDown);
+    track.addEventListener('pointermove',onTrackMove);
+    track.addEventListener('pointerup',onTrackEnd);
+    track.addEventListener('pointercancel',onTrackEnd);
+    track.addEventListener('keydown',onKey);
+    var ro=null;
+    if(typeof ResizeObserver==='function'){ro=new ResizeObserver(update);ro.observe(strip);}
+    window.addEventListener('resize',update);
+    update();
+    disposers.push(function(){
+      strip.removeEventListener('pointerdown',onDown);
+      strip.removeEventListener('pointermove',onMove);
+      strip.removeEventListener('pointerup',onEnd);
+      strip.removeEventListener('pointercancel',onEnd);
+      strip.removeEventListener('click',onClickCap,true);
+      strip.removeEventListener('scroll',update);
+      strip.removeEventListener('keydown',onKey);
+      track.removeEventListener('pointerdown',onTrackDown);
+      track.removeEventListener('pointermove',onTrackMove);
+      track.removeEventListener('pointerup',onTrackEnd);
+      track.removeEventListener('pointercancel',onTrackEnd);
+      track.removeEventListener('keydown',onKey);
+      window.removeEventListener('resize',update);
+      if(ro)ro.disconnect();
+      root.removeAttribute('data-pc-ds-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var STAYFILTER_CSS = `
+.pagecraft-stayfilter{display:block;width:100%;color:var(--sf-ink,#122136)}
+.pagecraft-stayfilter [hidden]{display:none!important}
+.pagecraft-stay-bar{box-sizing:border-box;display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;margin:0 0 18px;padding:12px 16px;border:1px solid var(--sf-line,#D5DFEC);border-radius:var(--sf-radius,14px);background:var(--sf-surface,#FFFFFF)}
+.pagecraft-stay-guests{display:inline-flex;align-items:center;gap:8px}
+.pagecraft-stay-glbl{margin-right:4px;color:var(--sf-muted,#4E5F78);font-size:14px;font-weight:600}
+.pagecraft-stay-step{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid var(--sf-line,#D5DFEC);border-radius:999px;background:transparent;color:var(--sf-ink,#122136);font:inherit;font-size:18px;line-height:1;cursor:pointer;transition:border-color .16s ease,color .16s ease}
+.pagecraft-stay-step:hover:not(:disabled){border-color:var(--sf-accent,#1456A0);color:var(--sf-accent,#1456A0)}
+.pagecraft-stay-step:disabled{opacity:.35;cursor:not-allowed}
+.pagecraft-stay-step:focus-visible,.pagecraft-stay-sbtn:focus-visible,.pagecraft-stay-cta:focus-visible{outline:2px solid var(--sf-accent,#1456A0);outline-offset:3px}
+.pagecraft-stay-count{min-width:2ch;font-size:16px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;color:var(--sf-ink,#122136)}
+.pagecraft-stay-seasons{display:inline-flex;gap:4px;padding:4px;border-radius:10px;background:var(--sf-bg,#F4F6FA)}
+.pagecraft-stay-sbtn{appearance:none;min-height:38px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--sf-muted,#4E5F78);font:inherit;font-size:14px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background-color .16s ease,color .16s ease}
+.pagecraft-stay-sbtn[aria-checked="true"]{background:var(--sf-surface,#FFFFFF);color:var(--sf-ink,#122136);font-weight:700;box-shadow:0 1px 3px rgba(18,33,54,.12)}
+.pagecraft-stay-result{margin:0 0 0 auto;color:var(--sf-muted,#4E5F78);font-size:14px;font-weight:600}
+.pagecraft-stay-list{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+.pagecraft-stay-row{box-sizing:border-box;display:grid;grid-template-columns:270px minmax(0,1fr) auto;gap:24px;align-items:center;padding:14px;border:1px solid var(--sf-line,#D5DFEC);border-radius:var(--sf-radius,14px);background:var(--sf-surface,#FFFFFF)}
+.pagecraft-stay-img{display:block;width:100%;height:auto;aspect-ratio:3 / 2;object-fit:cover;border-radius:calc(var(--sf-radius,14px) - 4px)}
+.pagecraft-stay-body{min-width:0;display:flex;flex-direction:column;gap:6px}
+.pagecraft-stay-where{margin:0;color:var(--sf-accent,#1456A0);font-size:13px;font-weight:600;letter-spacing:.02em}
+.pagecraft-stay-name{margin:0;font-size:clamp(20px,2.2vw,24px);font-weight:700;line-height:1.2;letter-spacing:-0.015em;color:var(--sf-ink,#122136)}
+.pagecraft-stay-line{margin:0;color:var(--sf-muted,#4E5F78);font-size:15px;line-height:1.55}
+.pagecraft-stay-tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;padding:0;list-style:none}
+.pagecraft-stay-tags li{display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;background:var(--sf-bg,#F4F6FA);border:1px solid var(--sf-line,#D5DFEC);font-size:12.5px;font-weight:600;color:var(--sf-ink,#122136)}
+.pagecraft-stay-buy{display:grid;justify-items:end;gap:10px;padding-right:8px}
+.pagecraft-stay-price{margin:0;display:grid;justify-items:end;gap:2px}
+.pagecraft-stay-price strong{font-size:26px;line-height:1.1;letter-spacing:-0.02em;font-weight:700;font-variant-numeric:tabular-nums;color:var(--sf-ink,#122136)}
+.pagecraft-stay-price span{color:var(--sf-muted,#4E5F78);font-size:13px}
+.pagecraft-stay-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:calc(var(--sf-radius,14px) - 4px);background:var(--sf-accent,#1456A0);color:var(--sf-on,#FFFFFF);font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:opacity .16s ease}
+.pagecraft-stay-cta:hover{opacity:.92}
+.pagecraft-stay-empty{margin:14px 0 0;padding:28px;border:1px dashed var(--sf-line,#D5DFEC);border-radius:var(--sf-radius,14px);background:var(--sf-surface,#FFFFFF);color:var(--sf-muted,#4E5F78);font-size:15px;text-align:center}
+@media(prefers-reduced-motion:reduce){.pagecraft-stay-step,.pagecraft-stay-sbtn,.pagecraft-stay-cta{transition:none}}
+@media(max-width:900px){
+  .pagecraft-stay-row{grid-template-columns:1fr;gap:16px}
+  .pagecraft-stay-buy{grid-auto-flow:column;justify-content:space-between;align-items:center;padding:8px 4px 2px;border-top:1px solid var(--sf-line,#D5DFEC)}
+  .pagecraft-stay-price{justify-items:start}
+  .pagecraft-stay-result{margin-left:0}
+}
+@media(max-width:767px){
+  .pagecraft-stay-seasons{width:100%}
+  .pagecraft-stay-sbtn{flex:1;min-height:42px;padding:4px 8px;font-size:13px;line-height:1.2;white-space:normal}
+}
+`;
+var STAYFILTER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-stayfilter]').forEach(function(root){
+    if(root.hasAttribute('data-pc-sf-ready'))return;
+    root.setAttribute('data-pc-sf-ready','1');
+    var rows=[].slice.call(root.querySelectorAll('.pagecraft-stay-row'));
+    var out=root.querySelector('[data-sf-guests]');
+    var result=root.querySelector('[data-sf-result]');
+    var empty=root.querySelector('[data-sf-empty]');
+    var steps=[].slice.call(root.querySelectorAll('[data-sf-step]'));
+    var less=steps[0],more=steps[1];
+    var seasons=[].slice.call(root.querySelectorAll('[data-sf-season]'));
+    if(!out||!less||!more)return;
+    var maxG=Math.max(1,parseInt(root.getAttribute('data-max-guests')||'8',10)||8);
+    var guests=Math.min(maxG,Math.max(1,parseInt(root.getAttribute('data-init-guests')||'2',10)||2));
+    var sym=root.getAttribute('data-sym')||'$';
+    var sing=root.getAttribute('data-singular')||'stay';
+    var plur=root.getAttribute('data-plural')||'stays';
+    var activeBtn=seasons.find(function(b){return b.getAttribute('aria-checked')==='true';})||seasons[0];
+    var season=activeBtn?(activeBtn.getAttribute('data-sf-season')||'mid'):'mid';
+    function render(){
+      out.textContent=String(guests);
+      less.disabled=guests<=1;
+      more.disabled=guests>=maxG;
+      var shown=0;
+      rows.forEach(function(r){
+        var cap=parseInt(r.getAttribute('data-sleeps')||'2',10)||2;
+        var fit=cap>=guests;
+        r.hidden=!fit;
+        if(fit)shown++;
+        var pOut=r.querySelector('[data-sf-price]');
+        var rate=r.getAttribute('data-'+season)||r.getAttribute('data-mid')||'';
+        if(pOut&&rate)pOut.textContent=sym+rate;
+      });
+      if(result)result.textContent=shown+' '+(shown===1?sing:plur);
+      if(empty)empty.hidden=shown>0;
+    }
+    function onLess(){if(guests>1){guests--;render();}}
+    function onMore(){if(guests<maxG){guests++;render();}}
+    less.addEventListener('click',onLess);
+    more.addEventListener('click',onMore);
+    var offs=[
+      function(){less.removeEventListener('click',onLess);},
+      function(){more.removeEventListener('click',onMore);}
+    ];
+    seasons.forEach(function(btn,idx){
+      function onPick(){
+        season=btn.getAttribute('data-sf-season')||'mid';
+        seasons.forEach(function(x){x.setAttribute('aria-checked',x===btn?'true':'false');});
+        render();
+      }
+      function onKey(e){
+        if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+        e.preventDefault();
+        var next=seasons[(idx+(e.key==='ArrowRight'?1:-1)+seasons.length)%seasons.length];
+        if(next){next.focus();next.click();}
+      }
+      btn.addEventListener('click',onPick);
+      btn.addEventListener('keydown',onKey);
+      offs.push(function(){
+        btn.removeEventListener('click',onPick);
+        btn.removeEventListener('keydown',onKey);
+      });
+    });
+    render();
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-sf-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -6106,6 +6356,8 @@ function mediaReferences(document) {
       for (const k of ["c1Src", "c2Src", "c3Src"]) scan(item?.[k], [...base, "props", "products", j, k], where);
     });
     if (node.type === "scrollsteps" && Array.isArray(props.steps)) props.steps.forEach((item, j) => scan(item?.src, [...base, "props", "steps", j, "src"], where));
+    if (node.type === "dragstrip" && Array.isArray(props.slides)) props.slides.forEach((item, j) => scan(item?.src, [...base, "props", "slides", j, "src"], where));
+    if (node.type === "stayfilter" && Array.isArray(props.stays)) props.stays.forEach((item, j) => scan(item?.src, [...base, "props", "stays", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -9041,6 +9293,151 @@ var DEF = {
         { t: "unit", c: "--ss-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  dragstrip: {
+    label: "Draggable filmstrip",
+    icon: "dragstrip",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        cardRatio: "3 / 2",
+        ariaLabel: "Scroll gallery",
+        slides: [
+          { title: "First space", meta: "Ground floor", src: "", alt: "", href: "" },
+          { title: "Second space", meta: "Courtyard wing", src: "", alt: "", href: "" },
+          { title: "Third space", meta: "Upper terrace", src: "", alt: "", href: "" },
+          { title: "Fourth space", meta: "Garden pavilion", src: "", alt: "", href: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ds-accent": cvar("brand"),
+          "--ds-ink": cvar("ink"),
+          "--ds-muted": cvar("muted"),
+          "--ds-line": cvar("line"),
+          "--ds-card-w": "440px",
+          "--ds-radius": "10px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "cardRatio", label: "Image ratio", opts: [["3 / 2", "3:2 landscape"], ["16 / 10", "16:10 wide"], ["4 / 3", "4:3 classic"], ["4 / 5", "4:5 portrait"]] },
+        { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Scroll gallery" },
+        {
+          t: "qa",
+          k: "slides",
+          label: "Filmstrip frames",
+          addLabel: "Add frame",
+          rowFields: [
+            { k: "title", label: "Title", ph: "Space or suite", def: "New frame" },
+            { k: "meta", label: "Detail", ph: "Optional note", def: "" },
+            { k: "src", label: "Image", ph: "asset:frame", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe image", def: "" },
+            { k: "href", label: "Optional link", ph: "villas.html", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ds-accent", label: "Scrollbar thumb", r: 1, layout: "inline" },
+        { t: "color", c: "--ds-ink", label: "Title colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ds-muted", label: "Meta colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ds-line", label: "Scrollbar track", r: 1, layout: "inline" },
+        { t: "unit", c: "--ds-card-w", label: "Frame max width", layout: "inline", r: 1, units: U.size },
+        { t: "unit", c: "--ds-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  stayfilter: {
+    label: "Stay finder",
+    icon: "stayfilter",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        currencySymbol: "$",
+        defaultGuests: "2",
+        maxGuests: "8",
+        defaultSeason: "mid",
+        lowLabel: "Low season",
+        midLabel: "Mid season",
+        highLabel: "High season",
+        guestsLabel: "Guests",
+        singularLabel: "stay",
+        unitLabel: "stays",
+        perNightLabel: "per night",
+        emptyText: "No single stay sleeps that many guests. Try fewer guests or ask about combining two.",
+        stays: [
+          { stayName: "First house", location: "Coastal wing", summary: "Add a short description of the space and outlook.", sleeps: "4", tags: "Sleeps 4, 2 bedrooms, Terrace", lowRate: "320", midRate: "420", highRate: "540", ctaLabel: "Check dates", href: "", src: "", alt: "" },
+          { stayName: "Second house", location: "Harbour side", summary: "Visitors step guest count or switch season to compare rates.", sleeps: "6", tags: "Sleeps 6, 3 bedrooms, Private garden", lowRate: "460", midRate: "580", highRate: "740", ctaLabel: "Check dates", href: "", src: "", alt: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sf-accent": cvar("brand"),
+          "--sf-on": brandActionForeground(),
+          "--sf-surface": cvar("surface"),
+          "--sf-bg": cvar("bg"),
+          "--sf-ink": cvar("ink"),
+          "--sf-muted": cvar("muted"),
+          "--sf-line": cvar("line"),
+          "--sf-radius": "14px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "qa",
+          k: "stays",
+          label: "Stays",
+          addLabel: "Add stay",
+          rowFields: [
+            { k: "stayName", label: "Name", ph: "House or suite", def: "New stay" },
+            { k: "location", label: "Setting / wing", ph: "Cliffside terrace", def: "" },
+            { k: "sleeps", label: "Max guests", ph: "4", def: "4" },
+            { k: "lowRate", label: "Low season rate", ph: "320", def: "320" },
+            { k: "midRate", label: "Mid season rate", ph: "420", def: "420" },
+            { k: "highRate", label: "High season rate", ph: "540", def: "540" },
+            { k: "tags", label: "Highlights (comma-separated)", ph: "Sleeps 4, 2 bedrooms, Pool", def: "" },
+            { k: "src", label: "Photo", ph: "asset:stay", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe stay", def: "" },
+            { k: "ctaLabel", label: "Button label", ph: "Check dates", def: "Check dates" },
+            { k: "href", label: "Button link", ph: "contact.html", def: "" },
+            { k: "summary", label: "Description", ph: "One-sentence overview", def: "", area: 1 }
+          ]
+        },
+        { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "$" },
+        { t: "unit", k: "defaultGuests", label: "Starting guests", integer: 1, min: 1, max: 24, units: [""] },
+        { t: "unit", k: "maxGuests", label: "Maximum guests", integer: 1, min: 1, max: 24, units: [""] },
+        { t: "select", k: "defaultSeason", label: "Default season", opts: [["low", "Low season"], ["mid", "Mid season"], ["high", "High season"]] },
+        { t: "text", k: "lowLabel", label: "Low season label", ph: "Nov to Mar" },
+        { t: "text", k: "midLabel", label: "Mid season label", ph: "Apr, May & Oct" },
+        { t: "text", k: "highLabel", label: "High season label", ph: "Jun to Sep" },
+        { t: "text", k: "guestsLabel", label: "Guests label", ph: "Guests" },
+        { t: "text", k: "singularLabel", label: "Singular noun", ph: "villa" },
+        { t: "text", k: "unitLabel", label: "Plural noun", ph: "villas" },
+        { t: "text", k: "perNightLabel", label: "Rate period label", ph: "per night" },
+        { t: "area", k: "emptyText", label: "Empty state message", ph: "No stay sleeps that many guests." }
+      ],
+      style: [
+        { t: "color", c: "--sf-accent", label: "Accent colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-on", label: "Text on accent", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-bg", label: "Pill track fill", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sf-line", label: "Border colour", r: 1, layout: "inline" },
+        { t: "unit", c: "--sf-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -9546,6 +9943,8 @@ var nameOf = (n) => {
   if (n.type === "swatchshop") return `Product swatches \xB7 ${(n.props.products || []).length} item${(n.props.products || []).length === 1 ? "" : "s"}`;
   if (n.type === "snaprail") return `Snap rail \xB7 ${(n.props.railCards || []).length} card${(n.props.railCards || []).length === 1 ? "" : "s"}`;
   if (n.type === "scrollsteps") return `Scroll steps \xB7 ${(n.props.steps || []).length} step${(n.props.steps || []).length === 1 ? "" : "s"}`;
+  if (n.type === "dragstrip") return `Filmstrip \xB7 ${(n.props.slides || []).length} frame${(n.props.slides || []).length === 1 ? "" : "s"}`;
+  if (n.type === "stayfilter") return `Stay finder \xB7 ${(n.props.stays || []).length} stay${(n.props.stays || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -12232,7 +12631,9 @@ var TEXT_SLOTS = {
   fullmenu: ["triggerLabel", "closeLabel", "menuNote", ["menuItems", "label", "meta", "alt"]],
   swatchshop: [["products", "prodName", "prodPrice", "prodSpec", "ctaLabel", "c1Name", "c2Name", "c3Name", "alt"]],
   snaprail: ["prevLabel", "nextLabel", ["railCards", "cardTag", "title", "detail", "stat"]],
-  scrollsteps: [["steps", "title", "badge", "detail", "alt"]]
+  scrollsteps: [["steps", "title", "badge", "detail", "alt"]],
+  dragstrip: ["ariaLabel", ["slides", "title", "meta", "alt"]],
+  stayfilter: ["currencySymbol", "lowLabel", "midLabel", "highLabel", "guestsLabel", "singularLabel", "unitLabel", "perNightLabel", "emptyText", ["stays", "stayName", "location", "summary", "tags", "lowRate", "midRate", "highRate", "ctaLabel", "alt"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -12324,7 +12725,19 @@ var SLOT_LABEL = {
   prevLabel: "Previous button",
   nextLabel: "Next button",
   cardTag: "Card tag",
-  stat: "Metric"
+  stat: "Metric",
+  stayName: "Stay name",
+  lowLabel: "Low season",
+  midLabel: "Mid season",
+  highLabel: "High season",
+  guestsLabel: "Guests label",
+  singularLabel: "Singular noun",
+  unitLabel: "Plural noun",
+  perNightLabel: "Rate period",
+  emptyText: "Empty message",
+  lowRate: "Low rate",
+  midRate: "Mid rate",
+  highRate: "High rate"
 };
 var ASSET_SLOTS = {
   image: ["src"],
@@ -12344,7 +12757,9 @@ var ASSET_SLOTS = {
   typemask: ["maskSrc"],
   fullmenu: [["menuItems", "src"]],
   swatchshop: [["products", "c1Src", "c2Src", "c3Src"]],
-  scrollsteps: [["steps", "src"]]
+  scrollsteps: [["steps", "src"]],
+  dragstrip: [["slides", "src"]],
+  stayfilter: [["stays", "src"]]
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
@@ -13046,6 +13461,16 @@ function relink(from, to) {
     }
     if (node.type === "swatchshop" && Array.isArray(p.products)) {
       p.products.forEach((it) => {
+        if (it && it.href !== void 0) it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "dragstrip" && Array.isArray(p.slides)) {
+      p.slides.forEach((it) => {
+        if (it && it.href !== void 0) it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "stayfilter" && Array.isArray(p.stays)) {
+      p.stays.forEach((it) => {
         if (it && it.href !== void 0) it.href = swap2(it.href);
       });
     }
@@ -16275,7 +16700,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -16304,9 +16729,11 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "swatchshop") swatchshop = true;
     else if (node.type === "snaprail") snaprail = true;
     else if (node.type === "scrollsteps") scrollsteps = true;
+    else if (node.type === "dragstrip") dragstrip = true;
+    else if (node.type === "stayfilter") stayfilter = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -16335,7 +16762,9 @@ ${TYPEMASK_CSS}` : "") + (used.fullmenu ? `
 ${FULLMENU_CSS}` : "") + (used.swatchshop ? `
 ${SWATCHSHOP_CSS}` : "") + (used.snaprail ? `
 ${SNAPRAIL_CSS}` : "") + (used.scrollsteps ? `
-${SCROLLSTEPS_CSS}` : "") + (used.videoLightbox ? `
+${SCROLLSTEPS_CSS}` : "") + (used.dragstrip ? `
+${DRAGSTRIP_CSS}` : "") + (used.stayfilter ? `
+${STAYFILTER_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -16386,6 +16815,8 @@ ${ANIM_CALM}` : "")),
       swatchshop: pageExtra.swatchshop && !globalExtra.swatchshop,
       snaprail: pageExtra.snaprail && !globalExtra.snaprail,
       scrollsteps: pageExtra.scrollsteps && !globalExtra.scrollsteps,
+      dragstrip: pageExtra.dragstrip && !globalExtra.dragstrip,
+      stayfilter: pageExtra.stayfilter && !globalExtra.stayfilter,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -17169,6 +17600,8 @@ function renderNode(n, o) {
       family.push(root + "-caption");
     } else if (n.type === "typemask") {
       family.push(root + "-clip");
+    } else if (n.type === "dragstrip") {
+      family.push(root + "-strip");
     } else if (ITEM_ID_PARTS[n.type]) {
       const rows = n.type === "chapters" ? p.chapters : p.items;
       if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type].forEach((part) => family.push(`${root}-${part}-${i}`)));
@@ -17997,6 +18430,69 @@ function renderNode(n, o) {
       }).join("");
       return `<div ${at()} ${cx("pagecraft-scrollsteps")} data-scrollsteps><div class="pagecraft-scrollsteps-spine" aria-hidden="true"><div class="pagecraft-scrollsteps-fill"></div></div><ol class="pagecraft-scrollsteps-list">${rows}</ol></div>`;
     }
+    case "dragstrip": {
+      const ratio = cssRatio(p.cardRatio);
+      const ratioStyle = ratio ? ` style="--ds-ratio:${esc(ratio)}"` : "";
+      const aria = String(p.ariaLabel || "Scroll gallery");
+      const items = (Array.isArray(p.slides) ? p.slides : []).filter(Boolean);
+      const stripId = `${domId()}-strip`;
+      const slidesHtml = items.map((it, i) => {
+        const title = String(it.title || `Frame ${i + 1}`);
+        const meta = String(it.meta || "");
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const inner2 = `<img class="pagecraft-dragstrip-img" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false"><p class="pagecraft-dragstrip-cap"><strong class="pagecraft-dragstrip-title">${esc(title)}</strong>` + (meta ? `<span class="pagecraft-dragstrip-meta">${esc(meta)}</span>` : "") + `</p>`;
+        return `<li class="pagecraft-dragstrip-item">` + (link ? `<a class="pagecraft-dragstrip-link" href="${esc(link)}" draggable="false">${inner2}</a>` : inner2) + `</li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-dragstrip")} data-dragstrip${ratioStyle}><ul class="pagecraft-dragstrip-rail" id="${stripId}" role="list" tabindex="0" aria-label="${esc(aria)}" data-ds-strip>${slidesHtml}</ul><div class="pagecraft-dragstrip-track" role="scrollbar" aria-controls="${stripId}" aria-orientation="horizontal" aria-label="${esc(aria)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" data-ds-track><span class="pagecraft-dragstrip-bar" data-ds-bar></span></div></div>`;
+    }
+    case "stayfilter": {
+      const sym = String(p.currencySymbol ?? "$");
+      const maxG = Math.max(1, Math.min(24, Math.round(Number(p.maxGuests) || 8)));
+      const initG = Math.max(1, Math.min(maxG, Math.round(Number(p.defaultGuests) || 2)));
+      const defSeason = ["low", "mid", "high"].includes(String(p.defaultSeason)) ? String(p.defaultSeason) : "mid";
+      const gLbl = String(p.guestsLabel || "Guests");
+      const sing = String(p.singularLabel || "stay");
+      const plur = String(p.unitLabel || "stays");
+      const perNight = String(p.perNightLabel || "per night");
+      const emptyTxt = String(p.emptyText || "No single stay sleeps that many guests.");
+      const seasons = [
+        ["low", String(p.lowLabel || "Low season")],
+        ["mid", String(p.midLabel || "Mid season")],
+        ["high", String(p.highLabel || "High season")]
+      ];
+      const items = (Array.isArray(p.stays) ? p.stays : []).filter(Boolean);
+      let initShown = 0;
+      const rowsHtml = items.map((it, i) => {
+        const nm = String(it.stayName || `Stay ${i + 1}`);
+        const loc = String(it.location || "");
+        const sum = String(it.summary || "");
+        const sleeps = Math.max(1, Math.round(Number(it.sleeps) || 4));
+        const fit = sleeps >= initG;
+        if (fit) initShown++;
+        const lowR = String(it.lowRate || "300").replace(/^[^0-9]+/, "");
+        const midR = String(it.midRate || lowR).replace(/^[^0-9]+/, "");
+        const highR = String(it.highRate || midR).replace(/^[^0-9]+/, "");
+        const initRate = defSeason === "low" ? lowR : defSeason === "high" ? highR : midR;
+        const tags = String(it.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
+        const tagsHtml = tags.length ? `<ul class="pagecraft-stay-tags" role="list">${tags.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "";
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || nm));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const cta = String(it.ctaLabel || "Check dates");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        return `<li class="pagecraft-stay-row" data-sleeps="${sleeps}" data-low="${esc(lowR)}" data-mid="${esc(midR)}" data-high="${esc(highR)}"${fit ? "" : " hidden"}><img class="pagecraft-stay-img" src="${src}" alt="${alt}"${dim} decoding="async"><div class="pagecraft-stay-body">` + (loc ? `<p class="pagecraft-stay-where">${esc(loc)}</p>` : "") + `<h3 class="pagecraft-stay-name">${esc(nm)}</h3>` + (sum ? `<p class="pagecraft-stay-line">${esc(sum)}</p>` : "") + tagsHtml + `</div><div class="pagecraft-stay-buy"><p class="pagecraft-stay-price"><strong data-sf-price>${esc(sym + initRate)}</strong><span>${esc(perNight)}</span></p>` + (link ? `<a class="pagecraft-stay-cta" href="${esc(link)}">${esc(cta)}</a>` : rawHref && o.edit ? `<span class="pagecraft-stay-cta">${esc(cta)}</span>` : "") + `</div></li>`;
+      }).join("");
+      const seasonBtns = seasons.map(
+        ([code, lbl]) => `<button type="button" class="pagecraft-stay-sbtn" role="radio" aria-checked="${code === defSeason ? "true" : "false"}" data-sf-season="${code}">${esc(lbl)}</button>`
+      ).join("");
+      const countLbl = `${initShown} ${initShown === 1 ? sing : plur}`;
+      return `<div ${at()} ${cx("pagecraft-stayfilter")} data-stayfilter data-init-guests="${initG}" data-max-guests="${maxG}" data-sym="${esc(sym)}" data-singular="${esc(sing)}" data-plural="${esc(plur)}"><div class="pagecraft-stay-bar"><div class="pagecraft-stay-guests" role="group" aria-label="${esc(gLbl)}"><span class="pagecraft-stay-glbl">${esc(gLbl)}</span><button type="button" class="pagecraft-stay-step" data-sf-step="-1" aria-label="Fewer guests"${initG <= 1 ? " disabled" : ""}>\u2212</button><output class="pagecraft-stay-count" data-sf-guests aria-live="polite">${initG}</output><button type="button" class="pagecraft-stay-step" data-sf-step="1" aria-label="More guests"${initG >= maxG ? " disabled" : ""}>+</button></div><div class="pagecraft-stay-seasons" role="radiogroup" aria-label="Season">${seasonBtns}</div><p class="pagecraft-stay-result" data-sf-result aria-live="polite">${esc(countLbl)}</p></div><ul class="pagecraft-stay-list" role="list">${rowsHtml}</ul><p class="pagecraft-stay-empty" data-sf-empty${initShown > 0 ? " hidden" : ""}>${esc(emptyTxt)}</p></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -18511,7 +19007,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -19018,6 +19514,8 @@ var __CORE = {
   DEV_LABEL,
   DEV_W,
   DOCKBAR_CSS,
+  DRAGSTRIP_CSS,
+  DRAGSTRIP_JS,
   EMBED_FRAME_HASH,
   EMBED_FRAME_JS,
   EXHIBIT_CSS,
@@ -19089,6 +19587,8 @@ var __CORE = {
   SNAPRAIL_JS,
   SRCSET_W,
   STATES,
+  STAYFILTER_CSS,
+  STAYFILTER_JS,
   STRIPS_CSS,
   STRIPS_JS,
   STYLE_CLIP_KEY,
@@ -25483,7 +25983,9 @@ var PC_UI = (() => {
         ["fullmenu", "Fullscreen menu"],
         ["swatchshop", "Product swatches"],
         ["snaprail", "Snap card rail"],
-        ["scrollsteps", "Scroll steps"]
+        ["scrollsteps", "Scroll steps"],
+        ["dragstrip", "Draggable filmstrip"],
+        ["stayfilter", "Stay finder"]
       ]
     },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
@@ -25506,7 +26008,9 @@ var PC_UI = (() => {
     fullmenu: "A menu button that opens a full-screen link list with preview images.",
     swatchshop: "Product cards with colour dots that swap the image.",
     snaprail: "Colour cards in a horizontal row with next and back buttons.",
-    scrollsteps: "Steps along a vertical line that fills as visitors scroll."
+    scrollsteps: "Steps along a vertical line that fills as visitors scroll.",
+    dragstrip: "A horizontal image strip visitors drag or scrub with a bar below.",
+    stayfilter: "A list of rooms or houses filtered by guest count and season."
   };
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
   var QUICK_ADD_LIMIT = 7;
@@ -25559,6 +26063,8 @@ var PC_UI = (() => {
     swatchshop: "product cards colourways swatches store gear shop",
     snaprail: "horizontal colour cards snap rail features",
     scrollsteps: "vertical line scroll steps process sequence",
+    dragstrip: "filmstrip horizontal rooms scrubbar progress drag showcase",
+    stayfilter: "villas houses rooms guests stepper season rates availability hospitality",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -36011,6 +36517,151 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "unit", c: "--ss-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
+    },
+    dragstrip: {
+      label: "Draggable filmstrip",
+      icon: "dragstrip",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          cardRatio: "3 / 2",
+          ariaLabel: "Scroll gallery",
+          slides: [
+            { title: "First space", meta: "Ground floor", src: "", alt: "", href: "" },
+            { title: "Second space", meta: "Courtyard wing", src: "", alt: "", href: "" },
+            { title: "Third space", meta: "Upper terrace", src: "", alt: "", href: "" },
+            { title: "Fourth space", meta: "Garden pavilion", src: "", alt: "", href: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ds-accent": cvar("brand"),
+            "--ds-ink": cvar("ink"),
+            "--ds-muted": cvar("muted"),
+            "--ds-line": cvar("line"),
+            "--ds-card-w": "440px",
+            "--ds-radius": "10px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "cardRatio", label: "Image ratio", opts: [["3 / 2", "3:2 landscape"], ["16 / 10", "16:10 wide"], ["4 / 3", "4:3 classic"], ["4 / 5", "4:5 portrait"]] },
+          { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Scroll gallery" },
+          {
+            t: "qa",
+            k: "slides",
+            label: "Filmstrip frames",
+            addLabel: "Add frame",
+            rowFields: [
+              { k: "title", label: "Title", ph: "Space or suite", def: "New frame" },
+              { k: "meta", label: "Detail", ph: "Optional note", def: "" },
+              { k: "src", label: "Image", ph: "asset:frame", def: "", img: 1 },
+              { k: "alt", label: "Alt text", ph: "Describe image", def: "" },
+              { k: "href", label: "Optional link", ph: "villas.html", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ds-accent", label: "Scrollbar thumb", r: 1, layout: "inline" },
+          { t: "color", c: "--ds-ink", label: "Title colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ds-muted", label: "Meta colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ds-line", label: "Scrollbar track", r: 1, layout: "inline" },
+          { t: "unit", c: "--ds-card-w", label: "Frame max width", layout: "inline", r: 1, units: U.size },
+          { t: "unit", c: "--ds-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    stayfilter: {
+      label: "Stay finder",
+      icon: "stayfilter",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          currencySymbol: "$",
+          defaultGuests: "2",
+          maxGuests: "8",
+          defaultSeason: "mid",
+          lowLabel: "Low season",
+          midLabel: "Mid season",
+          highLabel: "High season",
+          guestsLabel: "Guests",
+          singularLabel: "stay",
+          unitLabel: "stays",
+          perNightLabel: "per night",
+          emptyText: "No single stay sleeps that many guests. Try fewer guests or ask about combining two.",
+          stays: [
+            { stayName: "First house", location: "Coastal wing", summary: "Add a short description of the space and outlook.", sleeps: "4", tags: "Sleeps 4, 2 bedrooms, Terrace", lowRate: "320", midRate: "420", highRate: "540", ctaLabel: "Check dates", href: "", src: "", alt: "" },
+            { stayName: "Second house", location: "Harbour side", summary: "Visitors step guest count or switch season to compare rates.", sleeps: "6", tags: "Sleeps 6, 3 bedrooms, Private garden", lowRate: "460", midRate: "580", highRate: "740", ctaLabel: "Check dates", href: "", src: "", alt: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--sf-accent": cvar("brand"),
+            "--sf-on": brandActionForeground(),
+            "--sf-surface": cvar("surface"),
+            "--sf-bg": cvar("bg"),
+            "--sf-ink": cvar("ink"),
+            "--sf-muted": cvar("muted"),
+            "--sf-line": cvar("line"),
+            "--sf-radius": "14px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "qa",
+            k: "stays",
+            label: "Stays",
+            addLabel: "Add stay",
+            rowFields: [
+              { k: "stayName", label: "Name", ph: "House or suite", def: "New stay" },
+              { k: "location", label: "Setting / wing", ph: "Cliffside terrace", def: "" },
+              { k: "sleeps", label: "Max guests", ph: "4", def: "4" },
+              { k: "lowRate", label: "Low season rate", ph: "320", def: "320" },
+              { k: "midRate", label: "Mid season rate", ph: "420", def: "420" },
+              { k: "highRate", label: "High season rate", ph: "540", def: "540" },
+              { k: "tags", label: "Highlights (comma-separated)", ph: "Sleeps 4, 2 bedrooms, Pool", def: "" },
+              { k: "src", label: "Photo", ph: "asset:stay", def: "", img: 1 },
+              { k: "alt", label: "Alt text", ph: "Describe stay", def: "" },
+              { k: "ctaLabel", label: "Button label", ph: "Check dates", def: "Check dates" },
+              { k: "href", label: "Button link", ph: "contact.html", def: "" },
+              { k: "summary", label: "Description", ph: "One-sentence overview", def: "", area: 1 }
+            ]
+          },
+          { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "$" },
+          { t: "unit", k: "defaultGuests", label: "Starting guests", integer: 1, min: 1, max: 24, units: [""] },
+          { t: "unit", k: "maxGuests", label: "Maximum guests", integer: 1, min: 1, max: 24, units: [""] },
+          { t: "select", k: "defaultSeason", label: "Default season", opts: [["low", "Low season"], ["mid", "Mid season"], ["high", "High season"]] },
+          { t: "text", k: "lowLabel", label: "Low season label", ph: "Nov to Mar" },
+          { t: "text", k: "midLabel", label: "Mid season label", ph: "Apr, May & Oct" },
+          { t: "text", k: "highLabel", label: "High season label", ph: "Jun to Sep" },
+          { t: "text", k: "guestsLabel", label: "Guests label", ph: "Guests" },
+          { t: "text", k: "singularLabel", label: "Singular noun", ph: "villa" },
+          { t: "text", k: "unitLabel", label: "Plural noun", ph: "villas" },
+          { t: "text", k: "perNightLabel", label: "Rate period label", ph: "per night" },
+          { t: "area", k: "emptyText", label: "Empty state message", ph: "No stay sleeps that many guests." }
+        ],
+        style: [
+          { t: "color", c: "--sf-accent", label: "Accent colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-on", label: "Text on accent", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-surface", label: "Card surface", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-bg", label: "Pill track fill", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sf-line", label: "Border colour", r: 1, layout: "inline" },
+          { t: "unit", c: "--sf-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
     }
   };
   var CODE_LANGS = {
@@ -39803,6 +40454,8 @@ function runPreviewRuntime(html, editing = false) {
     [/data-swatchshop/.test(html), SWATCHSHOP_JS],
     [/data-snaprail/.test(html), SNAPRAIL_JS],
     [/data-scrollsteps/.test(html), SCROLLSTEPS_JS],
+    [/data-dragstrip/.test(html), DRAGSTRIP_JS],
+    [/data-stayfilter/.test(html), STAYFILTER_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

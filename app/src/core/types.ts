@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -309,6 +309,10 @@ export interface SnaprailItem { cardTag?: string; title?: string; detail?: strin
 export interface SnaprailProps { prevLabel?: string; nextLabel?: string; railCards?: SnaprailItem[] }
 export interface ScrollstepsItem { title?: string; badge?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface ScrollstepsProps { steps?: ScrollstepsItem[] }
+export interface DragstripItem { title?: string; meta?: string; src?: string; alt?: string; href?: string; w?: string; h?: string }
+export interface DragstripProps { cardRatio?: string; ariaLabel?: string; slides?: DragstripItem[] }
+export interface StayfilterItem { stayName?: string; location?: string; summary?: string; sleeps?: string; tags?: string; lowRate?: string; midRate?: string; highRate?: string; ctaLabel?: string; href?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface StayfilterProps { currencySymbol?: string; defaultGuests?: string; maxGuests?: string; defaultSeason?: string; lowLabel?: string; midLabel?: string; highLabel?: string; guestsLabel?: string; singularLabel?: string; unitLabel?: string; perNightLabel?: string; emptyText?: string; stays?: StayfilterItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -319,7 +323,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
