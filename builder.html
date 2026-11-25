@@ -613,7 +613,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 }
 .pitem:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .pitem:active{cursor:grabbing;transform:scale(.975)}
-.pitem svg{width:19px;height:19px;color:var(--text-2)}
+.pitem svg{width:20px;height:20px;color:var(--text-2)}
 .pitem span{font-size:var(--fs-2);font-weight:500;color:var(--text-2);text-align:center;line-height:1.25}
 .pitem:hover span,.pitem:hover svg{color:var(--text)}
 .hint{color:var(--text-3);padding:0;}
@@ -745,7 +745,7 @@ body.preview .frameWrap{border-radius:0;box-shadow:none}
 .dim select{
   appearance:none;border:0;background:none;cursor:pointer;padding:var(--pc-control-padding);padding-right:calc(var(--pc-control-padding-x) + 14px);margin:0;
   font-family:var(--label);font-size:var(--fs-2);font-weight:500;color:var(--text);
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4L6 8l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;background-position:right center;background-size:9px 9px;
 }
 .dim .sep{width:1px;height:13px;background:var(--line-2);flex:0 0 1px}
@@ -880,7 +880,7 @@ body.preview .dim{display:none}
 textarea.ctl{resize:vertical;min-height:66px;font-size:var(--fs-3);line-height:1.55}
 select.ctl{
   appearance:none;cursor:pointer;padding-right:calc(var(--pc-control-padding-x) + 20px);
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4L6 8l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;background-position:right var(--pc-control-padding-x) center;background-size:11px 11px;
 }
 /* two equal columns, wherever they appear — .pgrid was the same rule under another name */
@@ -1810,7 +1810,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
     <span class="topsep"></span>
     <span class="docname" id="docName"></span>
     <button class="iconbtn" id="sitesBtn" title="Back to sites" aria-label="Sites" hidden>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="4.5" height="4.5" rx=".7"/><rect x="9.5" y="2" width="4.5" height="4.5" rx=".7"/><rect x="2" y="9.5" width="4.5" height="4.5" rx=".7"/><rect x="9.5" y="9.5" width="4.5" height="4.5" rx=".7"/></svg>
+      <svg width="17" height="17" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>
     </button>
 
     <span class="spacer"></span>
@@ -1829,16 +1829,16 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 
     <div class="topgroup topTools divided">
       <button class="iconbtn" id="canvasFocusBtn" title="Hide side panels (⌘⇧\)" aria-label="Hide side panels" aria-pressed="false">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"/></svg>
+        <svg width="15" height="15" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H6.5A2.5 2.5 0 0 0 4 6.5V9M15 4h2.5A2.5 2.5 0 0 1 20 6.5V9M4 15v2.5A2.5 2.5 0 0 0 6.5 20H9M20 15v2.5a2.5 2.5 0 0 1-2.5 2.5H15"/></svg>
       </button>
       <button class="iconbtn" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h7.5a3 3 0 010 6H7"/><path d="M5.5 5.5L3 8l2.5 2.5"/></svg>
+        <svg width="15" height="15" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h10.5a5.5 5.5 0 0 1 0 11H10"/><path d="M8 4.5l-4 4 4 4"/></svg>
       </button>
       <button class="iconbtn" id="redoBtn" title="Redo (⌘⇧Z)" aria-label="Redo">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 8H5.5a3 3 0 000 6H9"/><path d="M10.5 5.5L13 8l-2.5 2.5"/></svg>
+        <svg width="15" height="15" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8.5H9.5a5.5 5.5 0 0 0 0 11H14"/><path d="M16 4.5l4 4-4 4"/></svg>
       </button>
       <button class="iconbtn" id="helpBtn" title="Help & keyboard shortcuts" aria-label="Help & keyboard shortcuts">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6a1.8 1.8 0 013.6.3c0 1.2-1.8 1.4-1.8 2.7" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".7" fill="currentColor" stroke="none"/></svg>
+        <svg width="15" height="15" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.9.6c0 1.7-2.5 2-2.5 3.7M12 16.9v.1"/></svg>
       </button>
     </div>
 
@@ -1849,13 +1849,13 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
         <span id="reviewDot" class="rdot"></span><span id="reviewText" class="actionLabel">Checks</span>
       </button>
       <button class="btn ghost toolbarIcon" id="historyBtn" title="Version history" aria-label="Version history" hidden>
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.2 4.1A6 6 0 118 14"/><path d="M3.2 1.8v2.3H.9"/><path d="M8 4.4V8l2.4 1.4"/></svg>
+        <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5M4.6 9A8 8 0 1 1 4 12.5M12 8v4.5l3 1.7"/></svg>
         <span class="actionLabel">History</span>
       </button>
     </div>
     <div class="topgroup topActions divided">
     <button class="btn ghost toolbarIcon" id="previewBtn" title="Preview your working draft (⌘P)" aria-label="Preview your working draft">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.9"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>
       <span class="collapseLabel">Preview</span>
     </button>
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
@@ -1865,24 +1865,24 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
          holds both. The two buttons below stay the source of truth for whether each is offered,
          enabled and what it does; the menu mirrors them, as the narrow More tools menu does. -->
     <button class="btn ghost shareMenuToggle" id="shareMenuBtn" type="button" title="Share this site" aria-haspopup="menu" aria-controls="shareMenuPop" aria-expanded="false" hidden>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10V2m0 0L5 5m3-3 3 3"/><path d="M3 8v4.5A1.5 1.5 0 004.5 14h7a1.5 1.5 0 001.5-1.5V8"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14.5V3.5M8 7.5l4-4 4 4M5 12v6a2.5 2.5 0 0 0 2.5 2.5h9A2.5 2.5 0 0 0 19 18v-6"/></svg>
       <span class="shareLabel">Share</span>
-      <svg class="shareChevron" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+      <svg class="shareChevron" width="10" height="10" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
     </button>
     <div class="moreToolsPop pc-menu" id="shareMenuPop" role="menu" aria-label="Share" hidden>
       <button type="button" class="pc-menu-item" role="menuitem" data-share-target="clientReviewBtn">Client review</button>
       <button type="button" class="pc-menu-item" role="menuitem" data-share-target="shareBtn">Copy live link</button>
     </div>
     <button class="btn ghost toolbarIcon" id="clientReviewBtn" title="Client review" aria-label="Client review" hidden>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2 2.5h12v8H7l-4 3v-3H2z"/><path d="M5 5h6M5 8h4"/></svg><span class="collapseLabel">Client review</span>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5h13A2.5 2.5 0 0 1 21 6v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h-1A2.5 2.5 0 0 1 3 14V6a2.5 2.5 0 0 1 2.5-2.5zM7.5 8.2h9M7.5 11.8h5.5"/></svg><span class="collapseLabel">Client review</span>
     </button>
     <button class="btn ghost toolbarIcon" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4 4 0 0 0 5.8.4l3-3a4 4 0 0 0-5.7-5.7l-1.3 1.3M14 10.5a4 4 0 0 0-5.8-.4l-3 3a4 4 0 0 0 5.7 5.7l1.3-1.3"/></svg>
       <span class="collapseLabel">Live link</span>
     </button>
     <button class="iconbtn moreToolsToggle" id="moreToolsBtn" type="button" title="More tools" aria-label="More tools" aria-haspopup="menu" aria-controls="moreToolsPop" aria-expanded="false">
       <!-- Iconify lucide:ellipsis, https://api.iconify.design/lucide/ellipsis.svg, retrieved 2026-10-16. -->
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <svg width="15" height="15" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="moreToolsPop pc-menu" id="moreToolsPop" role="menu" aria-label="More tools" hidden>
       <button type="button" class="pc-menu-item" role="menuitem" data-more-target="undoBtn">Undo</button>
@@ -1895,7 +1895,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       <button type="button" class="pc-menu-item" role="menuitem" data-more-target="helpBtn">Help &amp; keyboard shortcuts</button>
     </div>
     <button class="btn primary" id="exportBtn" title="Publish this draft">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 10.5V2"/><path d="M4.8 5.2L8 2l3.2 3.2"/><path d="M2 10.5v2A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5v-2"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M3.5 15v2.5A2.5 2.5 0 0 0 6 20h12a2.5 2.5 0 0 0 2.5-2.5V15"/></svg>
       <span id="publishLabel">Publish</span>
     </button>
     </div>
@@ -1907,29 +1907,29 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       <!-- E4: building tools open a panel beside the canvas; managing the site opens a workspace. -->
       <span class="railGroup" aria-hidden="true"></span>
       <button data-t="add" class="on" title="Add elements">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2.5v11M2.5 8h11"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         <span>Add</span>
       </button>
       <button data-t="layers" title="Navigator">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.8l6 3.1-6 3.1-6-3.1z"/><path d="M2 8.4l6 3.1 6-3.1"/><path d="M2 11.3l6 3.1 6-3.1"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5"/></svg>
         <span>Navigator</span>
       </button>
       <button data-t="cms" title="CMS collections">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
         <span>CMS</span>
       </button>
       <span class="railGroup manage" aria-hidden="true"></span>
       <button data-t="pages" title="Pages">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h6"/></svg>
         <span>Pages</span>
       </button>
       <button data-act="media" title="Media library">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.8" y="3" width="12.4" height="10" rx="1.6"/><circle cx="5.6" cy="6.6" r="1.1"/><path d="M2.2 11.4l3.3-2.9 2.9 2.5 2.2-1.9 3.6 3.2" stroke-linejoin="round"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M3.5 17.5l4.8-4.3a1.6 1.6 0 0 1 2.1 0l3.1 2.8 1.6-1.4a1.6 1.6 0 0 1 2.1 0l3.3 2.9"/></svg>
         <span>Media</span>
       </button>
       <span class="railgap"></span>
       <button data-act="project" title="Project settings">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.5h6M12 4.5h2M2 11.5h2M8 11.5h6"/><circle cx="10" cy="4.5" r="1.7"/><circle cx="6" cy="11.5" r="1.7"/></svg>
+        <svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h8M17 8h4M3 16h4M13 16h8"/><circle cx="14" cy="8" r="3"/><circle cx="10" cy="16" r="3"/></svg>
         <span>Settings</span>
       </button>
       <button class="railAccount" id="accountBtn" data-act="account" title="Account" aria-expanded="false" aria-controls="accountPop" hidden>
@@ -1972,7 +1972,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 <div class="mask" id="modal" hidden>
   <div class="modal pc-dialog" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
     <div class="mh pc-dialog-head"><b class="pc-dialog-title" id="mTitle">Title</b><button class="iconbtn pc-dialog-close" id="mClose" aria-label="Close dialog">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       <span class="mCloseLabel">Back to builder</span>
     </button></div>
     <div class="mb pc-dialog-body" id="mBody"></div>
@@ -1983,7 +1983,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 <div class="mask" id="ask" hidden>
   <div class="modal sm pc-dialog" id="askBox" role="dialog" aria-modal="true" aria-labelledby="askTitle" tabindex="-1">
     <div class="mh pc-dialog-head"><b class="pc-dialog-title" id="askTitle">Title</b><button class="iconbtn pc-dialog-close" id="askX" aria-label="Close dialog">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button></div>
     <div class="pc-dialog-body" id="askBody"></div>
     <div class="mf pc-dialog-foot">
@@ -2064,7 +2064,7 @@ if (SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT) {
   submissions.title = 'Submissions';
   submissions.dataset.act = 'submissions';
   submissions.setAttribute('aria-label', 'Submissions');
-  submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
+  submissions.innerHTML = '<svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l7.1 5.2a2.4 2.4 0 0 0 2.8 0l7.1-5.2"/></svg><span>Submissions</span>';
   document.querySelector('#leftRail [data-act="media"]').after(submissions);
   /* Assistant proposals (Phase 7) are the owner's to review, so only an owner gets the button. */
   if (SRV.role === 'owner' && !SRV.editorSessionToken) {
@@ -2072,7 +2072,7 @@ if (SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT) {
     proposals.title = 'Proposals';
     proposals.dataset.act = 'proposals';
     proposals.setAttribute('aria-label', 'Proposals');
-    proposals.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg><span>Proposals</span><b class="rail-badge" hidden></b>';
+    proposals.innerHTML = '<svg width="20" height="20" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5l1.9 5.1 5.1 1.9-5.1 1.9-1.9 5.1-1.9-5.1-5.1-1.9 5.1-1.9zM18 15l.8 2.2 2.2.8-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg><span>Proposals</span><b class="rail-badge" hidden></b>';
     submissions.after(proposals);
   }
 }
@@ -4486,21 +4486,21 @@ function positionHud() {
      </div>
      <div class="bar" style="top:${top}px;left:${left}px">
       <span class="nm">${many ? ids.length + ' selected' : esc(s.node.type === 'box' ? nameOf(s.node) : d.label)}</span>
-      <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
-      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 12)}</button>` : ''}
+      <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 13)}</button>
+      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 13)}</button>` : ''}
       ${/* only where there is a list to be at the end of, so the bar does not carry two
              buttons that cannot do anything */''}
       ${(s.parent ? s.parent.children : tree()).length > 1 ? `
-        <button data-act="first" title="Move to the top (⌘⇧↑)">${svg('toTop', 12)}</button>
-        <button data-act="last" title="Move to the bottom (⌘⇧↓)">${svg('toBottom', 12)}</button>` : ''}
-      ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
+        <button data-act="first" title="Move to the top (⌘⇧↑)">${svg('toTop', 13)}</button>
+        <button data-act="last" title="Move to the bottom (⌘⇧↓)">${svg('toBottom', 13)}</button>` : ''}
+      ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 13)}</button>` : ''}
       ${/* Save as a block is in the ⋯ menu and not on the bar. It is a thing you do once to
              an element you have finished, where everything else here is a thing you do while
              working — and the bar had grown to nine buttons. `runAct` handles the verb the
              same either way, so nothing moved except where it is offered. */''}
-      <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
-      <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
-      <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
+      <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 13)}</button>
+      <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 13)}</button>
+      <button data-act="more" title="Everything else — or right-click the element">${svg('more', 13)}</button>
     </div>`
     + (many ? '' : gripsHtml(s))
     + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height))
@@ -7143,7 +7143,7 @@ function renderModebar() {
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
     (crumbs.length ? `<nav class="selectionCrumb" aria-label="Selected element path">${crumbs.map((n, i) => `<button type="button" data-select-ancestor="${esc(n.id)}" title="Select ${esc(nameOf(n))}"${i === crumbs.length - 1 ? ' aria-current="true"' : ''}>${esc(nameOf(n))}</button>`).join('<span aria-hidden="true">›</span>')}</nav>` : '') +
     itemBarHtml() +
-    `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+    `<span class="pill modeDevice">${svg(dk() === 't' ? 'tablet' : dk() === 'm' ? 'mobile' : 'desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
   $$('[data-select-ancestor]', $('#modebar')).forEach(button => button.addEventListener('click', () => {
     const id = button.dataset.selectAncestor; select(id, { scroll: true });
     $('#modebar [data-select-ancestor="' + CSS.escape(id) + '"]')?.focus();
@@ -7175,9 +7175,9 @@ function itemBarHtml() {
   if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
   const at = Math.min(previewIndex(id), col.items.length - 1);
   return `<span class="pill itemBar" data-col="${esc(id)}" role="group" aria-label="Preview entry from ${esc(col.name)}">${svg('cms', 11)} <span class="itemBarLabel" title="Preview entry from ${esc(col.name)}">Preview entry · ${esc(col.name)}</span>
-    <button data-col="${id}" data-i="${Math.max(0, at - 1)}" type="button" title="Previous item" aria-label="Previous preview entry"${at === 0 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-4 4 4 4"/></svg></button>
+    <button data-col="${id}" data-i="${Math.max(0, at - 1)}" type="button" title="Previous item" aria-label="Previous preview entry"${at === 0 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <select data-col="${esc(id)}" aria-label="Preview entry from ${esc(col.name)}">${col.items.map((item,i) => `<option value="${i}"${i === at ? ' selected' : ''}>${esc(itemTitle(col,item))}${item.draft ? ' · Draft preview' : ''}</option>`).join('')}</select>
-    <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" type="button" title="Next item" aria-label="Next preview entry"${at === col.items.length - 1 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button>
+    <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" type="button" title="Next item" aria-label="Next preview entry"${at === col.items.length - 1 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
 }
 

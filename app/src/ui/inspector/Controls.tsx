@@ -569,9 +569,9 @@ function boxValues(n: PcNode, base: string): string[] {
 /* I4: Padding and Margin take two fields when opposite sides match (↕ top and bottom,
    ↔ left and right), and split into four when they differ or when the author asks. The CSS
    written is the same four longhands either way; only the number of fields changes. */
-const AXIS_V = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 2v12M5 4.5L8 2l3 2.5M5 11.5L8 14l3-2.5" /></svg>;
-const AXIS_H = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 8h12M4.5 5L2 8l2.5 3M11.5 5L14 8l-2.5 3" /></svg>;
-const LINK_ICON = <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" /><path d="M6.5 9.5l3-3" /></svg>;
+const AXIS_V = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v12M5 4.5L8 2l3 2.5M5 11.5L8 14l3-2.5" /></svg>;
+const AXIS_H = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h12M4.5 5L2 8l2.5 3M11.5 5L14 8l-2.5 3" /></svg>;
+const LINK_ICON = <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" /><path d="M6.5 9.5l3-3" /></svg>;
 const SIDE_MARK = ['T', 'R', 'B', 'L'];
 
 function BoxCtl({ n, c }: P) {

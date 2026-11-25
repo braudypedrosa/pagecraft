@@ -5,8 +5,8 @@ import { C } from './ctx';
 
 export function Icon({ name, size = 14, cls }: { name: string; size?: number; cls?: string }) {
   return (
-    <svg class={cls || ''} width={size} height={size} viewBox="0 0 16 16"
-      fill="none" stroke="currentColor" stroke-width="1.4"
+    <svg class={cls || ''} width={size} height={size} viewBox={C.IC_VIEW}
+      fill="none" stroke="currentColor" stroke-width={C.icStroke(size)} stroke-linecap="round" stroke-linejoin="round"
       dangerouslySetInnerHTML={{ __html: C.IC[name] || '' }} />
   );
 }
