@@ -1127,8 +1127,8 @@ export interface FormAlertsView {
   members: import('./form-alerts.ts').AlertMember[]; recipients: string[];
 }
 const ALERT_NOTICES: Record<string, string> = {
-  saved: 'Form emails updated.', 'test-sent': 'Test email sent to your account address.',
-  'test-wait': 'Wait a few minutes before sending another test.', 'test-failed': 'The test email could not be sent. Try again later.',
+  saved: 'Form emails updated.', 'test-sent': 'Sample email sent to your account address. If it is not there in a few minutes, check your spam folder.',
+  'test-wait': 'Wait a few minutes before sending another sample.', 'test-failed': 'The sample email could not be sent. Try again later.',
   'test-off': 'This server cannot send email yet.'
 };
 /** Who is emailed about new entries. Entries are always in Submissions, whatever is chosen here. */
@@ -1140,7 +1140,7 @@ function formAlertsDialog(base: string, view: FormAlertsView, embedded: boolean,
     ${view.available ? '' : '<p role="status" class="pc-alert-warning">This server cannot send email yet, so nobody will be emailed.</p>'}
     ${view.settings.failedAt ? `<p role="status" class="pc-alert-warning">The last email could not be sent (${timeFull(view.settings.failedAt)}). The entry was saved.</p>` : ''}
     <form method="post" action="${base}/alerts" id="form-emails-form">${hidden}<fieldset class="pc-alert-people"><legend>People who can open Submissions</legend>${people}</fieldset></form></div>
-    <footer class="pc-dialog-foot"><form method="post" action="${base}/alerts">${hidden}<input type="hidden" name="action" value="test"><button class="pc-btn" type="submit"${view.available ? '' : ' disabled'}>Send me a test</button></form><button class="pc-btn" type="button" data-close-dialog>Cancel</button><button class="pc-btn primary" type="submit" form="form-emails-form">Save</button></footer></dialog>`;
+    <footer class="pc-dialog-foot"><form method="post" action="${base}/alerts">${hidden}<input type="hidden" name="action" value="test"><button class="pc-btn" type="submit"${view.available ? '' : ' disabled'}>Send me a sample</button></form><button class="pc-btn" type="button" data-close-dialog>Cancel</button><button class="pc-btn primary" type="submit" form="form-emails-form">Save</button></footer></dialog>`;
 }
 
 export function siteSubmissionsPage(user: User, site: { id: string; name: string }, role: Role,
