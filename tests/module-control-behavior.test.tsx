@@ -86,6 +86,12 @@ const conditionalSetup: Record<string, {
   'button:Position': { off: () => {}, on: () => {}, onParent: 'column' },
   'form:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
   'form:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
+  'dockbar:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
+  'dockbar:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
+  'slotpicker:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
+  'slotpicker:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
+  'slotpicker:Most guests': { off: n => { n.props.showGuests = 0; }, on: n => { n.props.showGuests = 1; } },
+  'slotpicker:Available times': { off: n => { n.props.showTimes = 0; }, on: n => { n.props.showTimes = 1; } },
   'form:Grid columns': { off: n => { n.css.d['--f-layout'] = 'flex'; }, on: n => { n.css.d['--f-layout'] = 'grid'; } },
   'crumbs:Front page is called': { off: n => { n.props.mode = 'manual'; }, on: n => { n.props.mode = 'path'; } },
   'crumbs:Crumbs': { off: n => { n.props.mode = 'path'; }, on: n => { n.props.mode = 'manual'; } },
@@ -109,7 +115,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 44 conditional declarations render only in their applicable state', () => {
+test('all 50 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -118,7 +124,7 @@ test('all 44 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(44);
+  expect(declarations).toHaveLength(50);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );
@@ -225,7 +231,7 @@ test('all 44 module renderers emit their representative authored value', () => {
     roster: { expected: /data-roster/, configure: n => { n.props.items = [{ name: 'Claire Mercer', role: 'Partner', seat: 'DC', credential: 'USPTO', quote: 'Trial first.', src: 'https://example.com/p.jpg', alt: 'Claire' }]; } },
     tiers: { expected: /data-tiers/, configure: n => { n.props.items = [{ tierName: 'Retainer', priceUsd: '$6,400', priceEur: '€5,800', priceGbp: '£4,950', period: '/mo', summary: 'Counsel', features: 'Partner access', ctaText: 'Engage', href: 'https://example.com/go', featured: 1 }]; } },
     qapills: { expected: /data-qapills/, configure: n => { n.props.items = [{ q: 'Question?', a: 'Answer.', note: 'Rule 1.7' }]; } },
-    dockbar: { expected: /data-dockbar/, configure: n => { n.props.items = [{ fieldLabel: 'Entity', fieldType: 'text', ph: 'Helios' }]; } },
+    dockbar: { expected: /QA dock field/, configure: n => { n.props.fields = [{ type: 'text', label: 'QA dock field', name: 'qa' }]; } },
     arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
     chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
     slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
@@ -293,7 +299,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(158);
+  expect(declarations).toHaveLength(176);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);

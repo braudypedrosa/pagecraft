@@ -4162,12 +4162,12 @@ var KIND = {
   scrolly: "sticky steps",
   clocks: "office clocks",
   roster: "team spotlight",
-  tiers: "currency tiers",
+  tiers: "pricing table",
   qapills: "question pills",
-  dockbar: "docked intake bar",
+  dockbar: "docked bar",
   arches: "fanned arches",
   chapters: "chapter frame",
-  slotpicker: "slot configurator",
+  slotpicker: "booking request",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -5446,51 +5446,24 @@ var QAPILLS_JS = `<script>
 })();
 <\/script>
 `;
-var DOCKBAR_CSS = `.pagecraft-dockbar{position:relative;z-index:3;width:100%}
-.pagecraft-dockbar-form{margin:0;padding:8px;display:flex;align-items:stretch;gap:0;background:var(--db-surface,#FFFFFF);border:1px solid var(--db-line,#C8D0DF);border-radius:var(--db-radius,4px);box-shadow:0 22px 52px rgba(12,18,32,.14)}
-.pagecraft-dockbar-field{margin:0;padding:12px 18px;flex:1 1 0%;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;border-radius:0;cursor:text}
-.pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:1px solid var(--db-line,#C8D0DF)}
-.pagecraft-dockbar-lbl{font-size:11.5px;line-height:1.35;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--db-ink,#0C1220)}
-.pagecraft-dockbar-input,.pagecraft-dockbar-select{appearance:none;width:100%;min-width:0;margin:0;padding:2px 0;border:0;background:transparent;font-family:inherit;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
-.pagecraft-dockbar-input::placeholder{color:var(--db-muted,#4A566E);opacity:1}
-.pagecraft-dockbar-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
-.pagecraft-dockbar-submit{appearance:none;margin:0 0 0 8px;padding:0 26px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:var(--db-on,#FFFFFF);font-family:inherit;font-size:14.5px;font-weight:600;line-height:1.3;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .16s ease}
-.pagecraft-dockbar-submit:hover,.pagecraft-dockbar-submit:focus-visible{background:var(--db-ink,#0C1220)}
-.pagecraft-dockbar-submit:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
-@media (max-width:860px){
-  .pagecraft-dockbar-form{flex-direction:column;padding:10px}
-  .pagecraft-dockbar-field+.pagecraft-dockbar-field{border-inline-start:0;border-top:1px solid var(--db-line,#C8D0DF)}
-  .pagecraft-dockbar-submit{margin:8px 0 0;width:100%;min-height:48px}
+var DOCKBAR_CSS = `.pagecraft-form.pagecraft-dockbar{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:stretch;gap:0;padding:8px;background:var(--db-surface,#FFFFFF);border:1px solid var(--db-line,#C8D0DF);border-radius:var(--db-radius,4px);box-shadow:0 22px 52px rgba(12,18,32,.14)}
+.pagecraft-dockbar>.pagecraft-field,.pagecraft-dockbar>.pagecraft-field.half{flex:1 1 170px;min-width:0;padding:12px 18px;justify-content:center;gap:4px}
+.pagecraft-dockbar>.pagecraft-field+.pagecraft-field{border-inline-start:1px solid var(--db-line,#C8D0DF)}
+.pagecraft-dockbar>.pagecraft-field label{font-size:11.5px;line-height:1.35;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--db-ink,#0C1220)}
+.pagecraft-dockbar>.pagecraft-field :is(input:not([type=checkbox]),select,textarea){min-width:0;padding:2px 0;border:0;border-radius:0;background:transparent;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
+.pagecraft-dockbar>.pagecraft-field textarea{height:1.9em;resize:none}
+.pagecraft-dockbar>.pagecraft-field :is(input,textarea)::placeholder{color:var(--db-muted,#4A566E);opacity:1}
+.pagecraft-dockbar>.pagecraft-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
+.pagecraft-dockbar>.pagecraft-form-button{flex:0 0 auto;align-self:stretch;margin:0 0 0 8px;padding:0 26px;min-height:54px;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:var(--db-on,#FFFFFF);font-size:14.5px;line-height:1.3;transition:background-color .16s ease}
+.pagecraft-dockbar>.pagecraft-form-button:is(:hover,:focus-visible):not(:disabled){background:var(--db-ink,#0C1220);color:var(--db-surface,#FFFFFF)}
+.pagecraft-dockbar>.pagecraft-form-button:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
+.pagecraft-dockbar>.pagecraft-form-status{padding:8px 18px 4px;color:var(--db-muted,#4A566E)}
+@media (max-width:767px){
+  .pagecraft-dockbar>.pagecraft-field,.pagecraft-dockbar>.pagecraft-field.half{flex-basis:100%}
+  .pagecraft-dockbar>.pagecraft-field+.pagecraft-field{border-inline-start:0;border-top:1px solid var(--db-line,#C8D0DF)}
+  .pagecraft-dockbar>.pagecraft-form-button{flex:1 1 100%;margin:8px 0 0;min-height:48px}
 }
-@media (prefers-reduced-motion:reduce){.pagecraft-dockbar-submit{transition:none}}`;
-var DOCKBAR_JS = `<script>
-(function(){
-  var disposers=[];
-  document.querySelectorAll('.pagecraft-dockbar[data-dockbar]').forEach(function(root){
-    if(root.hasAttribute('data-pc-db-ready'))return;
-    root.setAttribute('data-pc-db-ready','1');
-    var form=root.querySelector('.pagecraft-dockbar-form');
-    if(!form)return;
-    function onSubmit(e){
-      var dest=form.getAttribute('data-dest')||'';
-      if(!dest){e.preventDefault();return;}
-      e.preventDefault();
-      window.location.href=dest;
-    }
-    form.addEventListener('submit',onSubmit);
-    disposers.push(function(){
-      form.removeEventListener('submit',onSubmit);
-      root.removeAttribute('data-pc-db-ready');
-    });
-  });
-  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
-    window.__pagecraftRegisterPreviewDispose(function(){
-      disposers.forEach(function(dispose){dispose();});
-    });
-  }
-})();
-<\/script>
-`;
+@media (prefers-reduced-motion:reduce){.pagecraft-dockbar>.pagecraft-form-button{transition:none}}`;
 var ARCHES_CSS = `.pagecraft-arches{width:100%;padding:14px 0 32px}
 .pagecraft-arches-list{list-style:none;margin:0 auto;padding:0;max-width:1080px;display:flex;align-items:flex-end;justify-content:center}
 .pagecraft-arches-item{margin:0 -10px;width:clamp(140px,18vw,212px);flex:0 1 auto;border-radius:999px 999px 14px 14px;overflow:hidden;border:3px solid var(--ar-frame,#FAF7F2);background:var(--ar-bg,#DCD3C6);box-shadow:0 22px 46px rgba(24,21,18,.15);transition:transform .34s cubic-bezier(.22,1,.36,1)}
@@ -5604,7 +5577,17 @@ var CHAPTERS_JS = `<script>
 })();
 <\/script>
 `;
-var SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:36px;align-items:start}
+var SLOTPICKER_CSS = `.pagecraft-form.pagecraft-slotpicker{width:100%;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:36px;align-items:start}
+.pagecraft-slotpicker:not([data-ready]) .pagecraft-sp-buttons{display:none}
+.pagecraft-slotpicker[data-ready] .pagecraft-sp-native{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pagecraft-sp-group{position:relative}
+.pagecraft-sp-contact{--f-gap:14px;--f-bg:var(--sp-surface,#FAF7F2);--f-text:var(--sp-ink,#181512);--f-label:var(--sp-muted,#5E5349);--f-border:var(--sp-line,#DCD3C6);--f-radius:var(--sp-radius,10px);--f-btn-bg:var(--sp-accent,#8F3D22);display:flex;flex-wrap:wrap;gap:var(--f-gap);font-size:15px}
+.pagecraft-sp-percent>.pagecraft-field{flex:0 0 100%}
+.pagecraft-sp-percent>.field-width-50{flex-basis:calc((100% - var(--f-gap)) / 2)}
+.pagecraft-sp-percent>.field-width-33{flex-basis:calc((100% - var(--f-gap) * 2) / 3)}
+.pagecraft-sp-percent>.field-width-25{flex-basis:calc((100% - var(--f-gap) * 3) / 4)}
+.pagecraft-sp-percent>.field-width-20{flex-basis:calc((100% - var(--f-gap) * 4) / 5)}
+.pagecraft-sp-pass:disabled,.pagecraft-sp-pill:disabled{cursor:not-allowed}
 .pagecraft-sp-steps{display:flex;flex-direction:column;gap:26px}
 .pagecraft-sp-group{display:flex;flex-direction:column;gap:12px}
 .pagecraft-sp-step-h{margin:0;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
@@ -5625,62 +5608,62 @@ var SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-templat
 .pagecraft-sp-row strong{color:var(--sp-ink,#181512);font-weight:600;text-align:right}
 .pagecraft-sp-total-row{padding-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
 .pagecraft-sp-total{font-size:28px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sp-accent,#8F3D22)}
-.pagecraft-sp-confirm{padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF);border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
-.pagecraft-sp-confirm:hover,.pagecraft-sp-confirm:focus-visible{opacity:.9}
+.pagecraft-slotpicker .pagecraft-form-button{align-self:stretch;padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF);border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
+.pagecraft-slotpicker .pagecraft-form-button:is(:hover,:focus-visible):not(:disabled){opacity:.9}
 .pagecraft-sp-note{margin:0;font-size:13px;line-height:1.5;color:var(--sp-muted,#5E5349)}
-@media (max-width:860px){.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
-@media (prefers-reduced-motion:reduce){.pagecraft-sp-pass,.pagecraft-sp-pill,.pagecraft-sp-confirm{transition:none}}`;
+@media (max-width:860px){.pagecraft-form.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
+@media (max-width:767px){.pagecraft-sp-percent>.pagecraft-field{flex-basis:100%}}
+@media (prefers-reduced-motion:reduce){.pagecraft-sp-pass,.pagecraft-sp-pill,.pagecraft-slotpicker .pagecraft-form-button{align-self:stretch;transition:none}}`;
 var SLOTPICKER_JS = `<script>
 (function(){
   var disposers=[];
   document.querySelectorAll('.pagecraft-slotpicker[data-slotpicker]').forEach(function(root){
-    if(root.hasAttribute('data-pc-sp-ready'))return;
-    root.setAttribute('data-pc-sp-ready','1');
-    var sym=root.getAttribute('data-sym')||'\u20AC';
-    var passes=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pass[data-sp-pass]'));
-    var guests=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-guests]'));
-    var slots=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-sp-pill[data-sp-slot]'));
-    var outPass=root.querySelector('[data-sp-pass-out]');
-    var outGuest=root.querySelector('[data-sp-guest-out]');
-    var outSlot=root.querySelector('[data-sp-slot-out]');
-    var outTotal=root.querySelector('[data-sp-total]');
-    var pIdx=0,gCnt=1,sIdx=0;
+    if(root.hasAttribute('data-ready'))return;
+    var groups=Array.prototype.slice.call(root.querySelectorAll('[data-sp-choice]')).map(function(el){
+      return {key:el.getAttribute('data-sp-choice'),select:el.querySelector('select'),buttons:Array.prototype.slice.call(el.querySelectorAll('[data-sp-value]'))};
+    }).filter(function(g){return g.select;});
+    root.setAttribute('data-ready','');
+    var totalEl=root.querySelector('[data-sp-total]');
     function sync(){
-      passes.forEach(function(b,i){b.setAttribute('aria-pressed',i===pIdx?'true':'false');});
-      guests.forEach(function(b){b.setAttribute('aria-pressed',parseInt(b.getAttribute('data-sp-guests')||'1',10)===gCnt?'true':'false');});
-      slots.forEach(function(b,i){b.setAttribute('aria-pressed',i===sIdx?'true':'false');});
-      var pEl=passes[pIdx];
-      if(pEl){
-        var nm=pEl.getAttribute('data-name')||'';
-        var unit=parseFloat(pEl.getAttribute('data-price')||'0');
-        var fixed=pEl.getAttribute('data-fixed')==='1';
-        var total=fixed?unit:unit*gCnt;
-        if(outPass)outPass.textContent=nm;
-        if(outTotal)outTotal.textContent=sym+(total%1?total.toFixed(2):total);
+      var price=NaN,fixed=false,guests=1;
+      groups.forEach(function(g){
+        g.buttons.forEach(function(b){
+          var on=b.getAttribute('data-sp-value')===g.select.value;
+          b.setAttribute('aria-pressed',on?'true':'false');
+          b.disabled=g.select.disabled;
+          if(on&&g.key==='service'){price=parseFloat(b.getAttribute('data-price'));fixed=b.getAttribute('data-fixed')==='1';}
+        });
+        if(g.key==='guests')guests=parseInt(g.select.value,10)||1;
+        var out=root.querySelector('[data-sp-out="'+g.key+'"]');
+        if(out)out.textContent=g.select.value;
+      });
+      if(totalEl){
+        var total=fixed?price:price*guests;
+        totalEl.textContent=isFinite(total)?totalEl.getAttribute('data-sym')+(total%1?total.toFixed(2):total):'\u2014';
       }
-      if(outGuest)outGuest.textContent=gCnt+(gCnt===1?' Guest':' Guests');
-      if(slots[sIdx]&&outSlot)outSlot.textContent=slots[sIdx].getAttribute('data-sp-slot')||'';
     }
     var offs=[];
-    passes.forEach(function(b,i){
-      function fn(){pIdx=i;sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
+    groups.forEach(function(g){
+      g.select.setAttribute('tabindex','-1');
+      g.select.addEventListener('change',sync);
+      offs.push(function(){g.select.removeEventListener('change',sync);g.select.removeAttribute('tabindex');});
+      g.buttons.forEach(function(b){
+        function pick(){
+          g.select.value=b.getAttribute('data-sp-value');
+          g.select.dispatchEvent(new Event('input',{bubbles:true}));
+          g.select.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+        b.addEventListener('click',pick);
+        offs.push(function(){b.removeEventListener('click',pick);});
+      });
     });
-    guests.forEach(function(b){
-      function fn(){gCnt=parseInt(b.getAttribute('data-sp-guests')||'1',10);sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
-    });
-    slots.forEach(function(b,i){
-      function fn(){sIdx=i;sync();}
-      b.addEventListener('click',fn);
-      offs.push(function(){b.removeEventListener('click',fn);});
-    });
+    function onShow(){sync();}
+    window.addEventListener('pageshow',onShow);
+    offs.push(function(){window.removeEventListener('pageshow',onShow);});
     sync();
     disposers.push(function(){
       offs.forEach(function(off){off();});
-      root.removeAttribute('data-pc-sp-ready');
+      root.removeAttribute('data-ready');
     });
   });
   if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
@@ -8006,7 +7989,7 @@ var DEF = {
     }
   },
   tiers: {
-    label: "Currency tiers",
+    label: "Pricing table",
     icon: "tiers",
     level: 4,
     caps: ["spacing", "decoration", "effects", "animation"],
@@ -8136,18 +8119,22 @@ var DEF = {
     }
   },
   dockbar: {
-    label: "Docked intake bar",
+    label: "Docked bar",
     icon: "dockbar",
     level: 4,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
-        submitLabel: "Continue",
-        destHref: "",
-        ariaLabel: "Quick form",
-        items: [
-          { fieldLabel: "Name", fieldType: "text", ph: "Your name", choices: "" },
-          { fieldLabel: "Topic", fieldType: "select", ph: "", choices: "General, Booking, Support" }
+        mode: "external",
+        action: "",
+        method: "post",
+        submit: "Send",
+        aria: "Quick form",
+        success: "",
+        fields: [
+          { type: "text", label: "Name", name: "name", required: 1, ph: "Your name" },
+          { type: "email", label: "Email", name: "email", required: 1, ph: "you@example.com" },
+          { type: "select", label: "Topic", name: "topic", required: 0, opts: "General, Booking, Support" }
         ]
       },
       css: {
@@ -8167,21 +8154,13 @@ var DEF = {
     }),
     controls: {
       content: [
-        { t: "text", k: "submitLabel", label: "Submit button", ph: "Continue" },
-        { t: "link", k: "destHref", label: "Destination page" },
-        { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick form" },
-        {
-          t: "qa",
-          k: "items",
-          label: "Fields",
-          addLabel: "Add field",
-          rowFields: [
-            { k: "fieldLabel", label: "Field label", ph: "Name", def: "Field" },
-            { k: "fieldType", label: "Type", def: "text", opts: [["text", "Text"], ["select", "Dropdown"]] },
-            { k: "ph", label: "Placeholder", ph: "Enter value", def: "" },
-            { k: "choices", label: "Select options (comma-separated)", ph: "Option A, Option B", def: "" }
-          ]
-        }
+        { t: "fields", k: "fields", label: "Fields" },
+        { t: "text", k: "submit", label: "Button label", ph: "Send" },
+        { t: "area", k: "success", label: "Confirmation message", ph: "Thank you. Your submission has been received." },
+        { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+        { t: "text", k: "action", label: "Where submissions go", ph: "Paste an HTTPS destination", note: "Paste your service\u2019s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.", when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
+        { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
+        { t: "text", k: "aria", label: "Accessible name", ph: "Quick form" }
       ],
       style: [
         { t: "color", c: "--db-accent", label: "Button & focus accent", r: 1, layout: "inline" },
@@ -8292,25 +8271,42 @@ var DEF = {
     }
   },
   slotpicker: {
-    label: "Slot picker",
+    label: "Booking request",
     icon: "slotpicker",
     level: 4,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
-        currencySymbol: "\u20AC",
-        timeSlots: "09:00, 12:00, 15:00",
+        mode: "external",
+        action: "",
+        method: "post",
+        submit: "Request booking",
+        aria: "Booking request",
+        success: "",
+        note: "We will confirm your booking by email.",
+        currencySymbol: "$",
+        showPrices: 1,
+        showTotal: 1,
+        showGuests: 1,
+        maxGuests: "4",
+        showTimes: 1,
         passHeading: "Choose a service",
         guestHeading: "Guests",
         slotHeading: "Preferred time",
-        summaryTitle: "Your selection",
-        confirmLabel: "Continue",
-        confirmHref: "",
-        phoneNote: "",
+        contactHeading: "Your details",
+        serviceLabel: "Service",
+        guestLabel: "Guests",
+        timeLabel: "Time",
+        summaryTitle: "Your request",
+        totalLabel: "Estimated total",
+        perGuestLabel: "/ guest",
+        fixedLabel: "total",
         passes: [
           { passName: "First service", passMeta: "", unitPrice: "50", fixedTotal: 0 },
           { passName: "Second service", passMeta: "", unitPrice: "80", fixedTotal: 0 }
-        ]
+        ],
+        slots: [{ time: "09:00" }, { time: "12:00" }, { time: "15:00" }],
+        fields: bookingContactFields()
       },
       css: {
         d: {
@@ -8329,27 +8325,51 @@ var DEF = {
     }),
     controls: {
       content: [
-        { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
-        { t: "text", k: "timeSlots", label: "Time slots (comma-separated)", ph: "09:00, 12:00, 16:00" },
-        { t: "text", k: "passHeading", label: "Services heading", ph: "Choose a service" },
-        { t: "text", k: "guestHeading", label: "Guests heading", ph: "Guests" },
-        { t: "text", k: "slotHeading", label: "Times heading", ph: "Preferred time" },
-        { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your selection" },
-        { t: "text", k: "confirmLabel", label: "Confirm button", ph: "Continue \u2192" },
-        { t: "link", k: "confirmHref", label: "Confirm link" },
-        { t: "text", k: "phoneNote", label: "Policy note", ph: "Free 24h rescheduling" },
         {
           t: "qa",
           k: "passes",
-          label: "Passes / services",
-          addLabel: "Add pass",
+          label: "Services",
+          addLabel: "Add service",
           rowFields: [
-            { k: "passName", label: "Pass name", ph: "90-Min Circuit", def: "New pass" },
-            { k: "passMeta", label: "Included note", ph: "90 min \xB7 robes included", def: "" },
-            { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" },
+            { k: "passName", label: "Name", ph: "Service name", def: "New service" },
+            { k: "passMeta", label: "Note", ph: "What is included", def: "" },
+            { k: "unitPrice", label: "Price", ph: "50", def: "50" },
             { k: "fixedTotal", label: "One price for the whole party", toggle: 1 }
           ]
-        }
+        },
+        { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "$" },
+        { t: "toggle", k: "showPrices", label: "Show prices" },
+        { t: "toggle", k: "showTotal", label: "Show and save an estimated total" },
+        { t: "toggle", k: "showGuests", label: "Ask for guests" },
+        { t: "unit", k: "maxGuests", label: "Most guests", integer: 1, min: 1, max: 50, units: [""], when: (n) => Number(n.props.showGuests) !== 0 },
+        { t: "toggle", k: "showTimes", label: "Ask for a time" },
+        {
+          t: "qa",
+          k: "slots",
+          label: "Available times",
+          addLabel: "Add time",
+          when: (n) => Number(n.props.showTimes) !== 0,
+          rowFields: [{ k: "time", label: "Time", ph: "09:00", def: "10:00" }]
+        },
+        { t: "fields", k: "fields", label: "Contact fields" },
+        { t: "text", k: "submit", label: "Button label", ph: "Request booking" },
+        { t: "area", k: "note", label: "Note under the button", ph: "We will confirm your booking by email." },
+        { t: "area", k: "success", label: "Confirmation message", ph: "Thank you. Your submission has been received." },
+        { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+        { t: "text", k: "action", label: "Where submissions go", ph: "Paste an HTTPS destination", note: "Paste your service\u2019s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.", when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
+        { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
+        { t: "text", k: "passHeading", label: "Services heading", ph: "Choose a service" },
+        { t: "text", k: "guestHeading", label: "Guests heading", ph: "Guests" },
+        { t: "text", k: "slotHeading", label: "Times heading", ph: "Preferred time" },
+        { t: "text", k: "contactHeading", label: "Contact heading", ph: "Your details" },
+        { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your request" },
+        { t: "text", k: "serviceLabel", label: "Service label", ph: "Service" },
+        { t: "text", k: "guestLabel", label: "Guests label", ph: "Guests" },
+        { t: "text", k: "timeLabel", label: "Time label", ph: "Time" },
+        { t: "text", k: "totalLabel", label: "Total label", ph: "Estimated total" },
+        { t: "text", k: "perGuestLabel", label: "Price per guest label", ph: "/ guest" },
+        { t: "text", k: "fixedLabel", label: "Single price label", ph: "total" },
+        { t: "text", k: "aria", label: "Accessible name", ph: "Booking request" }
       ],
       style: [
         { t: "color", c: "--sp-accent", label: "Selected accent", r: 1, layout: "inline" },
@@ -8855,10 +8875,12 @@ var nameOf = (n) => {
   if (n.type === "roster") return `Roster \xB7 ${(n.props.items || []).length} member${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "tiers") return `Tiers \xB7 ${(n.props.items || []).length} plan${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "qapills") return `Q&A pills \xB7 ${(n.props.items || []).length} item${(n.props.items || []).length === 1 ? "" : "s"}`;
-  if (n.type === "dockbar") return `Docked bar \xB7 ${(n.props.items || []).length} field${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "dockbar" || n.type === "slotpicker") {
+    const count = formFieldsOf(n.type, n.props).length;
+    return `${n.type === "dockbar" ? "Docked bar" : "Booking request"} \xB7 ${count} field${count === 1 ? "" : "s"}`;
+  }
   if (n.type === "arches") return `Arches \xB7 ${(n.props.items || []).length} frame${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "chapters") return `Chapters \xB7 ${(n.props.chapters || []).length} scene${(n.props.chapters || []).length === 1 ? "" : "s"}`;
-  if (n.type === "slotpicker") return `Slot picker \xB7 ${(n.props.passes || []).length} pass${(n.props.passes || []).length === 1 ? "" : "es"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -9862,6 +9884,71 @@ function buildLink(o) {
 function formFieldName(field, index) {
   return String(field && field.name || "").trim() || slugify(field && field.label) || "field-" + (index + 1);
 }
+var FORM_TYPES = ["form", "dockbar", "slotpicker"];
+var isFormType = (type) => FORM_TYPES.includes(type);
+var choiceValues = (values) => [...new Set(values.map((value) => String(value ?? "").replace(/\s*,\s*/g, " ").trim()).filter(Boolean))];
+function normalizeFormBlock(type, props) {
+  if (type === "dockbar") {
+    if (!Array.isArray(props.fields) && Array.isArray(props.items)) props.fields = props.items.filter(Boolean).map((item) => ({
+      type: item.fieldType === "select" && String(item.choices || "").trim() ? "select" : "text",
+      label: String(item.fieldLabel || "Field"),
+      name: "",
+      required: 0,
+      ...item.fieldType === "select" ? { opts: String(item.choices || "") } : { ph: String(item.ph || "") }
+    }));
+    if (props.submit === void 0 && props.submitLabel !== void 0) props.submit = props.submitLabel;
+    if (props.aria === void 0 && props.ariaLabel !== void 0) props.aria = props.ariaLabel;
+    ["items", "submitLabel", "ariaLabel", "destHref"].forEach((key) => delete props[key]);
+  }
+  if (type === "slotpicker") {
+    if (!Array.isArray(props.slots) && props.timeSlots !== void 0) props.slots = String(props.timeSlots).split(",").map((time) => ({ time: time.trim() })).filter((slot) => slot.time);
+    if (props.submit === void 0 && props.confirmLabel !== void 0) props.submit = props.confirmLabel;
+    if (props.note === void 0 && props.phoneNote !== void 0) props.note = props.phoneNote;
+    ["timeSlots", "confirmLabel", "confirmHref", "phoneNote"].forEach((key) => delete props[key]);
+    if (!Array.isArray(props.fields)) props.fields = bookingContactFields();
+  }
+  return props;
+}
+var bookingContactFields = () => [
+  { type: "date", label: "Date", name: "date", required: 1, ph: "" },
+  { type: "text", label: "Name", name: "name", required: 1, ph: "" },
+  { type: "email", label: "Email", name: "email", required: 1, ph: "" }
+];
+var formBlockProps = (type, props) => type === "form" ? props : normalizeFormBlock(type, { ...props });
+function bookingChoices(source) {
+  const p = formBlockProps("slotpicker", source);
+  const on = (value) => value === void 0 || Number(value) === 1 || value === true;
+  const choices = [];
+  const services = choiceValues((Array.isArray(p.passes) ? p.passes : []).map((pass) => pass?.passName));
+  if (services.length) choices.push({ key: "service", label: String(p.serviceLabel || "Service"), heading: String(p.passHeading ?? "Choose a service"), values: services });
+  const max = Math.max(1, Math.min(50, Math.round(Number(p.maxGuests) || 2)));
+  if (on(p.showGuests)) choices.push({ key: "guests", label: String(p.guestLabel || "Guests"), heading: String(p.guestHeading ?? "Guests"), values: Array.from({ length: max }, (_, k) => String(k + 1)) });
+  const times = choiceValues((Array.isArray(p.slots) ? p.slots : []).map((slot) => slot?.time));
+  if (on(p.showTimes) && times.length) choices.push({ key: "time", label: String(p.timeLabel || "Time"), heading: String(p.slotHeading ?? "Preferred time"), values: times });
+  return choices;
+}
+var bookingMoney = (value) => Number.isInteger(value) ? String(value) : value.toFixed(2);
+function bookingTotal(source, service, guests) {
+  const p = formBlockProps("slotpicker", source);
+  if (p.showTotal !== void 0 && !Number(p.showTotal)) return "";
+  const pass = (Array.isArray(p.passes) ? p.passes : []).find((item) => choiceValues([item?.passName])[0] === service);
+  const price = parseFloat(String(pass?.unitPrice ?? ""));
+  if (!pass || !Number.isFinite(price)) return "";
+  const party = Number(pass.fixedTotal) ? 1 : Math.max(1, parseInt(guests, 10) || 1);
+  return String(p.currencySymbol ?? "\u20AC") + bookingMoney(price * party);
+}
+function formFieldsOf(type, source) {
+  const p = formBlockProps(type, source);
+  const own = Array.isArray(p.fields) ? p.fields : [];
+  if (type !== "slotpicker") return own;
+  return [...bookingChoices(p).map((choice) => ({
+    type: "select",
+    label: choice.label,
+    name: "booking-" + choice.key,
+    required: 1,
+    opts: choice.values.join(",")
+  })), ...own];
+}
 function formFixedQuery(handling, fields) {
   if (handling.kind !== "external" || handling.method !== "get") return [];
   const authoredNames = new Set(fields.map(formFieldName));
@@ -10713,8 +10800,8 @@ function lint() {
       }
       if (n.type === "heading" && !n.use && HEADING_TAGS.test(String(n.props.level || "")))
         headings.push({ level: +String(n.props.level)[1], node: n, region });
-      if (n.type === "form") {
-        const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
+      if (isFormType(n.type)) {
+        const fields = formFieldsOf(n.type, n.props);
         const handling = resolveFormHandling(n.props, n.id);
         if (handling.reason === "missing")
           add(handling.method === "get" ? "warn" : "error", "form-no-action", `A form in the ${region} has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.`, w, n.id);
@@ -10732,7 +10819,9 @@ function lint() {
           ["--f-text", "--f-bg", "Text typed into the fields"],
           ["--f-btn-fg", "--f-btn-bg", "The submit button label"]
         ];
-        contrastPairs.forEach(([fgProp, bgProp, what]) => {
+        if (n.type === "slotpicker" && !fields.some((fl) => fl.type === "email" || fl.type === "tel"))
+          add("warn", "booking-no-reply", `A booking request in the ${region} asks for no email or phone, so there is no way to answer it.`, w, n.id);
+        if (n.type === "form") contrastPairs.forEach(([fgProp, bgProp, what]) => {
           const misses = [];
           ["d", "t", "m"].forEach((bp) => {
             let behind = "";
@@ -11470,10 +11559,10 @@ var TEXT_SLOTS = {
   roster: [["items", "name", "role", "seat", "credential", "quote", "linkLabel", "alt"]],
   tiers: ["usdLabel", "eurLabel", "gbpLabel", ["items", "tierName", "badge", "priceUsd", "priceEur", "priceGbp", "period", "summary", "features", "ctaText"]],
   qapills: [["items", "q", "a", "note", "linkLabel"]],
-  dockbar: ["submitLabel", "ariaLabel", ["items", "fieldLabel", "ph", "choices"]],
+  dockbar: ["submit", "aria", "success", ["fields", "label", "ph"]],
   arches: [["items", "alt", "caption"]],
   chapters: [["chapters", "chapterTitle", "chapterSub", "overlayText", "alt"]],
-  slotpicker: ["currencySymbol", "timeSlots", "confirmLabel", "summaryTitle", "phoneNote", ["passes", "passName", "passMeta", "unitPrice"]]
+  slotpicker: ["currencySymbol", "submit", "aria", "success", "note", "summaryTitle", "passHeading", "guestHeading", "slotHeading", "contactHeading", "serviceLabel", "guestLabel", "timeLabel", "totalLabel", "perGuestLabel", "fixedLabel", ["passes", "passName", "passMeta", "unitPrice"], ["slots", "time"], ["fields", "label", "ph"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -12229,7 +12318,6 @@ var animUsed = (lists) => {
 };
 var ANIM_EDGE = `html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}`;
 var ANIM_CALM = `@media (prefers-reduced-motion:reduce){.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}` + ANIM_EDGE;
-var OWN_LINK_PROP = { dockbar: "destHref", slotpicker: "confirmHref" };
 function relink(from, to) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -12256,8 +12344,6 @@ function relink(from, to) {
       if (vals[k]) vals[k] = swap2(vals[k]);
     });
     if (p.link !== void 0) p.link = swap2(p.link);
-    const own = OWN_LINK_PROP[node.type];
-    if (own && p[own] !== void 0) p[own] = swap2(p[own]);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       p.items.forEach((it) => {
         if (it.href !== void 0) it.href = swap2(it.href);
@@ -13834,6 +13920,9 @@ function migrate(d) {
     if (!n || n.type !== "form") return;
     n.props = n.props || {};
     if (n.props.mode !== "wordpress") n.props.mode = "external";
+  });
+  everyNode((n) => {
+    if (n && n.props && (n.type === "dockbar" || n.type === "slotpicker")) normalizeFormBlock(n.type, n.props);
   });
   if (legacyVersion !== void 0 || schemaVersion === void 0) d.v = SCHEMA;
   else delete d.v;
@@ -15457,8 +15546,8 @@ function publicFormControlsUsed(lists) {
   let select = false, date = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
-    if (node.type !== "form") return;
-    const fields = Array.isArray(node.props.fields) ? node.props.fields : [];
+    if (node.type !== "form" && node.type !== "slotpicker") return;
+    const fields = formBlockProps(node.type, node.props).fields || [];
     if (fields.some((field) => field.type === "select")) select = true;
     if (fields.some((field) => field.type === "date")) date = true;
   }));
@@ -16358,8 +16447,8 @@ function renderNode(n, o) {
       if (p.mobileMenu !== "fullscreen" && mobileMenuDefinition({ ...n, props: p })) family.push(root + "-menu-content");
     } else if (n.type === "tabs" && Array.isArray(p.items)) {
       p.items.forEach((_, i) => family.push(root + "-t" + i, root + "-p" + i));
-    } else if (n.type === "form") {
-      if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + "-f" + i));
+    } else if (isFormType(n.type)) {
+      formFieldsOf(n.type, p).forEach((_, i) => family.push(root + "-f" + i));
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "")).action) family.push(root + "-status");
     } else if (n.type === "image" && captionNamesImageLink(p, o)) {
       family.push(root + "-caption");
@@ -16404,7 +16493,7 @@ function renderNode(n, o) {
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : void 0
   } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
-  if (o.formRouting && n.type !== "list" && n.type !== "nav" && n.type !== "form") return "";
+  if (o.formRouting && n.type !== "list" && n.type !== "nav" && !isFormType(n.type)) return "";
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   const blank = p.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
   if (o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
@@ -16567,15 +16656,21 @@ function renderNode(n, o) {
       if (o.formRouting) return "";
       return `<nav ${at()} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
     }
-    case "form": {
-      const fields = Array.isArray(p.fields) ? p.fields : [];
-      const enhancedControls = fields.some((f) => f.type === "date" || f.type === "select");
+    case "form":
+    case "dockbar":
+    case "slotpicker": {
+      const fp = formBlockProps(n.type, p);
+      const fields = formFieldsOf(n.type, fp);
+      const choices = n.type === "slotpicker" ? bookingChoices(fp) : [];
+      const shape = n.type === "dockbar" ? " pagecraft-dockbar" : n.type === "slotpicker" ? " pagecraft-slotpicker" : "";
+      const shapeAttr = n.type === "dockbar" ? " data-dockbar" : n.type === "slotpicker" ? ` data-slotpicker${o.edit ? " data-ready" : ""}` : "";
+      const enhancedControls = n.type !== "dockbar" && fields.slice(choices.length).some((f) => f.type === "date" || f.type === "select");
       const controlsAttr = enhancedControls ? " data-pagecraft-controls" : "";
       const fid = (i) => domId() + "-f" + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
       if (o.formRouting) {
         const observe = (endpoint) => {
-          const handling2 = resolveFormHandling(p, formId, endpoint);
+          const handling2 = resolveFormHandling(fp, formId, endpoint);
           return { ...handling2, fixedQuery: formFixedQuery(handling2, fields) };
         };
         o.formRouting.visit({
@@ -16586,31 +16681,56 @@ function renderNode(n, o) {
         });
         return "";
       }
-      const handling = resolveFormHandling(p, formId);
+      const handling = resolveFormHandling(fp, formId);
       const act = handling.action;
       const disabled = act ? "" : " disabled";
       const getQueryFields = formFixedQuery(handling, fields).map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`).join("");
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
-      const body = fields.map((f, i) => {
+      const drawn = fields.map((f, i) => {
         const name = esc(formFieldName(f, i));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
         const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
         const half = percentWidths ? " field-width-" + width : f.half ? " half" : "";
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ""}</label>`;
+        if (i < choices.length) {
+          const choice = choices[i];
+          const buttons = choice.values.map((value, k) => {
+            const pass = choice.key === "service" ? fp.passes.find((item) => choiceValues([item?.passName])[0] === value) : null;
+            const price = parseFloat(String(pass?.unitPrice ?? ""));
+            const fixed = Number(pass?.fixedTotal) === 1;
+            const guests = choices.some((item) => item.key === "guests");
+            const suffix = fixed ? String(fp.fixedLabel ?? "total") : guests ? String(fp.perGuestLabel ?? "/ guest") : "";
+            const priced = pass && Number.isFinite(price) ? ` data-price="${price}" data-fixed="${fixed ? 1 : 0}"` : "";
+            const state2 = `type="button" data-sp-value="${esc(value)}"${priced} aria-pressed="${k === 0 ? "true" : "false"}"${disabled}`;
+            return pass ? `<button class="pagecraft-sp-pass" ${state2}><span class="pagecraft-sp-pass-name">${esc(value)}</span>` + (pass.passMeta ? `<span class="pagecraft-sp-pass-meta">${esc(String(pass.passMeta))}</span>` : "") + (priced && Number(fp.showPrices ?? 1) ? `<span class="pagecraft-sp-pass-price">${esc(String(fp.currencySymbol ?? "\u20AC"))}${bookingMoney(price)}${suffix ? " " + esc(suffix) : ""}</span>` : "") + `</button>` : `<button class="pagecraft-sp-pill" ${state2}>${esc(value)}</button>`;
+          }).join("");
+          return `<div class="pagecraft-sp-group" data-sp-choice="${choice.key}">` + (choice.heading ? `<p class="pagecraft-sp-step-h" id="${fid(i)}-h">${esc(choice.heading)}</p>` : "") + `<div class="pagecraft-field pagecraft-sp-native">${lab}<select id="${fid(i)}" name="${name}"${req}${disabled}>` + choice.values.map((value) => `<option value="${esc(value)}">${esc(value)}</option>`).join("") + `</select></div><div class="pagecraft-sp-buttons ${choice.key === "service" ? "pagecraft-sp-passes" : "pagecraft-sp-pills"}" role="group" ${choice.heading ? `aria-labelledby="${fid(i)}-h"` : `aria-label="${esc(choice.label)}"`}>${buttons}</div></div>`;
+        }
         if (f.type === "checkbox") return `<div class="pagecraft-field pagecraft-field-check${half}"><input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}><label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
         if (f.type === "textarea") return `<div class="pagecraft-field${half}">${lab}<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph2}${disabled}></textarea></div>`;
-        if (f.type === "select") return `<div class="pagecraft-field${half}">${lab}<select id="${fid(i)}" name="${name}" data-pagecraft-select${req}${disabled}>` + String(f.opts || "").split(",").map((o3) => o3.trim()).filter(Boolean).map((o3) => `<option value="${esc(o3)}">${esc(o3)}</option>`).join("") + `</select></div>`;
-        const dateAttr = f.type === "date" ? " data-pagecraft-date" : "";
+        if (f.type === "select") return `<div class="pagecraft-field${half}">${lab}<select id="${fid(i)}" name="${name}"${n.type === "dockbar" ? "" : " data-pagecraft-select"}${req}${disabled}>` + String(f.opts || "").split(",").map((o3) => o3.trim()).filter(Boolean).map((o3) => `<option value="${esc(o3)}">${esc(o3)}</option>`).join("") + `</select></div>`;
+        const dateAttr = f.type === "date" && n.type !== "dockbar" ? " data-pagecraft-date" : "";
         const dateEdit = f.type === "date" && o.edit ? " readonly" : "";
         return `<div class="pagecraft-field${half}">${lab}<input id="${fid(i)}" name="${name}" type="${esc(f.type || "text")}"${dateAttr}${dateEdit}${req}${ph2}${disabled}></div>`;
-      }).join("");
+      });
+      const statusId = domId() + "-status";
+      const button = `<button type="${act ? "submit" : "button"}" class="pagecraft-form-button"${act ? "" : " disabled"}>${esc(fp.submit || "Send")}</button>`;
+      const trap = handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "";
+      const inert = act ? "" : `<p class="pagecraft-form-status" id="${statusId}">This form is not configured to receive submissions.</p>`;
+      let inside;
+      if (n.type === "slotpicker") {
+        const first = (key) => choices.find((choice) => choice.key === key)?.values[0] || "";
+        const total = bookingTotal(fp, first("service"), first("guests") || "1");
+        const contact = drawn.slice(choices.length).join("");
+        inside = `<div class="pagecraft-sp-steps">` + drawn.slice(0, choices.length).join("") + (contact ? `<div class="pagecraft-sp-group">${fp.contactHeading === "" ? "" : `<p class="pagecraft-sp-step-h">${esc(String(fp.contactHeading ?? "Your details"))}</p>`}<div class="pagecraft-sp-contact${percentWidths ? " pagecraft-sp-percent" : ""}">${contact}</div></div>` : "") + `</div><div class="pagecraft-sp-summary">` + (fp.summaryTitle === "" ? "" : `<h3 class="pagecraft-sp-sum-title">${esc(String(fp.summaryTitle ?? "Your request"))}</h3>`) + (choices.length ? `<div class="pagecraft-sp-rows">` + choices.map((choice) => `<div class="pagecraft-sp-row"><span>${esc(choice.label)}</span><strong data-sp-out="${choice.key}">${esc(choice.values[0])}</strong></div>`).join("") + `</div>` : "") + (total ? `<div class="pagecraft-sp-total-row" aria-live="polite"><span>${esc(String(fp.totalLabel ?? "Estimated total"))}</span><span class="pagecraft-sp-total" data-sp-total data-sym="${esc(String(fp.currencySymbol ?? "\u20AC"))}">${esc(total)}</span></div>` : "") + trap + button + (fp.note ? `<p class="pagecraft-sp-note">${esc(String(fp.note))}</p>` : "") + inert + `</div>`;
+      } else inside = drawn.join("") + trap + button + inert;
+      const classes2 = "pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : "") + shape;
       if (!act) {
-        const status = domId() + "-status";
-        return `<div ${at()} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled${controlsAttr}>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
+        return `<div ${at()} ${cx(classes2)} role="group" aria-label="${esc(fp.aria || "Form")}" aria-describedby="${statusId}" data-disabled${controlsAttr}${shapeAttr}>${inside}</div>`;
       }
       const managed2 = handling.kind === "wordpress" ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at()} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}${controlsAttr}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
+      return `<form ${at()} ${cx(classes2)} aria-label="${esc(fp.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}${controlsAttr}${shapeAttr}>` + getQueryFields + inside + `</form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -17039,23 +17159,6 @@ function renderNode(n, o) {
       }).join("");
       return `<div ${at()} ${cx("pagecraft-qapills")} data-qapills${alignStyle}><div class="pagecraft-qapills-bar" role="tablist" aria-label="Questions">${pills}</div><div class="pagecraft-qapills-stage">${panels}</div></div>`;
     }
-    case "dockbar": {
-      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
-      const aria = String(p.ariaLabel || "Quick intake");
-      const subLbl = String(p.submitLabel || "Continue \u2192");
-      const rawHref = safeUrl(String(p.destHref || "").trim());
-      const dest = rawHref && !o.edit ? pageHref(rawHref, o) : "";
-      const fields = items.map((it, i) => {
-        const lbl = String(it.fieldLabel || `Field ${i + 1}`);
-        const fType = String(it.fieldType || "text").toLowerCase();
-        const ph2 = String(it.ph || "");
-        const opts = String(it.choices || "").split(",").map((x) => x.trim()).filter(Boolean);
-        const control = fType === "select" && opts.length ? `<select class="pagecraft-dockbar-select" name="f_${i}">${opts.map((op) => `<option value="${esc(op)}">${esc(op)}</option>`).join("")}</select>` : `<input class="pagecraft-dockbar-input" type="text" name="f_${i}" placeholder="${esc(ph2)}" autocomplete="off">`;
-        return `<label class="pagecraft-dockbar-field"><span class="pagecraft-dockbar-lbl">${esc(lbl)}</span>${control}</label>`;
-      }).join("");
-      const btn = dest ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>` : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
-      return `<div ${at()} ${cx("pagecraft-dockbar")} data-dockbar><form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form></div>`;
-    }
     case "arches": {
       const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean).slice(0, 5);
       const frames = items.map((it, i) => {
@@ -17086,33 +17189,6 @@ function renderNode(n, o) {
         return `<button type="button" class="pagecraft-chapters-btn" id="${baseId}-ch-b-${i}" role="tab" aria-controls="${baseId}-ch-p-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-ch-btn="${i}"><span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span><span class="pagecraft-chapters-title">${esc(t)}</span>` + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : "") + `</button>`;
       }).join("");
       return `<div ${at()} ${cx("pagecraft-chapters")} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}><div class="pagecraft-chapters-stage">${slides}${autoAttr !== "0" && items.length > 1 && !o.edit ? '<button type="button" class="pagecraft-chapters-pause" data-ch-pause aria-pressed="false" hidden>Pause</button>' : ""}</div><div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div></div>`;
-    }
-    case "slotpicker": {
-      const money = (value) => Number.isInteger(value) ? String(value) : value.toFixed(2);
-      const sym = String(p.currencySymbol || "\u20AC");
-      const slots = String(p.timeSlots || "09:00, 12:00, 16:00").split(",").map((x) => x.trim()).filter(Boolean);
-      const sumTitle = String(p.summaryTitle || "Your reservation");
-      const confLbl = String(p.confirmLabel || "Confirm window \u2192");
-      const rawHref = safeUrl(String(p.confirmHref || "").trim());
-      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : "";
-      const note = String(p.phoneNote || "");
-      const items = (Array.isArray(p.passes) ? p.passes : []).filter(Boolean);
-      const first = items[0] || { passName: "Session", unitPrice: "95", fixedTotal: 0 };
-      const passBtns = items.map((it, i) => {
-        const nm = String(it.passName || `Pass ${i + 1}`);
-        const mt = String(it.passMeta || "");
-        const pr = parseFloat(String(it.unitPrice || "0")) || 0;
-        const fx = Number(it.fixedTotal) === 1 ? "1" : "0";
-        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? "true" : "false"}"><span class="pagecraft-sp-pass-name">${esc(nm)}</span>` + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : "") + `<span class="pagecraft-sp-pass-price">${esc(sym)}${money(pr)}${fx === "1" ? " flat" : " / guest"}</span></button>`;
-      }).join("");
-      const guestBtns = [1, 2].map(
-        (g) => `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? "true" : "false"}">${g} ${g === 1 ? "Guest" : "Guests"}</button>`
-      ).join("");
-      const slotBtns = slots.map(
-        (sl, i) => `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? "true" : "false"}">${esc(sl)}</button>`
-      ).join("");
-      const initPrice = money(parseFloat(String(first.unitPrice || "0")) || 0);
-      return `<div ${at()} ${cx("pagecraft-slotpicker")} data-slotpicker data-sym="${esc(sym)}"><div class="pagecraft-sp-steps"><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.passHeading ?? "Choose immersion pass"))}</p><div class="pagecraft-sp-passes">${passBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.guestHeading ?? "Guests in party"))}</p><div class="pagecraft-sp-pills">${guestBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.slotHeading ?? "Preferred arrival window"))}</p><div class="pagecraft-sp-pills">${slotBtns}</div></div></div><aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}"><h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3><div class="pagecraft-sp-rows"><div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || "Session"))}</strong></div><div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div><div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || "")}</strong></div></div><div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>` + (confHref ? `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` : o.edit ? `<span class="pagecraft-sp-confirm">${esc(confLbl)}</span>` : "") + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : "") + `</aside></div>`;
     }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
@@ -17145,7 +17221,7 @@ function inspectFormRouting(source, visit) {
   while (pending.length && !hasForms) {
     for (const node of pending.pop()) {
       count();
-      if (node.type === "form") {
+      if (isFormType(node.type)) {
         hasForms = true;
         break;
       }
@@ -17628,7 +17704,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-dockbar/.test(body) ? DOCKBAR_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -18135,7 +18211,6 @@ var __CORE = {
   DEV_LABEL,
   DEV_W,
   DOCKBAR_CSS,
-  DOCKBAR_JS,
   EMBED_FRAME_HASH,
   EMBED_FRAME_JS,
   EXHIBIT_CSS,
@@ -18249,6 +18324,7 @@ var __CORE = {
   blockRootType,
   blockSave,
   blocks,
+  bookingTotal,
   boundField,
   boundProps,
   bucket,
@@ -18365,7 +18441,9 @@ var __CORE = {
   fontFaceCss,
   fontFile,
   fontGroups,
+  formBlockProps,
   formFieldName,
+  formFieldsOf,
   gfontsHref,
   gfontsLink,
   grabTypo,
@@ -18397,6 +18475,7 @@ var __CORE = {
   instanceInsert,
   instances,
   isDetailTemplate,
+  isFormType,
   isFront,
   isGoogle,
   isNotFound,
@@ -24544,10 +24623,6 @@ var PC_UI = (() => {
         ["image", "Image"],
         ["gallery", "Gallery"],
         ["compare", "Image compare"],
-        ["hotspot", "Image hotspots"],
-        ["strips", "Expanding strips"],
-        ["exhibit", "Exhibit index"],
-        ["arches", "Fanned arches"],
         ["video", "Video"],
         ["audio", "Audio"],
         ["timeline", "Timeline"],
@@ -24566,22 +24641,47 @@ var PC_UI = (() => {
         ["form", "Form"],
         ["accordion", "Accordion"],
         ["tabs", "Tabs"],
-        ["switcher", "Stage switcher"],
-        ["scrolly", "Sticky steps"],
-        ["clocks", "Office clocks"],
-        ["roster", "Team spotlight"],
-        ["tiers", "Currency tiers"],
-        ["qapills", "Question pills"],
-        ["dockbar", "Docked intake bar"],
-        ["chapters", "Chapter frame"],
-        ["slotpicker", "Slot picker"],
         ["countdown", "Countdown"],
         ["filter", "Tag filter"],
         ["embed", "Embed"]
       ]
     },
+    {
+      /* Built for one job each, so they stay out of the way of the everyday elements above. */
+      g: "Special blocks",
+      items: [
+        ["slotpicker", "Booking request"],
+        ["dockbar", "Docked bar"],
+        ["tiers", "Pricing table"],
+        ["qapills", "Question pills"],
+        ["roster", "Team spotlight"],
+        ["clocks", "Office clocks"],
+        ["hotspot", "Image hotspots"],
+        ["strips", "Expanding strips"],
+        ["switcher", "Stage switcher"],
+        ["scrolly", "Sticky steps"],
+        ["chapters", "Chapter frame"],
+        ["exhibit", "Exhibit index"],
+        ["arches", "Fanned arches"]
+      ]
+    },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
   ];
+  var PURPOSE = {
+    slotpicker: "Visitors choose a service, guests and time, then send a request you confirm.",
+    dockbar: "A short form in one row, for a hero or page top.",
+    tiers: "Plans side by side, with an optional currency switch.",
+    qapills: "A short FAQ with one answer showing at a time.",
+    roster: "Introduce a few people, one large profile at a time.",
+    clocks: "Office addresses with the local time and open hours.",
+    hotspot: "Pins on an image that open short notes.",
+    strips: "Photos that widen when selected.",
+    switcher: "Steps that change a large image and caption.",
+    scrolly: "An image that stays in view and changes as visitors read.",
+    chapters: "A large image sequence that plays by itself, with titles.",
+    exhibit: "A project list that previews an image on hover.",
+    arches: "Up to five photos in a decorative fan of arches."
+  };
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
   var QUICK_ADD_LIMIT = 7;
   function quickAddChoices(query) {
@@ -24624,10 +24724,10 @@ var PC_UI = (() => {
     roster: "team leadership partners spotlight directory members bios",
     tiers: "pricing plans retainers currency switcher usd eur gbp rates",
     qapills: "faq questions pills answers selector help desk",
-    dockbar: "search bar intake booking filter horizontal hero dock",
+    dockbar: "form enquiry intake lead contact bar horizontal hero dock",
     arches: "fanned arc collage arch showcase triptych wellness hero",
     chapters: "cinematic frame chapters story progress showcase",
-    slotpicker: "booking appointment session time slot summary configurator",
+    slotpicker: "booking appointment reservation session time slot form request",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -24675,7 +24775,7 @@ var PC_UI = (() => {
       {
         type: "button",
         class: "pitem",
-        title: L2.insertionHint(k3),
+        title: [PURPOSE[k3], L2.insertionHint(k3)].filter(Boolean).join("\n"),
         onFocus: () => L2.previewInsertion(k3),
         onMouseEnter: () => L2.previewInsertion(k3),
         onBlur: () => L2.previewInsertion(null),
@@ -30250,12 +30350,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var esc7 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   var managedFormsAvailable = () => L2.managedForms();
   function formControlForHost(n2, c3) {
-    if (n2.type !== "form" || c3.k !== "mode" || C2.cloudFormsEnabled() || managedFormsAvailable()) return c3;
+    if (!C2.isFormType(n2.type) || c3.k !== "mode" || C2.cloudFormsEnabled() || managedFormsAvailable()) return c3;
     if (n2.props.mode === "wordpress") return null;
     return { ...c3, opts: [["external", "External HTTPS endpoint"]] };
   }
   function UnsupportedManagedForm({ n: n2 }) {
-    if (n2.type !== "form" || n2.props.mode !== "wordpress" || C2.cloudFormsEnabled() || managedFormsAvailable()) return null;
+    if (!C2.isFormType(n2.type) || n2.props.mode !== "wordpress" || C2.cloudFormsEnabled() || managedFormsAvailable()) return null;
     const useExternal = () => {
       C2.edit(() => {
         n2.props.mode = "external";
@@ -30270,7 +30370,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function Group({ title, n: n2, items, gk, collapsed = false }) {
     const key2 = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key2] === false || C2.state.ui.open[key2] === void 0 && collapsed;
-    const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && c3.k === "mode")).map((c3) => formControlForHost(n2, c3)).filter((c3) => c3 !== null) : null;
+    const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && C2.isFormType(n2.type) && c3.k === "mode")).map((c3) => formControlForHost(n2, c3)).filter((c3) => c3 !== null) : null;
     if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2(Disclosure, { title, open: !closed, onToggle: (open) => {
       C2.state.ui.open[key2] = open;
@@ -31343,7 +31443,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const content = commonControlsFirst(keys2 ? all.filter((c3) => !c3.c && !!c3.k && keys2.has(c3.k)) : all);
     const advanced = advControls(n2);
     const many = C2.selIds().length > 1;
-    const formHandling = n2.type === "form" && C2.cloudFormsEnabled() ? C2.resolveFormHandling(n2.props, n2.id) : null;
+    const formHandling = C2.isFormType(n2.type) && C2.cloudFormsEnabled() ? C2.resolveFormHandling(n2.props, n2.id) : null;
     const inspectorTabs = [["content", "Content"], ["style", "Style"], ["advanced", "Advanced"]];
     const chooseTab = (key2) => {
       C2.state.ui.stab = key2;
@@ -34428,7 +34528,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     },
     tiers: {
-      label: "Currency tiers",
+      label: "Pricing table",
       icon: "tiers",
       level: 4,
       caps: ["spacing", "decoration", "effects", "animation"],
@@ -34558,18 +34658,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     },
     dockbar: {
-      label: "Docked intake bar",
+      label: "Docked bar",
       icon: "dockbar",
       level: 4,
       caps: ["spacing", "decoration", "effects", "animation"],
       make: () => ({
         props: {
-          submitLabel: "Continue",
-          destHref: "",
-          ariaLabel: "Quick form",
-          items: [
-            { fieldLabel: "Name", fieldType: "text", ph: "Your name", choices: "" },
-            { fieldLabel: "Topic", fieldType: "select", ph: "", choices: "General, Booking, Support" }
+          mode: "external",
+          action: "",
+          method: "post",
+          submit: "Send",
+          aria: "Quick form",
+          success: "",
+          fields: [
+            { type: "text", label: "Name", name: "name", required: 1, ph: "Your name" },
+            { type: "email", label: "Email", name: "email", required: 1, ph: "you@example.com" },
+            { type: "select", label: "Topic", name: "topic", required: 0, opts: "General, Booking, Support" }
           ]
         },
         css: {
@@ -34589,21 +34693,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }),
       controls: {
         content: [
-          { t: "text", k: "submitLabel", label: "Submit button", ph: "Continue" },
-          { t: "link", k: "destHref", label: "Destination page" },
-          { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick form" },
-          {
-            t: "qa",
-            k: "items",
-            label: "Fields",
-            addLabel: "Add field",
-            rowFields: [
-              { k: "fieldLabel", label: "Field label", ph: "Name", def: "Field" },
-              { k: "fieldType", label: "Type", def: "text", opts: [["text", "Text"], ["select", "Dropdown"]] },
-              { k: "ph", label: "Placeholder", ph: "Enter value", def: "" },
-              { k: "choices", label: "Select options (comma-separated)", ph: "Option A, Option B", def: "" }
-            ]
-          }
+          { t: "fields", k: "fields", label: "Fields" },
+          { t: "text", k: "submit", label: "Button label", ph: "Send" },
+          { t: "area", k: "success", label: "Confirmation message", ph: "Thank you. Your submission has been received." },
+          { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+          { t: "text", k: "action", label: "Where submissions go", ph: "Paste an HTTPS destination", note: "Paste your service\u2019s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.", when: (n2) => cloudFormsEnabled() || n2.props.mode !== "wordpress" },
+          { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n2) => cloudFormsEnabled() || n2.props.mode !== "wordpress" },
+          { t: "text", k: "aria", label: "Accessible name", ph: "Quick form" }
         ],
         style: [
           { t: "color", c: "--db-accent", label: "Button & focus accent", r: 1, layout: "inline" },
@@ -34714,25 +34810,42 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     },
     slotpicker: {
-      label: "Slot picker",
+      label: "Booking request",
       icon: "slotpicker",
       level: 4,
       caps: ["spacing", "decoration", "effects", "animation"],
       make: () => ({
         props: {
-          currencySymbol: "\u20AC",
-          timeSlots: "09:00, 12:00, 15:00",
+          mode: "external",
+          action: "",
+          method: "post",
+          submit: "Request booking",
+          aria: "Booking request",
+          success: "",
+          note: "We will confirm your booking by email.",
+          currencySymbol: "$",
+          showPrices: 1,
+          showTotal: 1,
+          showGuests: 1,
+          maxGuests: "4",
+          showTimes: 1,
           passHeading: "Choose a service",
           guestHeading: "Guests",
           slotHeading: "Preferred time",
-          summaryTitle: "Your selection",
-          confirmLabel: "Continue",
-          confirmHref: "",
-          phoneNote: "",
+          contactHeading: "Your details",
+          serviceLabel: "Service",
+          guestLabel: "Guests",
+          timeLabel: "Time",
+          summaryTitle: "Your request",
+          totalLabel: "Estimated total",
+          perGuestLabel: "/ guest",
+          fixedLabel: "total",
           passes: [
             { passName: "First service", passMeta: "", unitPrice: "50", fixedTotal: 0 },
             { passName: "Second service", passMeta: "", unitPrice: "80", fixedTotal: 0 }
-          ]
+          ],
+          slots: [{ time: "09:00" }, { time: "12:00" }, { time: "15:00" }],
+          fields: bookingContactFields()
         },
         css: {
           d: {
@@ -34751,27 +34864,51 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }),
       controls: {
         content: [
-          { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
-          { t: "text", k: "timeSlots", label: "Time slots (comma-separated)", ph: "09:00, 12:00, 16:00" },
-          { t: "text", k: "passHeading", label: "Services heading", ph: "Choose a service" },
-          { t: "text", k: "guestHeading", label: "Guests heading", ph: "Guests" },
-          { t: "text", k: "slotHeading", label: "Times heading", ph: "Preferred time" },
-          { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your selection" },
-          { t: "text", k: "confirmLabel", label: "Confirm button", ph: "Continue \u2192" },
-          { t: "link", k: "confirmHref", label: "Confirm link" },
-          { t: "text", k: "phoneNote", label: "Policy note", ph: "Free 24h rescheduling" },
           {
             t: "qa",
             k: "passes",
-            label: "Passes / services",
-            addLabel: "Add pass",
+            label: "Services",
+            addLabel: "Add service",
             rowFields: [
-              { k: "passName", label: "Pass name", ph: "90-Min Circuit", def: "New pass" },
-              { k: "passMeta", label: "Included note", ph: "90 min \xB7 robes included", def: "" },
-              { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" },
+              { k: "passName", label: "Name", ph: "Service name", def: "New service" },
+              { k: "passMeta", label: "Note", ph: "What is included", def: "" },
+              { k: "unitPrice", label: "Price", ph: "50", def: "50" },
               { k: "fixedTotal", label: "One price for the whole party", toggle: 1 }
             ]
-          }
+          },
+          { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "$" },
+          { t: "toggle", k: "showPrices", label: "Show prices" },
+          { t: "toggle", k: "showTotal", label: "Show and save an estimated total" },
+          { t: "toggle", k: "showGuests", label: "Ask for guests" },
+          { t: "unit", k: "maxGuests", label: "Most guests", integer: 1, min: 1, max: 50, units: [""], when: (n2) => Number(n2.props.showGuests) !== 0 },
+          { t: "toggle", k: "showTimes", label: "Ask for a time" },
+          {
+            t: "qa",
+            k: "slots",
+            label: "Available times",
+            addLabel: "Add time",
+            when: (n2) => Number(n2.props.showTimes) !== 0,
+            rowFields: [{ k: "time", label: "Time", ph: "09:00", def: "10:00" }]
+          },
+          { t: "fields", k: "fields", label: "Contact fields" },
+          { t: "text", k: "submit", label: "Button label", ph: "Request booking" },
+          { t: "area", k: "note", label: "Note under the button", ph: "We will confirm your booking by email." },
+          { t: "area", k: "success", label: "Confirmation message", ph: "Thank you. Your submission has been received." },
+          { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+          { t: "text", k: "action", label: "Where submissions go", ph: "Paste an HTTPS destination", note: "Paste your service\u2019s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.", when: (n2) => cloudFormsEnabled() || n2.props.mode !== "wordpress" },
+          { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n2) => cloudFormsEnabled() || n2.props.mode !== "wordpress" },
+          { t: "text", k: "passHeading", label: "Services heading", ph: "Choose a service" },
+          { t: "text", k: "guestHeading", label: "Guests heading", ph: "Guests" },
+          { t: "text", k: "slotHeading", label: "Times heading", ph: "Preferred time" },
+          { t: "text", k: "contactHeading", label: "Contact heading", ph: "Your details" },
+          { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your request" },
+          { t: "text", k: "serviceLabel", label: "Service label", ph: "Service" },
+          { t: "text", k: "guestLabel", label: "Guests label", ph: "Guests" },
+          { t: "text", k: "timeLabel", label: "Time label", ph: "Time" },
+          { t: "text", k: "totalLabel", label: "Total label", ph: "Estimated total" },
+          { t: "text", k: "perGuestLabel", label: "Price per guest label", ph: "/ guest" },
+          { t: "text", k: "fixedLabel", label: "Single price label", ph: "total" },
+          { t: "text", k: "aria", label: "Accessible name", ph: "Booking request" }
         ],
         style: [
           { t: "color", c: "--sp-accent", label: "Selected accent", r: 1, layout: "inline" },
@@ -35084,6 +35221,33 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ]
     };
   }
+  function normalizeFormBlock(type, props) {
+    if (type === "dockbar") {
+      if (!Array.isArray(props.fields) && Array.isArray(props.items)) props.fields = props.items.filter(Boolean).map((item) => ({
+        type: item.fieldType === "select" && String(item.choices || "").trim() ? "select" : "text",
+        label: String(item.fieldLabel || "Field"),
+        name: "",
+        required: 0,
+        ...item.fieldType === "select" ? { opts: String(item.choices || "") } : { ph: String(item.ph || "") }
+      }));
+      if (props.submit === void 0 && props.submitLabel !== void 0) props.submit = props.submitLabel;
+      if (props.aria === void 0 && props.ariaLabel !== void 0) props.aria = props.ariaLabel;
+      ["items", "submitLabel", "ariaLabel", "destHref"].forEach((key2) => delete props[key2]);
+    }
+    if (type === "slotpicker") {
+      if (!Array.isArray(props.slots) && props.timeSlots !== void 0) props.slots = String(props.timeSlots).split(",").map((time) => ({ time: time.trim() })).filter((slot) => slot.time);
+      if (props.submit === void 0 && props.confirmLabel !== void 0) props.submit = props.confirmLabel;
+      if (props.note === void 0 && props.phoneNote !== void 0) props.note = props.phoneNote;
+      ["timeSlots", "confirmLabel", "confirmHref", "phoneNote"].forEach((key2) => delete props[key2]);
+      if (!Array.isArray(props.fields)) props.fields = bookingContactFields();
+    }
+    return props;
+  }
+  var bookingContactFields = () => [
+    { type: "date", label: "Date", name: "date", required: 1, ph: "" },
+    { type: "text", label: "Name", name: "name", required: 1, ph: "" },
+    { type: "email", label: "Email", name: "email", required: 1, ph: "" }
+  ];
   function tgtObj(n2) {
     const id = state.ui.target;
     const c3 = id ? findClass(id) : null;
@@ -35440,6 +35604,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!n2 || n2.type !== "form") return;
       n2.props = n2.props || {};
       if (n2.props.mode !== "wordpress") n2.props.mode = "external";
+    });
+    everyNode((n2) => {
+      if (n2 && n2.props && (n2.type === "dockbar" || n2.type === "slotpicker")) normalizeFormBlock(n2.type, n2.props);
     });
     if (legacyVersion !== void 0 || schemaVersion === void 0) d3.v = SCHEMA;
     else delete d3.v;
@@ -38533,7 +38700,6 @@ function runPreviewRuntime(html, editing = false) {
     [/data-roster/.test(html), ROSTER_JS],
     [/data-tiers/.test(html), TIERS_JS],
     [/data-qapills/.test(html), QAPILLS_JS],
-    [/data-dockbar/.test(html), DOCKBAR_JS],
     [/data-chapters/.test(html), CHAPTERS_JS],
     [/data-slotpicker/.test(html), SLOTPICKER_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]

@@ -1,7 +1,7 @@
 # QA Report — MASUDA / 04 — Sabae Titanium Eyewear (`masuda-optical@1.0.0`)
 
-- **Package Archive**: `site.pagecraft-site.zip` (`2627834` bytes)
-- **Package SHA-256**: `0d2f2cc7104ad9a112be239799d71bf06e696d14625c11f7c90c942d6d9a4838`
+- **Package Archive**: `site.pagecraft-site.zip` (`2627884` bytes)
+- **Package SHA-256**: `8c020032d60fabec8ddf6379ef9c9ace2804b6026126a4a3629b0b785f98ddac`
 - **Custom CSS Policy**: `native-only` (`meta.css = ""`, `meta.headHtml = ""`)
 - **Pages (4)**: `index.html` (6 sections), `frames.html` (4 sections), `fitting.html` (4 sections), `boutiques.html` (4 sections)
 - **Bundled Assets**: `28` original assets (15 vector SVGs + 13 WebP photographs)

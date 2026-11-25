@@ -36,7 +36,7 @@ import {
   MARQUEE_CSS, FILTER_CSS, FILTER_JS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS,
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
-  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS,
+  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
 } from './extra-widgets.ts';
 
@@ -1900,7 +1900,7 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   tiers: {
-    label: 'Currency tiers', icon: 'tiers', level: 4,
+    label: 'Pricing table', icon: 'tiers', level: 4,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
@@ -2004,14 +2004,15 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   dockbar: {
-    label: 'Docked intake bar', icon: 'dockbar', level: 4,
+    label: 'Docked bar', icon: 'dockbar', level: 4,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
-        submitLabel: 'Continue', destHref: '', ariaLabel: 'Quick form',
-        items: [
-          { fieldLabel: 'Name', fieldType: 'text', ph: 'Your name', choices: '' },
-          { fieldLabel: 'Topic', fieldType: 'select', ph: '', choices: 'General, Booking, Support' }
+        mode: 'external', action: '', method: 'post', submit: 'Send', aria: 'Quick form', success: '',
+        fields: [
+          { type: 'text', label: 'Name', name: 'name', required: 1, ph: 'Your name' },
+          { type: 'email', label: 'Email', name: 'email', required: 1, ph: 'you@example.com' },
+          { type: 'select', label: 'Topic', name: 'topic', required: 0, opts: 'General, Booking, Support' }
         ]
       },
       css: {
@@ -2025,18 +2026,13 @@ const DEF: Record<string, WidgetDef> = {
     }),
     controls: {
       content: [
-        { t: 'text', k: 'submitLabel', label: 'Submit button', ph: 'Continue' },
-        { t: 'link', k: 'destHref', label: 'Destination page' },
-        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Quick form' },
-        {
-          t: 'qa', k: 'items', label: 'Fields', addLabel: 'Add field',
-          rowFields: [
-            { k: 'fieldLabel', label: 'Field label', ph: 'Name', def: 'Field' },
-            { k: 'fieldType', label: 'Type', def: 'text', opts: [['text', 'Text'], ['select', 'Dropdown']] },
-            { k: 'ph', label: 'Placeholder', ph: 'Enter value', def: '' },
-            { k: 'choices', label: 'Select options (comma-separated)', ph: 'Option A, Option B', def: '' }
-          ]
-        }
+        { t: 'fields', k: 'fields', label: 'Fields' },
+        { t: 'text', k: 'submit', label: 'Button label', ph: 'Send' },
+        { t: 'area', k: 'success', label: 'Confirmation message', ph: 'Thank you. Your submission has been received.' },
+        { t: 'select', k: 'mode', label: 'Handling', opts: [['external', 'External HTTPS endpoint'], ['wordpress', 'WordPress managed']] },
+        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'Paste an HTTPS destination', note: 'Paste your service’s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.', when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'select', k: 'method', label: 'Method', layout: 'inline', opts: [['post', 'POST'], ['get', 'GET']], when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Quick form' }
       ],
       style: [
         { t: 'color', c: '--db-accent', label: 'Button & focus accent', r: 1, layout: 'inline' },
@@ -2132,21 +2128,22 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   slotpicker: {
-    label: 'Slot picker', icon: 'slotpicker', level: 4,
+    label: 'Booking request', icon: 'slotpicker', level: 4,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
-        currencySymbol: '€',
-        timeSlots: '09:00, 12:00, 15:00',
-        passHeading: 'Choose a service', guestHeading: 'Guests', slotHeading: 'Preferred time',
-        summaryTitle: 'Your selection',
-        confirmLabel: 'Continue',
-        confirmHref: '',
-        phoneNote: '',
+        mode: 'external', action: '', method: 'post', submit: 'Request booking', aria: 'Booking request',
+        success: '', note: 'We will confirm your booking by email.',
+        currencySymbol: '$', showPrices: 1, showTotal: 1, showGuests: 1, maxGuests: '4', showTimes: 1,
+        passHeading: 'Choose a service', guestHeading: 'Guests', slotHeading: 'Preferred time', contactHeading: 'Your details',
+        serviceLabel: 'Service', guestLabel: 'Guests', timeLabel: 'Time',
+        summaryTitle: 'Your request', totalLabel: 'Estimated total', perGuestLabel: '/ guest', fixedLabel: 'total',
         passes: [
           { passName: 'First service', passMeta: '', unitPrice: '50', fixedTotal: 0 },
           { passName: 'Second service', passMeta: '', unitPrice: '80', fixedTotal: 0 }
-        ]
+        ],
+        slots: [{ time: '09:00' }, { time: '12:00' }, { time: '15:00' }],
+        fields: bookingContactFields()
       },
       css: {
         d: {
@@ -2159,24 +2156,44 @@ const DEF: Record<string, WidgetDef> = {
     }),
     controls: {
       content: [
-        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
-        { t: 'text', k: 'timeSlots', label: 'Time slots (comma-separated)', ph: '09:00, 12:00, 16:00' },
+        {
+          t: 'qa', k: 'passes', label: 'Services', addLabel: 'Add service',
+          rowFields: [
+            { k: 'passName', label: 'Name', ph: 'Service name', def: 'New service' },
+            { k: 'passMeta', label: 'Note', ph: 'What is included', def: '' },
+            { k: 'unitPrice', label: 'Price', ph: '50', def: '50' },
+            { k: 'fixedTotal', label: 'One price for the whole party', toggle: 1 }
+          ]
+        },
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '$' },
+        { t: 'toggle', k: 'showPrices', label: 'Show prices' },
+        { t: 'toggle', k: 'showTotal', label: 'Show and save an estimated total' },
+        { t: 'toggle', k: 'showGuests', label: 'Ask for guests' },
+        { t: 'unit', k: 'maxGuests', label: 'Most guests', integer: 1, min: 1, max: 50, units: [''], when: n => Number((n.props as PropBag).showGuests) !== 0 },
+        { t: 'toggle', k: 'showTimes', label: 'Ask for a time' },
+        {
+          t: 'qa', k: 'slots', label: 'Available times', addLabel: 'Add time', when: n => Number((n.props as PropBag).showTimes) !== 0,
+          rowFields: [{ k: 'time', label: 'Time', ph: '09:00', def: '10:00' }]
+        },
+        { t: 'fields', k: 'fields', label: 'Contact fields' },
+        { t: 'text', k: 'submit', label: 'Button label', ph: 'Request booking' },
+        { t: 'area', k: 'note', label: 'Note under the button', ph: 'We will confirm your booking by email.' },
+        { t: 'area', k: 'success', label: 'Confirmation message', ph: 'Thank you. Your submission has been received.' },
+        { t: 'select', k: 'mode', label: 'Handling', opts: [['external', 'External HTTPS endpoint'], ['wordpress', 'WordPress managed']] },
+        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'Paste an HTTPS destination', note: 'Paste your service’s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.', when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'select', k: 'method', label: 'Method', layout: 'inline', opts: [['post', 'POST'], ['get', 'GET']], when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
         { t: 'text', k: 'passHeading', label: 'Services heading', ph: 'Choose a service' },
         { t: 'text', k: 'guestHeading', label: 'Guests heading', ph: 'Guests' },
         { t: 'text', k: 'slotHeading', label: 'Times heading', ph: 'Preferred time' },
-        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your selection' },
-        { t: 'text', k: 'confirmLabel', label: 'Confirm button', ph: 'Continue →' },
-        { t: 'link', k: 'confirmHref', label: 'Confirm link' },
-        { t: 'text', k: 'phoneNote', label: 'Policy note', ph: 'Free 24h rescheduling' },
-        {
-          t: 'qa', k: 'passes', label: 'Passes / services', addLabel: 'Add pass',
-          rowFields: [
-            { k: 'passName', label: 'Pass name', ph: '90-Min Circuit', def: 'New pass' },
-            { k: 'passMeta', label: 'Included note', ph: '90 min · robes included', def: '' },
-            { k: 'unitPrice', label: 'Numeric price', ph: '95', def: '95' },
-            { k: 'fixedTotal', label: 'One price for the whole party', toggle: 1 }
-          ]
-        }
+        { t: 'text', k: 'contactHeading', label: 'Contact heading', ph: 'Your details' },
+        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your request' },
+        { t: 'text', k: 'serviceLabel', label: 'Service label', ph: 'Service' },
+        { t: 'text', k: 'guestLabel', label: 'Guests label', ph: 'Guests' },
+        { t: 'text', k: 'timeLabel', label: 'Time label', ph: 'Time' },
+        { t: 'text', k: 'totalLabel', label: 'Total label', ph: 'Estimated total' },
+        { t: 'text', k: 'perGuestLabel', label: 'Price per guest label', ph: '/ guest' },
+        { t: 'text', k: 'fixedLabel', label: 'Single price label', ph: 'total' },
+        { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Booking request' }
       ],
       style: [
         { t: 'color', c: '--sp-accent', label: 'Selected accent', r: 1, layout: 'inline' },
@@ -2781,10 +2798,9 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'roster') return `Roster · ${((n.props.items as any[]) || []).length} member${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'tiers') return `Tiers · ${((n.props.items as any[]) || []).length} plan${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'qapills') return `Q&A pills · ${((n.props.items as any[]) || []).length} item${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
-  if (n.type === 'dockbar') return `Docked bar · ${((n.props.items as any[]) || []).length} field${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'dockbar' || n.type === 'slotpicker') { const count = formFieldsOf(n.type, n.props as PropBag).length; return `${n.type === 'dockbar' ? 'Docked bar' : 'Booking request'} · ${count} field${count === 1 ? '' : 's'}`; }
   if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
-  if (n.type === 'slotpicker') return `Slot picker · ${((n.props.passes as any[]) || []).length} pass${((n.props.passes as any[]) || []).length === 1 ? '' : 'es'}`;
   return d.label;
 };
 
@@ -4055,6 +4071,81 @@ function formFieldName(field: any, index: number) {
   return String(field && field.name || '').trim() || slugify(field && field.label) || 'field-' + (index + 1);
 }
 
+/* ---- forms in other shapes ------------------------------------------------
+   Docked bar and Booking request are forms: one renderer, one set of field names, one receiver
+   and one review. They differ only in how the fields are laid out. */
+const FORM_TYPES: WidgetType[] = ['form', 'dockbar', 'slotpicker'];
+const isFormType = (type: unknown) => FORM_TYPES.includes(type as WidgetType);
+
+/** Field options are stored comma-separated, so a choice cannot contain one or repeat. */
+const choiceValues = (values: unknown[]) => [...new Set(values
+  .map(value => String(value ?? '').replace(/\s*,\s*/g, ' ').trim()).filter(Boolean))];
+
+/** Bring the first shape of these two blocks, before they were forms, to the current one. */
+function normalizeFormBlock(type: unknown, props: any) {
+  if (type === 'dockbar') {
+    if (!Array.isArray(props.fields) && Array.isArray(props.items)) props.fields = props.items.filter(Boolean).map((item: any) => ({
+      type: item.fieldType === 'select' && String(item.choices || '').trim() ? 'select' : 'text',
+      label: String(item.fieldLabel || 'Field'), name: '', required: 0,
+      ...(item.fieldType === 'select' ? { opts: String(item.choices || '') } : { ph: String(item.ph || '') })
+    }));
+    if (props.submit === undefined && props.submitLabel !== undefined) props.submit = props.submitLabel;
+    if (props.aria === undefined && props.ariaLabel !== undefined) props.aria = props.ariaLabel;
+    ['items', 'submitLabel', 'ariaLabel', 'destHref'].forEach(key => delete props[key]);
+  }
+  if (type === 'slotpicker') {
+    if (!Array.isArray(props.slots) && props.timeSlots !== undefined) props.slots = String(props.timeSlots).split(',')
+      .map(time => ({ time: time.trim() })).filter(slot => slot.time);
+    if (props.submit === undefined && props.confirmLabel !== undefined) props.submit = props.confirmLabel;
+    if (props.note === undefined && props.phoneNote !== undefined) props.note = props.phoneNote;
+    ['timeSlots', 'confirmLabel', 'confirmHref', 'phoneNote'].forEach(key => delete props[key]);
+    if (!Array.isArray(props.fields)) props.fields = bookingContactFields();
+  }
+  return props;
+}
+const bookingContactFields = (): FormField[] => [
+  { type: 'date', label: 'Date', name: 'date', required: 1, ph: '' },
+  { type: 'text', label: 'Name', name: 'name', required: 1, ph: '' },
+  { type: 'email', label: 'Email', name: 'email', required: 1, ph: '' }
+];
+const formBlockProps = (type: unknown, props: PropBag): any => type === 'form' ? props : normalizeFormBlock(type, { ...props });
+
+interface BookingChoice { key: 'service' | 'guests' | 'time'; label: string; heading: string; values: string[] }
+/** The visual choices of a Booking request. Each is also a plain required dropdown in the form. */
+function bookingChoices(source: PropBag): BookingChoice[] {
+  const p = formBlockProps('slotpicker', source);
+  const on = (value: unknown) => value === undefined || Number(value) === 1 || value === true;
+  const choices: BookingChoice[] = [];
+  const services = choiceValues((Array.isArray(p.passes) ? p.passes : []).map((pass: any) => pass?.passName));
+  if (services.length) choices.push({ key: 'service', label: String(p.serviceLabel || 'Service'), heading: String(p.passHeading ?? 'Choose a service'), values: services });
+  const max = Math.max(1, Math.min(50, Math.round(Number(p.maxGuests) || 2)));
+  if (on(p.showGuests)) choices.push({ key: 'guests', label: String(p.guestLabel || 'Guests'), heading: String(p.guestHeading ?? 'Guests'), values: Array.from({ length: max }, (_, k) => String(k + 1)) });
+  const times = choiceValues((Array.isArray(p.slots) ? p.slots : []).map((slot: any) => slot?.time));
+  if (on(p.showTimes) && times.length) choices.push({ key: 'time', label: String(p.timeLabel || 'Time'), heading: String(p.slotHeading ?? 'Preferred time'), values: times });
+  return choices;
+}
+const bookingMoney = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2);
+/** What a service and party size come to. The server uses this too, so the figure saved with an
+    entry is never one a visitor's browser sent. Empty when the block shows no total. */
+function bookingTotal(source: PropBag, service: string, guests: string) {
+  const p = formBlockProps('slotpicker', source);
+  if (p.showTotal !== undefined && !Number(p.showTotal)) return '';
+  const pass = (Array.isArray(p.passes) ? p.passes : []).find((item: any) => choiceValues([item?.passName])[0] === service);
+  const price = parseFloat(String(pass?.unitPrice ?? ''));
+  if (!pass || !Number.isFinite(price)) return '';
+  const party = Number(pass.fixedTotal) ? 1 : Math.max(1, parseInt(guests, 10) || 1);
+  return String(p.currencySymbol ?? '€') + bookingMoney(price * party);
+}
+/** Every field a form block submits, in the order it draws them. */
+function formFieldsOf(type: unknown, source: PropBag): FormField[] {
+  const p = formBlockProps(type, source);
+  const own: FormField[] = Array.isArray(p.fields) ? p.fields : [];
+  if (type !== 'slotpicker') return own;
+  return [...bookingChoices(p).map(choice => ({
+    type: 'select', label: choice.label, name: 'booking-' + choice.key, required: 1 as const, opts: choice.values.join(',')
+  })), ...own];
+}
+
 /** A GET submit replaces the action's query. Keep configured pairs as hidden fields unless
     an authored input already submits under that name. */
 function formFixedQuery(handling: FormHandling, fields: readonly FormField[]): [string, string][] {
@@ -5159,9 +5250,9 @@ function lint() {
         headings.push({ level: +String(n.props.level)[1], node: n, region });
 
       /* forms */
-      if (n.type === 'form') {
-        const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
-        const handling = resolveFormHandling(n.props, n.id);
+      if (isFormType(n.type)) {
+        const fields = formFieldsOf(n.type, n.props as PropBag);
+        const handling = resolveFormHandling(n.props as PropBag, n.id);
         if (handling.reason === 'missing')
           add(handling.method === 'get' ? 'warn' : 'error', 'form-no-action', `A form in the ${region} has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.`, w, n.id);
         else if (handling.reason === 'unsafe')
@@ -5181,7 +5272,9 @@ function lint() {
           ['--f-text', '--f-bg', 'Text typed into the fields'],
           ['--f-btn-fg', '--f-btn-bg', 'The submit button label']
         ];
-        contrastPairs.forEach(([fgProp, bgProp, what]) => {
+        if (n.type === 'slotpicker' && !fields.some(fl => fl.type === 'email' || fl.type === 'tel'))
+          add('warn', 'booking-no-reply', `A booking request in the ${region} asks for no email or phone, so there is no way to answer it.`, w, n.id);
+        if (n.type === 'form') contrastPairs.forEach(([fgProp, bgProp, what]) => {
           const misses: { bp: Bp; ratio: number }[] = [];
           (['d', 't', 'm'] as Bp[]).forEach(bp => {
             let behind = '';
@@ -5924,10 +6017,10 @@ const TEXT_SLOTS = {
   roster: [['items', 'name', 'role', 'seat', 'credential', 'quote', 'linkLabel', 'alt']],
   tiers: ['usdLabel', 'eurLabel', 'gbpLabel', ['items', 'tierName', 'badge', 'priceUsd', 'priceEur', 'priceGbp', 'period', 'summary', 'features', 'ctaText']],
   qapills: [['items', 'q', 'a', 'note', 'linkLabel']],
-  dockbar: ['submitLabel', 'ariaLabel', ['items', 'fieldLabel', 'ph', 'choices']],
+  dockbar: ['submit', 'aria', 'success', ['fields', 'label', 'ph']],
   arches: [['items', 'alt', 'caption']],
   chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
-  slotpicker: ['currencySymbol', 'timeSlots', 'confirmLabel', 'summaryTitle', 'phoneNote', ['passes', 'passName', 'passMeta', 'unitPrice']]
+  slotpicker: ['currencySymbol', 'submit', 'aria', 'success', 'note', 'summaryTitle', 'passHeading', 'guestHeading', 'slotHeading', 'contactHeading', 'serviceLabel', 'guestLabel', 'timeLabel', 'totalLabel', 'perGuestLabel', 'fixedLabel', ['passes', 'passName', 'passMeta', 'unitPrice'], ['slots', 'time'], ['fields', 'label', 'ph']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -6803,7 +6896,6 @@ const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
    afterwards; a one-click action that renames two pages at once would be twice as bad. The
    three places a link can live are the three the review already walks — a `link` prop, a nav
    item's `href`, and an `href` inside rich text — so this rewrites exactly what that reads. */
-const OWN_LINK_PROP: Partial<Record<WidgetType, string>> = { dockbar: 'destHref', slotpicker: 'confirmHref' };
 function relink(from: string, to: string) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -6828,8 +6920,6 @@ function relink(from: string, to: string) {
     const vals = node.use ? node.vals : undefined;
     if (vals) linkKeys(findComponent(node.use)).forEach(k => { if (vals[k]) vals[k] = swap(vals[k]); });
     if (p.link !== undefined) p.link = swap(p.link);
-    const own = OWN_LINK_PROP[node.type];
-    if (own && (p as any)[own] !== undefined) (p as any)[own] = swap((p as any)[own]);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { if (it.href !== undefined) it.href = swap(it.href); });
     }
@@ -8770,6 +8860,7 @@ function migrate(d: any) {
   /* v15 -> v16: page-owned header/footer arrays and explicit hidden regions. Missing fields
      keep inheritance unchanged. The version gate prevents older renderers silently dropping
      visible page-owned content. Every owned tree participates in migrations above. */
+  everyNode(n => { if (n && n.props && (n.type === 'dockbar' || n.type === 'slotpicker')) normalizeFormBlock(n.type, n.props); });
   /* `v` is an input compatibility marker, not part of `Doc`. Adding it to an already-current
      document makes the public save/load contract oscillate: `migrate()` adds `v`, then
      `restore()` + `doc()` drops it because state stores only the typed document fields. Keep
@@ -10371,8 +10462,9 @@ function publicFormControlsUsed(lists: PcNode[][]) {
   let select = false, date = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
-    if (node.type !== 'form') return;
-    const fields = Array.isArray(node.props.fields) ? node.props.fields : [];
+    // Booking choices are their own buttons and a Docked bar uses the browser's own controls.
+    if (node.type !== 'form' && node.type !== 'slotpicker') return;
+    const fields: FormField[] = formBlockProps(node.type, node.props as PropBag).fields || [];
     if (fields.some(field => field.type === 'select')) select = true;
     if (fields.some(field => field.type === 'date')) date = true;
   }));
@@ -11397,8 +11489,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (p.mobileMenu !== 'fullscreen' && mobileMenuDefinition({ ...n, props: p } as PcNode)) family.push(root + '-menu-content');
     } else if (n.type === 'tabs' && Array.isArray(p.items)) {
       p.items.forEach((_, i) => family.push(root + '-t' + i, root + '-p' + i));
-    } else if (n.type === 'form') {
-      if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + '-f' + i));
+    } else if (isFormType(n.type)) {
+      formFieldsOf(n.type, p as PropBag).forEach((_, i) => family.push(root + '-f' + i));
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
     } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
       family.push(root + '-caption');
@@ -11458,7 +11550,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : undefined
   } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
-  if (o.formRouting && n.type !== 'list' && n.type !== 'nav' && n.type !== 'form') return '';
+  if (o.formRouting && n.type !== 'list' && n.type !== 'nav' && !isFormType(n.type)) return '';
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   /* A link opens in a new tab or it does not. `target` is a prop a binding can write anything
      into, so nothing but `_blank` becomes an attribute. */
@@ -11696,15 +11788,19 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + childrenOf('', new Set())
         + `</ul>${mobileContent}</nav>`;
     }
-    case 'form': {
-      const fields = Array.isArray(p.fields) ? p.fields : [];
-      const enhancedControls = fields.some(f => f.type === 'date' || f.type === 'select');
+    case 'form': case 'dockbar': case 'slotpicker': {
+      const fp = formBlockProps(n.type, p as PropBag);
+      const fields = formFieldsOf(n.type, fp);
+      const choices = n.type === 'slotpicker' ? bookingChoices(fp) : [];
+      const shape = n.type === 'dockbar' ? ' pagecraft-dockbar' : n.type === 'slotpicker' ? ' pagecraft-slotpicker' : '';
+      const shapeAttr = n.type === 'dockbar' ? ' data-dockbar' : n.type === 'slotpicker' ? ` data-slotpicker${o.edit ? ' data-ready' : ''}` : '';
+      const enhancedControls = n.type !== 'dockbar' && fields.slice(choices.length).some(f => f.type === 'date' || f.type === 'select');
       const controlsAttr = enhancedControls ? ' data-pagecraft-controls' : '';
       const fid = (i: number) => domId() + '-f' + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
       if (o.formRouting) {
         const observe = (endpoint: string): ObservedFormHandling => {
-          const handling = resolveFormHandling(p, formId, endpoint);
+          const handling = resolveFormHandling(fp, formId, endpoint);
           return { ...handling, fixedQuery: formFixedQuery(handling, fields) };
         };
         o.formRouting.visit({
@@ -11715,14 +11811,14 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         });
         return '';
       }
-      const handling = resolveFormHandling(p, formId);
+      const handling = resolveFormHandling(fp, formId);
       const act = handling.action;
       const disabled = act ? '' : ' disabled';
       const getQueryFields = formFixedQuery(handling, fields)
         .map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`)
         .join('');
       const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
-      const body = fields.map((f, i) => {
+      const drawn = fields.map((f, i) => {
         const name = esc(formFieldName(f, i));
         const req = f.required ? ' required' : '';
         const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
@@ -11732,35 +11828,69 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
         const half = percentWidths ? ' field-width-' + width : f.half ? ' half' : '';
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ''}</label>`;
+        if (i < choices.length) {
+          const choice = choices[i];
+          const buttons = choice.values.map((value, k) => {
+            const pass = choice.key === 'service' ? (fp.passes as any[]).find(item => choiceValues([item?.passName])[0] === value) : null;
+            const price = parseFloat(String(pass?.unitPrice ?? ''));
+            const fixed = Number(pass?.fixedTotal) === 1;
+            const guests = choices.some(item => item.key === 'guests');
+            const suffix = fixed ? String(fp.fixedLabel ?? 'total') : guests ? String(fp.perGuestLabel ?? '/ guest') : '';
+            const priced = pass && Number.isFinite(price) ? ` data-price="${price}" data-fixed="${fixed ? 1 : 0}"` : '';
+            const state = `type="button" data-sp-value="${esc(value)}"${priced} aria-pressed="${k === 0 ? 'true' : 'false'}"${disabled}`;
+            return pass
+              ? `<button class="pagecraft-sp-pass" ${state}><span class="pagecraft-sp-pass-name">${esc(value)}</span>`
+                + (pass.passMeta ? `<span class="pagecraft-sp-pass-meta">${esc(String(pass.passMeta))}</span>` : '')
+                + (priced && Number(fp.showPrices ?? 1) ? `<span class="pagecraft-sp-pass-price">${esc(String(fp.currencySymbol ?? '€'))}${bookingMoney(price)}${suffix ? ' ' + esc(suffix) : ''}</span>` : '')
+                + `</button>`
+              : `<button class="pagecraft-sp-pill" ${state}>${esc(value)}</button>`;
+          }).join('');
+          return `<div class="pagecraft-sp-group" data-sp-choice="${choice.key}">`
+            + (choice.heading ? `<p class="pagecraft-sp-step-h" id="${fid(i)}-h">${esc(choice.heading)}</p>` : '')
+            + `<div class="pagecraft-field pagecraft-sp-native">${lab}<select id="${fid(i)}" name="${name}"${req}${disabled}>`
+            + choice.values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('') + `</select></div>`
+            + `<div class="pagecraft-sp-buttons ${choice.key === 'service' ? 'pagecraft-sp-passes' : 'pagecraft-sp-pills'}" role="group" ${choice.heading ? `aria-labelledby="${fid(i)}-h"` : `aria-label="${esc(choice.label)}"`}>${buttons}</div></div>`;
+        }
         if (f.type === 'checkbox') return `<div class="pagecraft-field pagecraft-field-check${half}">`
           + `<input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}>`
           + `<label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
         if (f.type === 'textarea') return `<div class="pagecraft-field${half}">${lab}`
           + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}${disabled}></textarea></div>`;
         if (f.type === 'select') return `<div class="pagecraft-field${half}">${lab}`
-          + `<select id="${fid(i)}" name="${name}" data-pagecraft-select${req}${disabled}>`
+          + `<select id="${fid(i)}" name="${name}"${n.type === 'dockbar' ? '' : ' data-pagecraft-select'}${req}${disabled}>`
           + String(f.opts || '').split(',').map(o => o.trim()).filter(Boolean)
             .map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
           + `</select></div>`;
-        const dateAttr = f.type === 'date' ? ' data-pagecraft-date' : '';
+        const dateAttr = f.type === 'date' && n.type !== 'dockbar' ? ' data-pagecraft-date' : '';
         const dateEdit = f.type === 'date' && o.edit ? ' readonly' : '';
         return `<div class="pagecraft-field${half}">${lab}`
           + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${dateAttr}${dateEdit}${req}${ph}${disabled}></div>`;
-      }).join('');
+      });
+      const statusId = domId() + '-status';
+      const button = `<button type="${act ? 'submit' : 'button'}" class="pagecraft-form-button"${act ? '' : ' disabled'}>${esc(fp.submit || 'Send')}</button>`;
+      const trap = handling.kind === 'cloud' ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '';
+      const inert = act ? '' : `<p class="pagecraft-form-status" id="${statusId}">This form is not configured to receive submissions.</p>`;
+      let inside: string;
+      if (n.type === 'slotpicker') {
+        const first = (key: string) => choices.find(choice => choice.key === key)?.values[0] || '';
+        const total = bookingTotal(fp, first('service'), first('guests') || '1');
+        const contact = drawn.slice(choices.length).join('');
+        inside = `<div class="pagecraft-sp-steps">` + drawn.slice(0, choices.length).join('')
+          + (contact ? `<div class="pagecraft-sp-group">${fp.contactHeading === '' ? '' : `<p class="pagecraft-sp-step-h">${esc(String(fp.contactHeading ?? 'Your details'))}</p>`}<div class="pagecraft-sp-contact${percentWidths ? ' pagecraft-sp-percent' : ''}">${contact}</div></div>` : '')
+          + `</div><div class="pagecraft-sp-summary">`
+          + (fp.summaryTitle === '' ? '' : `<h3 class="pagecraft-sp-sum-title">${esc(String(fp.summaryTitle ?? 'Your request'))}</h3>`)
+          + (choices.length ? `<div class="pagecraft-sp-rows">` + choices.map(choice => `<div class="pagecraft-sp-row"><span>${esc(choice.label)}</span><strong data-sp-out="${choice.key}">${esc(choice.values[0])}</strong></div>`).join('') + `</div>` : '')
+          + (total ? `<div class="pagecraft-sp-total-row" aria-live="polite"><span>${esc(String(fp.totalLabel ?? 'Estimated total'))}</span><span class="pagecraft-sp-total" data-sp-total data-sym="${esc(String(fp.currencySymbol ?? '€'))}">${esc(total)}</span></div>` : '')
+          + trap + button + (fp.note ? `<p class="pagecraft-sp-note">${esc(String(fp.note))}</p>` : '') + inert + `</div>`;
+      } else inside = drawn.join('') + trap + button + inert;
+      const classes = 'pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : '') + shape;
       if (!act) {
-        const status = domId() + '-status';
-        return `<div ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled${controlsAttr}>`
-          + body
-          + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
-          + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
-          + `</div>`;
+        return `<div ${at()} ${cx(classes)} role="group" aria-label="${esc(fp.aria || 'Form')}" aria-describedby="${statusId}" data-disabled${controlsAttr}${shapeAttr}>${inside}</div>`;
       }
       const managed = handling.kind === 'wordpress'
         ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
-      return `<form ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}>`
-        + getQueryFields + body
-        + (handling.kind === 'cloud' ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '')
-        + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
+      return `<form ${at()} ${cx(classes)} aria-label="${esc(fp.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}${shapeAttr}>`
+        + getQueryFields + inside
         + `</form>`
         + (handling.kind === 'cloud' && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : '');
     }
@@ -12422,29 +12552,6 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-qapills-stage">${panels}</div>`
         + `</div>`;
     }
-    case 'dockbar': {
-      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
-      const aria = String(p.ariaLabel || 'Quick intake');
-      const subLbl = String(p.submitLabel || 'Continue →');
-      const rawHref = safeUrl(String(p.destHref || '').trim());
-      const dest = rawHref && !o.edit ? pageHref(rawHref, o) : '';
-      const fields = items.map((it, i) => {
-        const lbl = String(it.fieldLabel || `Field ${i + 1}`);
-        const fType = String(it.fieldType || 'text').toLowerCase();
-        const ph = String(it.ph || '');
-        const opts = String(it.choices || '').split(',').map(x => x.trim()).filter(Boolean);
-        const control = (fType === 'select' && opts.length)
-          ? `<select class="pagecraft-dockbar-select" name="f_${i}">${opts.map(op => `<option value="${esc(op)}">${esc(op)}</option>`).join('')}</select>`
-          : `<input class="pagecraft-dockbar-input" type="text" name="f_${i}" placeholder="${esc(ph)}" autocomplete="off">`;
-        return `<label class="pagecraft-dockbar-field"><span class="pagecraft-dockbar-lbl">${esc(lbl)}</span>${control}</label>`;
-      }).join('');
-      const btn = dest
-        ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`
-        : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
-      return `<div ${at()} ${cx('pagecraft-dockbar')} data-dockbar>`
-        + `<form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form>`
-        + `</div>`;
-    }
     case 'arches': {
       const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean).slice(0, 5);
       const frames = items.map((it, i) => {
@@ -12486,53 +12593,6 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
         + `</div>`;
     }
-    case 'slotpicker': {
-      const money = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2);
-      const sym = String(p.currencySymbol || '€');
-      const slots = String(p.timeSlots || '09:00, 12:00, 16:00').split(',').map(x => x.trim()).filter(Boolean);
-      const sumTitle = String(p.summaryTitle || 'Your reservation');
-      const confLbl = String(p.confirmLabel || 'Confirm window →');
-      const rawHref = safeUrl(String(p.confirmHref || '').trim());
-      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : '';
-      const note = String(p.phoneNote || '');
-      const items = (Array.isArray(p.passes) ? p.passes as any[] : []).filter(Boolean);
-      const first = items[0] || { passName: 'Session', unitPrice: '95', fixedTotal: 0 };
-      const passBtns = items.map((it, i) => {
-        const nm = String(it.passName || `Pass ${i + 1}`);
-        const mt = String(it.passMeta || '');
-        const pr = parseFloat(String(it.unitPrice || '0')) || 0;
-        const fx = Number(it.fixedTotal) === 1 ? '1' : '0';
-        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? 'true' : 'false'}">`
-          + `<span class="pagecraft-sp-pass-name">${esc(nm)}</span>`
-          + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : '')
-          + `<span class="pagecraft-sp-pass-price">${esc(sym)}${money(pr)}${fx === '1' ? ' flat' : ' / guest'}</span>`
-          + `</button>`;
-      }).join('');
-      const guestBtns = [1, 2].map(g =>
-        `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? 'true' : 'false'}">${g} ${g === 1 ? 'Guest' : 'Guests'}</button>`
-      ).join('');
-      const slotBtns = slots.map((sl, i) =>
-        `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(sl)}</button>`
-      ).join('');
-      const initPrice = money(parseFloat(String(first.unitPrice || '0')) || 0);
-      return `<div ${at()} ${cx('pagecraft-slotpicker')} data-slotpicker data-sym="${esc(sym)}">`
-        + `<div class="pagecraft-sp-steps">`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.passHeading ?? 'Choose immersion pass'))}</p><div class="pagecraft-sp-passes">${passBtns}</div></div>`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.guestHeading ?? 'Guests in party'))}</p><div class="pagecraft-sp-pills">${guestBtns}</div></div>`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.slotHeading ?? 'Preferred arrival window'))}</p><div class="pagecraft-sp-pills">${slotBtns}</div></div>`
-        + `</div>`
-        + `<aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}">`
-        + `<h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3>`
-        + `<div class="pagecraft-sp-rows">`
-        + `<div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || 'Session'))}</strong></div>`
-        + `<div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div>`
-        + `<div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || '')}</strong></div>`
-        + `</div>`
-        + `<div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>`
-        + (confHref ? `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` : o.edit ? `<span class="pagecraft-sp-confirm">${esc(confLbl)}</span>` : '')
-        + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : '')
-        + `</aside></div>`;
-    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -12564,7 +12624,7 @@ export function inspectFormRouting(source: Doc, visit: (form: FormRoutingObserva
   while (pending.length && !hasForms) {
     for (const node of pending.pop()!) {
       count();
-      if (node.type === 'form') { hasForms = true; break; }
+      if (isFormType(node.type)) { hasForms = true; break; }
       if (node.children?.length) pending.push(node.children);
     }
   }
@@ -13154,7 +13214,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-dockbar/.test(body) ? DOCKBAR_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -13663,7 +13723,8 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  isFormType, formFieldsOf, formBlockProps, bookingTotal,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

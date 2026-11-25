@@ -128,14 +128,22 @@ export function validateTemplateDraftDocument(input: unknown, assetIds: readonly
         if (node.anim.once !== undefined && node.anim.once !== 0 && node.anim.once !== 1) fail('invalid animation');
       }
       if (node.bind) for (const binding of Object.values(node.bind)) { shape(binding,['src','path'],'binding'); if (!safeIdentifier(binding.path)) fail('invalid binding'); }
-      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],arches:['src','alt','caption','w','h'],timeline:['tag','title','detail'],progress:['label','value','unit'],hotspot:['label','title','detail','x','y'],strips:['src','alt','tag','title','detail','w','h'],switcher:['label','meta','title','detail','src','alt','w','h','pos'],exhibit:['title','location','scope','year','href','src','alt','w','h'],scrolly:['title','detail','fact','src','alt','w','h'],clocks:['city','tz','address','phone','href','linkLabel','src','alt','w','h'],roster:['name','role','seat','credential','quote','href','linkLabel','src','alt','w','h'],tiers:['tierName','badge','priceUsd','priceEur','priceGbp','period','summary','features','ctaText','href','featured'],qapills:['q','a','note','href','linkLabel'],dockbar:['fieldLabel','fieldType','ph','choices'],chapters:['chapterTitle','chapterSub','overlayText','src','alt','w','h'],slotpicker:['passName','passMeta','unitPrice','fixedTotal'],tabs:['label','panel','panelId'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
+      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],arches:['src','alt','caption','w','h'],timeline:['tag','title','detail'],progress:['label','value','unit'],hotspot:['label','title','detail','x','y'],strips:['src','alt','tag','title','detail','w','h'],switcher:['label','meta','title','detail','src','alt','w','h','pos'],exhibit:['title','location','scope','year','href','src','alt','w','h'],scrolly:['title','detail','fact','src','alt','w','h'],clocks:['city','tz','address','phone','href','linkLabel','src','alt','w','h'],roster:['name','role','seat','credential','quote','href','linkLabel','src','alt','w','h'],tiers:['tierName','badge','priceUsd','priceEur','priceGbp','period','summary','features','ctaText','href','featured'],qapills:['q','a','note','href','linkLabel'],chapters:['chapterTitle','chapterSub','overlayText','src','alt','w','h'],slotpicker:['passName','passMeta','unitPrice','fixedTotal'],tabs:['label','panel','panelId'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
+      if (node.type === 'dockbar' || node.type === 'slotpicker') {
+        for (const [key, shapeKeys] of [['fields',['type','label','name','ph','opts','required','half','width']],['slots',['time']]] as const) {
+          const rows = (node.props as any)[key];
+          if (rows === undefined) continue;
+          if (!Array.isArray(rows) || rows.length > 500) fail('invalid items');
+          for (const row of rows) { shape(row,[...shapeKeys],'item'); if (Object.values(row).some(v=>!['string','number','boolean'].includes(typeof v))) fail('invalid item value'); }
+        }
+      }
       const list = node.type === 'form' ? node.props.fields : node.type === 'chapters' ? node.props.chapters : node.type === 'slotpicker' ? node.props.passes : node.props.items;
       if (list !== undefined && nested[node.type]) { if (!Array.isArray(list) || list.length > 500) fail('invalid items'); for (const item of list) { shape(item,nested[node.type],'item'); if (Object.values(item).some(v=>!['string','number','boolean'].includes(typeof v))) fail('invalid item value'); } }
       const allowedProps = new Set([...Object.keys(Core.DEF[node.type].make().props), ...Core.ctlKeys(node.type), 'link', 'target', 'ts']);
       if (Object.keys(node.props).some(key => !allowedProps.has(key) || key.startsWith('_'))) fail('unknown widget property');
       cssValue(node.css); if(node.st) cssValue(node.st);
-      if (node.type === 'form' && (node.props.action || (node.props.mode && node.props.mode !== 'external'))) fail('form destination must be unconfigured');
-      if (node.type === 'form' && node.props.method && String(node.props.method).toLowerCase() !== 'post') fail('form method unsupported');
+      if (Core.isFormType(node.type) && (node.props.action || (node.props.mode && node.props.mode !== 'external'))) fail('form destination must be unconfigured');
+      if (Core.isFormType(node.type) && node.props.method && String(node.props.method).toLowerCase() !== 'post') fail('form method unsupported');
       scanValues(node.props); scanValues(node.css); scanValues(node.st); scanValues(node.vals); scanValues(node.adv); scanValues(node.anim); scanValues(node.hide); scanValues(node.cls); scanValues(node.bind); scanValues(node.use); scanValues(node.slot);
       walk(node.children, node.type, depth + 1);
     }

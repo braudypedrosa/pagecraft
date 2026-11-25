@@ -742,9 +742,10 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     chDispose!();
     chDom.window.close();
 
+    C.setCloudFormEndpoint('https://editor.test/forms/s');
     const spHtml = C.renderNode(C.N('slotpicker', {
       currencySymbol: '€',
-      timeSlots: '06:30 Dawn, 19:30 Nocturne',
+      slots: [{ time: '06:30 Dawn' }, { time: '19:30 Nocturne' }],
       passes: [
         { passName: 'Contrast Circuit', unitPrice: '95', fixedTotal: 0 },
         { passName: 'Private Suite', unitPrice: '240', fixedTotal: 1 }
@@ -755,12 +756,14 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     let spDispose: (() => void) | null = null;
     spWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { spDispose = fn; };
     spWin.eval(scriptBody(C.SLOTPICKER_JS));
-    (spWin.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    (spWin.document.querySelector('[data-sp-choice=guests] [data-sp-value="2"]') as HTMLElement).click();
     expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€190');
-    (spWin.document.querySelector('[data-sp-pass="1"]') as HTMLElement).click();
+    (spWin.document.querySelector('[data-sp-value="Private Suite"]') as HTMLElement).click();
     expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€240');
+    expect(spWin.document.querySelector('select[name=booking-service]').value).toBe('Private Suite');
     spDispose!();
     spDom.window.close();
+    C.setCloudFormEndpoint('');
   });
 
   test('audit fixes: zero compare position, stable clock output, unique ids, honest prices and links', () => {
@@ -808,27 +811,16 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(noEuro).toContain('data-tiers-cur="gbp"');
     expect(noEuro).not.toContain('href="#"');
 
+    C.setCloudFormEndpoint('https://editor.test/forms/s');
     const sp = win(C.renderNode(C.N('slotpicker', { currencySymbol: '$', passes: [{ passName: 'A', unitPrice: '95.25' }] }), { edit: false }), C.SLOTPICKER_JS);
     expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$95.25');
-    (sp.window.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    (sp.window.document.querySelector('[data-sp-choice=guests] [data-sp-value="2"]') as HTMLElement).click();
     expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$190.50');
-    expect(sp.window.document.querySelector('.pagecraft-sp-confirm')).toBeNull();
+    C.setCloudFormEndpoint('');
 
     // Words that were fixed in the code stay for documents that predate the controls.
     expect(C.renderNode({ ...C.N('roster'), props: { items: [{ name: 'A', seat: 'DC', credential: 'X' }] } } as any, { edit: false })).toContain('Chambers:');
     expect(C.renderNode(C.N('roster'), { edit: false })).not.toContain('Chambers');
-  });
-
-  test('audit fixes: renamed pages keep both single-link blocks working', () => {
-    const doc = blankDoc('Rename');
-    doc.pages.push({ ...structuredClone(doc.pages[0]), id: 'p2', name: 'Book', slug: 'book', tree: [] } as any);
-    doc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [
-      C.N('dockbar', { destHref: 'book.html#form' }), C.N('slotpicker', { confirmHref: 'book.html' }), C.N('qapills')])])])];
-    C.restore(doc, false);
-    C.pageSlugSet(1, 'reserve');
-    const text = JSON.stringify(C.state.pages[0].tree);
-    expect(text).toContain('"destHref":"reserve.html#form"');
-    expect(text).toContain('"confirmHref":"reserve.html"');
   });
 
   test('audit fixes: chapters hold while focused and can be paused', async () => {
