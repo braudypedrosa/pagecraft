@@ -147,8 +147,8 @@ const workbenchHeader = (user: User, label: string, parent?: { href: string; lab
    the site list lives there and the rail holds only this site's own pages. */
 const siteWorkbenchHeader = (user: User, siteName: string) => workbenchHeader(user, siteName, { href: '/', label: 'Sites' });
 const submissionsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg>`;
-const reviewsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4.5h12v11H7l-3 2.5V4.5z"/><path d="M7 8h6M7 11h4"/></svg>`;
-const noticeCommentIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H8.2L5 17.5V14.5H4A1.5 1.5 0 0 1 2.5 13V6A1.5 1.5 0 0 1 4 4.5z"/><path d="M6.5 9h7M6.5 11.5h4.5"/></svg>`;
+const reviewsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 3.3h12v11H7l-3 2.5V3.3z"/><path d="M7 6.8h6M7 9.8h4"/></svg>`;
+const noticeCommentIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H8.2L5 16.5V13.5H4A1.5 1.5 0 0 1 2.5 12V5A1.5 1.5 0 0 1 4 3.5z"/><path d="M6.5 7.2h7M6.5 9.8h4.5"/></svg>`;
 const noticeDecisionIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="m7.2 10.2 2 2 3.8-4"/></svg>`;
 const noticeDefaultIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5a4.5 4.5 0 0 1 4.5 4.5v2.2l1.2 2.3H4.3L5.5 10.2V8A4.5 4.5 0 0 1 10 3.5z"/><path d="M8.2 15.2a1.8 1.8 0 0 0 3.6 0"/></svg>`;
 const noticeIconFor = (kind: string) => {
@@ -164,7 +164,7 @@ const sitesRail = () =>
    top bar reads Sites / Account, so the way back to the site list is the breadcrumb. */
 export type AccountSection = 'profile' | 'security' | 'plan' | 'notifications';
 const accountPersonIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.5c.9-3 3.3-4.6 6-4.6s5.1 1.6 6 4.6"/></svg>`;
-const accountLockIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.5"/><path d="M7 9V6.8a3 3 0 0 1 6 0V9"/></svg>`;
+const accountLockIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="8.6" width="11" height="8" rx="1.5"/><path d="M7 8.6V6.4a3 3 0 0 1 6 0v2.2"/></svg>`;
 const accountCardIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="15" height="10.5" rx="1.5"/><path d="M2.5 8.5h15M5.5 12.5h3"/></svg>`;
 const accountBellIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5a4.5 4.5 0 0 1 4.5 4.5v2.2l1.2 2.3H4.3L5.5 10.2V8A4.5 4.5 0 0 1 10 3.5z"/><path d="M8.2 15.2a1.8 1.8 0 0 0 3.6 0"/></svg>`;
 export const accountRail = (current?: AccountSection) => {
@@ -263,8 +263,8 @@ export const founderReportsSignInPage = (input: {
 };
 
 type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics' | 'assistants';
-const assistantsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>`;
-const analyticsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5h13"/><path d="M6 13.5v-4M10 13.5v-8M14 13.5v-6"/></svg>`;
+const assistantsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.8 2.8l1.5 3.7L14 8l-3.7 1.5-1.5 3.7-1.5-3.7L3.6 8l3.7-1.5z"/><path d="M14 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>`;
+const analyticsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3.5 15.5h13"/><path d="M6 12.5v-4M10 12.5v-8M14 12.5v-6"/></svg>`;
 const managementRail = (
   site: Pick<SiteOverviewData, 'id' | 'role'>, current: ManagementSection
 ) => {
@@ -968,7 +968,7 @@ export const dashboardPage = (
   const newSiteAction = atLimit
     ? `<button class="pc-btn primary" type="button" disabled aria-describedby="site-limit" title="You've used the 1 site on the Free plan.">Add new site</button>`
     : `<button class="pc-btn primary" type="button" data-create-open>Add new site</button>`;
-  const arrow = `<span class="pc-path-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"/></svg></span>`;
+  const arrow = `<span class="pc-path-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5"/></svg></span>`;
   const leadTemplate = latestTemplates[0];
   const leadTemplatePreview = leadTemplate
     ? '<span class="pc-path-template-sheet" aria-hidden="true"><span class="pc-path-template-bar"></span><span class="pc-path-template-layout"><span><i></i><b></b><b></b><em></em></span><strong></strong></span></span>'

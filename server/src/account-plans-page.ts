@@ -8,7 +8,7 @@ const label = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 const size = (bytes: number) => bytes >= 1024 ** 3 ? `${bytes / 1024 ** 3} GB` : `${Math.round(bytes / 1024 ** 2)} MB`;
 const sites = (count: number | null) => count === null ? 'Unlimited sites' : `${count} site${count === 1 ? '' : 's'}`;
 
-const backIcon = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4 5.5 8l4 4"/></svg>';
+const backIcon = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4 6 8l4 4"/></svg>';
 
 const TAGLINES: Record<string, string> = {
   free: 'For trying Pagecraft with one site.',
