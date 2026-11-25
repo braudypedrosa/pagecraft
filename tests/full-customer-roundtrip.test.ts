@@ -244,7 +244,7 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 37 Add choices map to stable persisted module shapes', () => {
+  test('all 47 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,

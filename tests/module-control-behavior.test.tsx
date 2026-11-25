@@ -177,7 +177,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 34 module renderers emit their representative authored value', () => {
+test('all 44 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -293,7 +293,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(153);
+  expect(declarations).toHaveLength(158);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -341,7 +341,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(272);
+  expect(declarations).toHaveLength(276);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

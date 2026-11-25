@@ -1483,7 +1483,7 @@ const DEF: Record<string, WidgetDef> = {
       },
       css: {
         d: {
-          width: '100%', '--tl-accent': cvar('brand'), '--tl-accent-ink': '#ffffff',
+          width: '100%', '--tl-accent': cvar('ink'), '--tl-accent-ink': cvar('bg'),
           '--tl-line': cvar('line'), '--tl-card': cvar('surface'),
           '--tl-ink': cvar('ink'), '--tl-muted': cvar('muted'),
           '--tl-gap': '22px', '--tl-radius': '10px', '--tl-title-size': '18px', '--tl-body-size': '15px'
@@ -1614,9 +1614,9 @@ const DEF: Record<string, WidgetDef> = {
     make: () => ({
       props: {
         items: [
-          { src: '', alt: 'Workshop bench', tag: 'Forged Metal', title: 'Cold-Swaged Frame', detail: 'Select any strip to expand field specifications and surface tolerances.' },
-          { src: '', alt: 'Kiln cellar', tag: 'Seasoned Fiber', title: 'Kiln-Cured Cellulose', detail: 'Long-cured billets keep temple tension stable through seasonal humidity.' },
-          { src: '', alt: 'Fitting studio', tag: 'Clinical Suite', title: 'Bespoke Fitting', detail: 'Direct optical center mapping paired with lightweight hardware balance.' }
+          { src: '', alt: '', tag: '', title: 'First panel', detail: 'Add a short description of what this image shows.' },
+          { src: '', alt: '', tag: '', title: 'Second panel', detail: 'Visitors select a panel to expand it.' },
+          { src: '', alt: '', tag: '', title: 'Third panel', detail: 'Use one clear image for each panel.' }
         ]
       },
       css: {
@@ -1634,7 +1634,7 @@ const DEF: Record<string, WidgetDef> = {
           rowFields: [
             { k: 'title', label: 'Title', ph: 'Panel title', def: 'New panel' },
             { k: 'tag', label: 'Metadata tag', ph: 'Optional footnote', def: '' },
-            { k: 'src', label: 'Photo URL or asset', ph: 'asset:photo', def: '' },
+            { k: 'src', label: 'Photo', ph: 'asset:photo', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe the photo', def: '' },
             { k: 'detail', label: 'Details', ph: 'Short description', def: '', area: 1 }
           ]
@@ -1659,8 +1659,8 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         stageLayout: 'rail', ratio: '3 / 2',
         items: [
-          { label: 'Surface Inspection', meta: 'Step A', title: 'Macro surface alignment', detail: 'Inspect raw material grain and tolerance callouts in a dedicated visual stage.', src: '', alt: 'Inspection stage view', pos: '50% 50%' },
-          { label: 'Optical Assembly', meta: 'Step B', title: 'Final component integration', detail: 'Switch cleanly between sequential phases without scrolling past stacked sections.', src: '', alt: 'Assembly stage view', pos: '50% 50%' }
+          { label: 'First step', meta: 'Step 1', title: 'What happens first', detail: 'Describe this step in a sentence or two.', src: '', alt: '', pos: '50% 50%' },
+          { label: 'Second step', meta: 'Step 2', title: 'What happens next', detail: 'Each step shows its own image and caption.', src: '', alt: '', pos: '50% 50%' }
         ]
       },
       css: {
@@ -1682,7 +1682,7 @@ const DEF: Record<string, WidgetDef> = {
             { k: 'label', label: 'Step button', ph: 'Step title', def: 'New stage' },
             { k: 'meta', label: 'Meta', ph: 'Duration or step', def: '' },
             { k: 'title', label: 'Caption heading', ph: 'Stage headline', def: 'Stage overview' },
-            { k: 'src', label: 'Stage photo URL or asset', ph: 'asset:photo', def: '' },
+            { k: 'src', label: 'Stage photo', ph: 'asset:photo', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe stage visual', def: '' },
             { k: 'pos', label: 'Object position', ph: '50% 50%', def: '50% 50%' },
             { k: 'detail', label: 'Details', ph: 'Stage description', def: '', area: 1 }
@@ -1708,8 +1708,8 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         previewRatio: '4 / 3',
         items: [
-          { title: 'Headland Ledge Monograph', location: 'Cape Elizabeth, Maine', scope: '3.4 ac · Coastal Granite', year: '2025', href: '', src: '', alt: 'Headland ledge project view' },
-          { title: 'Estuary Saltmarsh Basin', location: 'Astoria, Oregon', scope: '5.1 ac · Tidal Weir', year: '2024', href: '', src: '', alt: 'Estuary saltmarsh project view' }
+          { title: 'First project', location: 'City', scope: 'What you did', year: '', href: '', src: '', alt: '' },
+          { title: 'Second project', location: 'City', scope: 'What you did', year: '', href: '', src: '', alt: '' }
         ]
       },
       css: {
@@ -1732,7 +1732,7 @@ const DEF: Record<string, WidgetDef> = {
             { k: 'scope', label: 'Scope', ph: 'Acreage or discipline', def: '' },
             { k: 'year', label: 'Year', ph: '2025', def: '2025' },
             { k: 'href', label: 'Link URL', ph: 'sites.html#entry', def: '' },
-            { k: 'src', label: 'Preview image URL or asset', ph: 'asset:preview', def: '' },
+            { k: 'src', label: 'Preview image', ph: 'asset:preview', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe preview visual', def: '' }
           ]
         }
@@ -1755,13 +1755,13 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         stickyRatio: '4 / 3',
         items: [
-          { title: 'Subsurface soil borings', detail: 'Field engineers map percolation horizons and seasonal water tables before grading begins.', fact: '82 mm/hr infiltration', src: '', alt: 'Soil boring survey stage' },
-          { title: 'Mortarless stone civil work', detail: 'Split granite check weirs slow peak stormwater runoff across the slope contour.', fact: '0% Portland cement', src: '', alt: 'Dry-laid stone weir stage' }
+          { title: 'First step', detail: 'Describe this step. Its image stays in view while visitors read.', fact: '', src: '', alt: '' },
+          { title: 'Second step', detail: 'The image changes as visitors scroll to the next step.', fact: '', src: '', alt: '' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--sc-accent': cvar('brand'), '--sc-surface': cvar('surface'),
+          width: '100%', '--sc-accent': cvar('ink'), '--sc-surface': cvar('surface'),
           '--sc-ink': cvar('ink'), '--sc-muted': cvar('muted'), '--sc-line': cvar('line'),
           '--sc-radius': '14px', '--sc-gap': '44px'
         },
@@ -1776,7 +1776,7 @@ const DEF: Record<string, WidgetDef> = {
           rowFields: [
             { k: 'title', label: 'Step heading', ph: 'Step title', def: 'New step' },
             { k: 'fact', label: 'Metric note', ph: 'Key specification', def: '' },
-            { k: 'src', label: 'Stage image URL or asset', ph: 'asset:stage', def: '' },
+            { k: 'src', label: 'Stage image', ph: 'asset:stage', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe stage visual', def: '' },
             { k: 'detail', label: 'Step narrative', ph: 'Describe what happens in this phase', def: '', area: 1 }
           ]
@@ -1801,13 +1801,13 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         hour12: 0, opens: '9', closes: '18', openLabel: 'Office open', closedLabel: 'After hours',
         items: [
-          { city: 'London', tz: 'Europe/London', address: '14 Old Square\nLondon WC2A 3UE', phone: '+44 20 7946 0110', href: '', linkLabel: '' },
-          { city: 'New York', tz: 'America/New_York', address: '55 Water Street\nNew York, NY 10041', phone: '+1 212 555 0142', href: '', linkLabel: '' }
+          { city: 'London', tz: 'Europe/London', address: '', phone: '', href: '', linkLabel: '' },
+          { city: 'New York', tz: 'America/New_York', address: '', phone: '', href: '', linkLabel: '' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--ck-accent': cvar('brand'), '--ck-surface': 'transparent',
+          width: '100%', '--ck-accent': cvar('ink'), '--ck-surface': 'transparent',
           '--ck-ink': cvar('ink'), '--ck-muted': cvar('muted'), '--ck-line': cvar('line'),
           '--ck-radius': '0px', '--ck-gap': '0px', '--ck-time-size': '40px'
         },
@@ -1829,7 +1829,7 @@ const DEF: Record<string, WidgetDef> = {
             { k: 'phone', label: 'Phone', ph: '+44 20 0000 0000', def: '' },
             { k: 'href', label: 'Map or page link', ph: 'https://maps.example', def: '' },
             { k: 'linkLabel', label: 'Link label', ph: 'Open in Maps', def: '' },
-            { k: 'src', label: 'Office image URL or asset', ph: 'asset:office', def: '' },
+            { k: 'src', label: 'Office image', ph: 'asset:office', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Office exterior or room', def: '' },
             { k: 'address', label: 'Address', ph: 'Street, city, postcode', def: '', area: 1 }
           ]
@@ -1849,19 +1849,19 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   roster: {
-    label: 'Partner spotlight', icon: 'roster', level: 4,
+    label: 'Team spotlight', icon: 'roster', level: 4,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
-        portraitRatio: '4 / 5',
+        portraitRatio: '4 / 5', seatLabel: 'Based in', credLabel: 'Focus',
         items: [
-          { name: 'Claire Mercer', role: 'Managing Trial Partner · J.D., Ph.D. Electrical Engineering', seat: 'Washington, D.C.', credential: 'U.S. Federal Circuit & PTAB', quote: '“Every trial brief and cross-examination outline should read cleanly to both a district judge and a silicon architect.”', href: '', linkLabel: 'Schedule intake', src: '', alt: 'Claire Mercer portrait' },
-          { name: 'David Quinn', role: 'Senior Appellate Partner · KC, UPC Representative', seat: 'London & Munich', credential: 'Patents Court & UPC', quote: '“Synchronizing European preliminary injunction defenses with U.S. claim construction prevents transatlantic estoppel traps.”', href: '', linkLabel: 'Schedule intake', src: '', alt: 'David Quinn portrait' }
+          { name: 'First person', role: 'Role', seat: 'City', credential: 'Area of focus', quote: 'Add a short quote or introduction.', href: '', linkLabel: '', src: '', alt: '' },
+          { name: 'Second person', role: 'Role', seat: 'City', credential: 'Area of focus', quote: 'Add a short quote or introduction.', href: '', linkLabel: '', src: '', alt: '' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--rs-accent': cvar('brand'), '--rs-surface': cvar('surface'),
+          width: '100%', '--rs-accent': cvar('ink'), '--rs-surface': cvar('surface'),
           '--rs-ink': cvar('ink'), '--rs-muted': cvar('muted'), '--rs-line': cvar('line'),
           '--rs-radius': '2px'
         },
@@ -1871,18 +1871,20 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'select', k: 'portraitRatio', label: 'Portrait ratio', opts: [['4 / 5', '4:5'], ['3 / 4', '3:4'], ['1 / 1', 'Square'], ['3 / 2', '3:2']] },
+        { t: 'text', k: 'seatLabel', label: 'Location label', ph: 'Based in' },
+        { t: 'text', k: 'credLabel', label: 'Focus label', ph: 'Focus' },
         {
           t: 'qa', k: 'items', label: 'Members', addLabel: 'Add member',
           rowFields: [
-            { k: 'name', label: 'Full name', ph: 'Claire Mercer', def: 'New partner' },
-            { k: 'role', label: 'Role & degree', ph: 'Managing Partner · Ph.D.', def: '' },
+            { k: 'name', label: 'Full name', ph: 'Full name', def: 'New person' },
+            { k: 'role', label: 'Role', ph: 'Role', def: '' },
             { k: 'seat', label: 'Office / city', ph: 'Washington, D.C.', def: '' },
-            { k: 'credential', label: 'Admission / focus', ph: 'Federal Circuit Bar', def: '' },
-            { k: 'src', label: 'Portrait URL or asset', ph: 'asset:partner', def: '' },
-            { k: 'alt', label: 'Alt text', ph: 'Partner portrait', def: '' },
-            { k: 'href', label: 'Action link', ph: 'conflict-check.html', def: '' },
-            { k: 'linkLabel', label: 'Link label', ph: 'Direct intake', def: '' },
-            { k: 'quote', label: 'Spotlight quote', ph: 'Working principle or notable verdict', def: '', area: 1 }
+            { k: 'credential', label: 'Focus', ph: 'Area of focus', def: '' },
+            { k: 'src', label: 'Portrait', ph: 'asset:partner', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the portrait', def: '' },
+            { k: 'href', label: 'Action link', ph: 'contact.html', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Get in touch', def: '' },
+            { k: 'quote', label: 'Spotlight quote', ph: 'A short quote or introduction', def: '', area: 1 }
           ]
         }
       ],
@@ -1904,13 +1906,13 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         defaultCurrency: 'usd', usdLabel: 'USD $', eurLabel: 'EUR €', gbpLabel: 'GBP £',
         items: [
-          { tierName: 'Fixed-Scope Audit', badge: '', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200', period: 'per tranche', summary: 'Freedom-to-operate or AI provenance technical file.', features: '15-business-day turnaround\nWritten partner opinion', ctaText: 'Clear conflict', href: '', featured: 0 },
-          { tierName: 'Fractional IP Counsel', badge: 'Most engaged', priceUsd: '$6,400', priceEur: '€5,800', priceGbp: '£4,950', period: '/ month', summary: 'Ongoing docket clearance, claim charting, and regulatory filings.', features: 'Same-day partner access\nQuarterly board IP review', ctaText: 'Retain counsel', href: '', featured: 1 }
+          { tierName: 'Starter', badge: '', priceUsd: '$29', priceEur: '€27', priceGbp: '£23', period: '/ month', summary: 'Who this plan is for.', features: 'First feature\nSecond feature', ctaText: 'Get started', href: '', featured: 0 },
+          { tierName: 'Plus', badge: 'Most popular', priceUsd: '$59', priceEur: '€55', priceGbp: '£47', period: '/ month', summary: 'Who this plan is for.', features: 'Everything in Starter\nAnother feature', ctaText: 'Get started', href: '', featured: 1 }
         ]
       },
       css: {
         d: {
-          width: '100%', '--tr-accent': cvar('brand'), '--tr-surface': cvar('surface'),
+          width: '100%', '--tr-accent': cvar('brand'), '--tr-on': brandActionForeground(), '--tr-surface': cvar('surface'),
           '--tr-ink': cvar('ink'), '--tr-muted': cvar('muted'), '--tr-line': cvar('line'),
           '--tr-feat-bg': cvar('ink'), '--tr-feat-ink': '#ffffff', '--tr-radius': '2px'
         },
@@ -1927,13 +1929,14 @@ const DEF: Record<string, WidgetDef> = {
           t: 'qa', k: 'items', label: 'Tiers', addLabel: 'Add tier',
           rowFields: [
             { k: 'tierName', label: 'Tier name', ph: 'Advisory Retainer', def: 'New tier' },
-            { k: 'badge', label: 'Badge (optional)', ph: 'Most engaged', def: '' },
+            { k: 'badge', label: 'Badge (optional)', ph: 'Most popular', def: '' },
+            { k: 'featured', label: 'Highlight this tier', toggle: 1 },
             { k: 'priceUsd', label: 'USD price', ph: '$6,400', def: '$5,000' },
             { k: 'priceEur', label: 'EUR price', ph: '€5,800', def: '€4,600' },
             { k: 'priceGbp', label: 'GBP price', ph: '£4,950', def: '£3,900' },
             { k: 'period', label: 'Billing period', ph: '/ month', def: '/ month' },
             { k: 'ctaText', label: 'Button label', ph: 'Select tier', def: 'Get started' },
-            { k: 'href', label: 'Button link', ph: 'conflict-check.html', def: '' },
+            { k: 'href', label: 'Button link', ph: 'contact.html', def: '' },
             { k: 'summary', label: 'Summary', ph: 'One-sentence tier scope', def: '', area: 1 },
             { k: 'features', label: 'Features (one per line)', ph: 'Feature one\nFeature two', def: '', area: 1 }
           ]
@@ -1941,6 +1944,7 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'color', c: '--tr-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-on', label: 'Text on accent', r: 1, layout: 'inline' },
         { t: 'color', c: '--tr-surface', label: 'Card surface', r: 1, layout: 'inline' },
         { t: 'color', c: '--tr-ink', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'color', c: '--tr-muted', label: 'Muted colour', r: 1, layout: 'inline' },
@@ -1959,13 +1963,13 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         pillAlign: 'center',
         items: [
-          { q: 'Why submit only counterparty names first?', a: 'Screening corporate entity names before confidential facts are shared protects both existing clients and your privilege.', note: 'ABA Model Rule 1.18 compliant', href: '', linkLabel: '' },
-          { q: 'How fast is emergency clearance?', a: 'Standard docket screening completes within 24 hours; active TRO or customs seizure matters clear in two hours.', note: '24/7 duty partner desk', href: '', linkLabel: '' }
+          { q: 'First question?', a: 'Write a direct answer here.', note: '', href: '', linkLabel: '' },
+          { q: 'Second question?', a: 'Visitors pick a question to see its answer.', note: '', href: '', linkLabel: '' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--qp-accent': cvar('brand'), '--qp-surface': cvar('surface'),
+          width: '100%', '--qp-accent': cvar('ink'), '--qp-on': cvar('bg'), '--qp-surface': cvar('surface'),
           '--qp-ink': cvar('ink'), '--qp-muted': cvar('muted'), '--qp-line': cvar('line'),
           '--qp-radius': '2px', '--qp-pill-radius': '999px'
         },
@@ -1979,15 +1983,16 @@ const DEF: Record<string, WidgetDef> = {
           t: 'qa', k: 'items', label: 'Questions', addLabel: 'Add question',
           rowFields: [
             { k: 'q', label: 'Question pill', ph: 'Short question', def: 'New question?' },
-            { k: 'note', label: 'Policy / rule note', ph: 'ABA Rule 1.18', def: '' },
-            { k: 'href', label: 'Action link', ph: '#check-desk', def: '' },
-            { k: 'linkLabel', label: 'Link label', ph: 'Proceed to intake', def: '' },
+            { k: 'note', label: 'Note', ph: 'Optional note', def: '' },
+            { k: 'href', label: 'Action link', ph: 'contact.html', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Learn more', def: '' },
             { k: 'a', label: 'Full answer', ph: 'Direct answer shown in panel', def: '', area: 1 }
           ]
         }
       ],
       style: [
         { t: 'color', c: '--qp-accent', label: 'Active pill accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-on', label: 'Text on accent', r: 1, layout: 'inline' },
         { t: 'color', c: '--qp-surface', label: 'Panel surface', r: 1, layout: 'inline' },
         { t: 'color', c: '--qp-ink', label: 'Question colour', r: 1, layout: 'inline' },
         { t: 'color', c: '--qp-muted', label: 'Answer colour', r: 1, layout: 'inline' },
@@ -2003,16 +2008,15 @@ const DEF: Record<string, WidgetDef> = {
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
-        submitLabel: 'Screen Conflict →', destHref: '', ariaLabel: 'Quick screening bar',
+        submitLabel: 'Continue', destHref: '', ariaLabel: 'Quick form',
         items: [
-          { fieldLabel: 'Requesting Entity', fieldType: 'text', ph: 'Helios Silicon GmbH', choices: '' },
-          { fieldLabel: 'Counterparty Entity', fieldType: 'text', ph: 'Entity name only', choices: '' },
-          { fieldLabel: 'Primary Forum', fieldType: 'select', ph: '', choices: 'U.S. Federal Circuit, Unified Patent Court, PTAB Inter Partes, EU AI Act Audit' }
+          { fieldLabel: 'Name', fieldType: 'text', ph: 'Your name', choices: '' },
+          { fieldLabel: 'Topic', fieldType: 'select', ph: '', choices: 'General, Booking, Support' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--db-accent': cvar('brand'), '--db-surface': cvar('surface'),
+          width: '100%', '--db-accent': cvar('brand'), '--db-on': brandActionForeground(), '--db-surface': cvar('surface'),
           '--db-ink': cvar('ink'), '--db-muted': cvar('muted'), '--db-line': cvar('line'),
           '--db-radius': '2px'
         },
@@ -2021,14 +2025,14 @@ const DEF: Record<string, WidgetDef> = {
     }),
     controls: {
       content: [
-        { t: 'text', k: 'submitLabel', label: 'Submit button', ph: 'Screen Conflict →' },
+        { t: 'text', k: 'submitLabel', label: 'Submit button', ph: 'Continue' },
         { t: 'link', k: 'destHref', label: 'Destination page' },
-        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Quick screening bar' },
+        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Quick form' },
         {
           t: 'qa', k: 'items', label: 'Fields', addLabel: 'Add field',
           rowFields: [
-            { k: 'fieldLabel', label: 'Field label', ph: 'Requesting Entity', def: 'Field' },
-            { k: 'fieldType', label: 'Type (text or select)', ph: 'text', def: 'text' },
+            { k: 'fieldLabel', label: 'Field label', ph: 'Name', def: 'Field' },
+            { k: 'fieldType', label: 'Type', def: 'text', opts: [['text', 'Text'], ['select', 'Dropdown']] },
             { k: 'ph', label: 'Placeholder', ph: 'Enter value', def: '' },
             { k: 'choices', label: 'Select options (comma-separated)', ph: 'Option A, Option B', def: '' }
           ]
@@ -2036,6 +2040,7 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'color', c: '--db-accent', label: 'Button & focus accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-on', label: 'Text on accent', r: 1, layout: 'inline' },
         { t: 'color', c: '--db-surface', label: 'Bar surface', r: 1, layout: 'inline' },
         { t: 'color', c: '--db-ink', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'color', c: '--db-muted', label: 'Placeholder colour', r: 1, layout: 'inline' },
@@ -2052,11 +2057,11 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         archSpread: 'fan',
         items: [
-          { src: '', alt: 'Linen & mineral oil', caption: '' },
-          { src: '', alt: 'Stoneware tea ritual', caption: '' },
-          { src: '', alt: 'Morning studio stillness', caption: '' },
-          { src: '', alt: 'Treatment sanctuary', caption: '' },
-          { src: '', alt: 'Warm flax rest', caption: '' }
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' }
         ]
       },
       css: {
@@ -2067,9 +2072,9 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         {
-          t: 'qa', k: 'items', label: 'Arch frames (up to 5)', addLabel: 'Add arch',
+          t: 'qa', k: 'items', label: 'Arch frames (up to 5)', addLabel: 'Add arch', max: 5,
           rowFields: [
-            { k: 'src', label: 'Image URL or asset', ph: 'asset:arch-1', def: '' },
+            { k: 'src', label: 'Image', ph: 'asset:arch-1', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe image', def: 'Arch frame' }
           ]
         }
@@ -2088,15 +2093,15 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         frameRatio: '16 / 9', autoSeconds: '6',
         chapters: [
-          { chapterTitle: 'Caldarium · 40°C', chapterSub: 'Geothermal mineral buoyancy', overlayText: 'Artesian spring water rises through volcanic basalt without chlorine.', src: '', alt: 'Caldarium basin' },
-          { chapterTitle: 'Hinoki Vault · 88°C', chapterSub: 'Mountain pine vapor', overlayText: 'Kiln-cured Japanese cedar dome infused every half hour with wild hydrosols.', src: '', alt: 'Hinoki steam vault' },
-          { chapterTitle: 'Glacial Plunge · 8°C', chapterSub: '90-second vagal reset', overlayText: 'Gravity-chilled silent channel restoring vascular tone between warm cycles.', src: '', alt: 'Cold plunge channel' }
+          { chapterTitle: 'First chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' },
+          { chapterTitle: 'Second chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' },
+          { chapterTitle: 'Third chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' }
         ]
       },
       css: {
         d: {
-          width: '100%', '--ch-accent': cvar('brand'), '--ch-ink': '#FAF7F2',
-          '--ch-muted': '#C8BDB0', '--ch-line': 'rgba(244,239,232,0.2)', '--ch-radius': '14px'
+          width: '100%', '--ch-accent': cvar('brand'), '--ch-ink': cvar('ink'),
+          '--ch-muted': cvar('muted'), '--ch-line': cvar('line'), '--ch-radius': '14px'
         },
         t: {}, m: {}
       }
@@ -2108,9 +2113,9 @@ const DEF: Record<string, WidgetDef> = {
         {
           t: 'qa', k: 'chapters', label: 'Chapters', addLabel: 'Add chapter',
           rowFields: [
-            { k: 'chapterTitle', label: 'Chapter title', ph: 'Caldarium · 40°C', def: 'New chapter' },
-            { k: 'chapterSub', label: 'Subtitle', ph: 'Geothermal buoyancy', def: '' },
-            { k: 'src', label: 'Frame image URL or asset', ph: 'asset:chapter', def: '' },
+            { k: 'chapterTitle', label: 'Chapter title', ph: 'Chapter title', def: 'New chapter' },
+            { k: 'chapterSub', label: 'Subtitle', ph: 'Optional subtitle', def: '' },
+            { k: 'src', label: 'Frame image', ph: 'asset:chapter', def: '', img: 1 },
             { k: 'alt', label: 'Alt text', ph: 'Describe chapter scene', def: '' },
             { k: 'overlayText', label: 'Frame caption', ph: 'One sentence overlaid on the frame', def: '', area: 1 }
           ]
@@ -2132,20 +2137,20 @@ const DEF: Record<string, WidgetDef> = {
     make: () => ({
       props: {
         currencySymbol: '€',
-        timeSlots: '06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Candlelight',
-        summaryTitle: 'Your sanctuary hold',
-        confirmLabel: 'Continue to Guest Details →',
-        confirmHref: '#soak-desk',
-        phoneNote: 'Free rescheduling up to 24 hours ahead of arrival.',
+        timeSlots: '09:00, 12:00, 15:00',
+        passHeading: 'Choose a service', guestHeading: 'Guests', slotHeading: 'Preferred time',
+        summaryTitle: 'Your selection',
+        confirmLabel: 'Continue',
+        confirmHref: '',
+        phoneNote: '',
         passes: [
-          { passName: '90-Min Contrast Circuit', passMeta: '4 chambers · flax robe included', unitPrice: '95', fixedTotal: 0 },
-          { passName: 'Twilight Candlelight Pass', passMeta: '2 hours · beeswax & pine steam', unitPrice: '115', fixedTotal: 0 },
-          { passName: 'Private Basalt Suite (Two)', passMeta: 'Private spring tub · up to 2 guests', unitPrice: '240', fixedTotal: 1 }
+          { passName: 'First service', passMeta: '', unitPrice: '50', fixedTotal: 0 },
+          { passName: 'Second service', passMeta: '', unitPrice: '80', fixedTotal: 0 }
         ]
       },
       css: {
         d: {
-          width: '100%', '--sp-accent': cvar('brand'), '--sp-surface': cvar('surface'),
+          width: '100%', '--sp-accent': cvar('ink'), '--sp-on': cvar('bg'), '--sp-surface': cvar('surface'),
           '--sp-ink': cvar('ink'), '--sp-muted': cvar('muted'), '--sp-line': cvar('line'),
           '--sp-radius': '10px'
         },
@@ -2156,7 +2161,10 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
         { t: 'text', k: 'timeSlots', label: 'Time slots (comma-separated)', ph: '09:00, 12:00, 16:00' },
-        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your sanctuary hold' },
+        { t: 'text', k: 'passHeading', label: 'Services heading', ph: 'Choose a service' },
+        { t: 'text', k: 'guestHeading', label: 'Guests heading', ph: 'Guests' },
+        { t: 'text', k: 'slotHeading', label: 'Times heading', ph: 'Preferred time' },
+        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your selection' },
         { t: 'text', k: 'confirmLabel', label: 'Confirm button', ph: 'Continue →' },
         { t: 'link', k: 'confirmHref', label: 'Confirm link' },
         { t: 'text', k: 'phoneNote', label: 'Policy note', ph: 'Free 24h rescheduling' },
@@ -2165,12 +2173,14 @@ const DEF: Record<string, WidgetDef> = {
           rowFields: [
             { k: 'passName', label: 'Pass name', ph: '90-Min Circuit', def: 'New pass' },
             { k: 'passMeta', label: 'Included note', ph: '90 min · robes included', def: '' },
-            { k: 'unitPrice', label: 'Numeric price', ph: '95', def: '95' }
+            { k: 'unitPrice', label: 'Numeric price', ph: '95', def: '95' },
+            { k: 'fixedTotal', label: 'One price for the whole party', toggle: 1 }
           ]
         }
       ],
       style: [
         { t: 'color', c: '--sp-accent', label: 'Selected accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-on', label: 'Text on accent', r: 1, layout: 'inline' },
         { t: 'color', c: '--sp-surface', label: 'Card surface', r: 1, layout: 'inline' },
         { t: 'color', c: '--sp-ink', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'color', c: '--sp-muted', label: 'Muted colour', r: 1, layout: 'inline' },
@@ -6793,6 +6803,7 @@ const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
    afterwards; a one-click action that renames two pages at once would be twice as bad. The
    three places a link can live are the three the review already walks — a `link` prop, a nav
    item's `href`, and an `href` inside rich text — so this rewrites exactly what that reads. */
+const OWN_LINK_PROP: Partial<Record<WidgetType, string>> = { dockbar: 'destHref', slotpicker: 'confirmHref' };
 function relink(from: string, to: string) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -6817,8 +6828,10 @@ function relink(from: string, to: string) {
     const vals = node.use ? node.vals : undefined;
     if (vals) linkKeys(findComponent(node.use)).forEach(k => { if (vals[k]) vals[k] = swap(vals[k]); });
     if (p.link !== undefined) p.link = swap(p.link);
+    const own = OWN_LINK_PROP[node.type];
+    if (own && (p as any)[own] !== undefined) (p as any)[own] = swap((p as any)[own]);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
-      (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });
+      (p.items as NavItem[]).forEach(it => { if (it.href !== undefined) it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
       p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
@@ -9954,6 +9967,11 @@ const PFX = 'pagecraft-';
 const widgetSlug = (type: string) => type === 'text' ? 'wysiwyg' : slugify((DEF[type] && DEF[type].label) || type);
 const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
 const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
+/** Ids a block writes for each of its items, so the public id allocator can reserve them. */
+const ITEM_ID_PARTS: Partial<Record<WidgetType, string[]>> = {
+  progress: ['p'], hotspot: ['hs'], switcher: ['sw-t', 'sw-p'], roster: ['panel', 'tab'],
+  qapills: ['pill', 'ans'], chapters: ['ch-p', 'ch-b']
+};
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
 const selOf = (n: PcNode) => '.' + nodeClass(n);
 
@@ -11384,6 +11402,9 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
     } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
       family.push(root + '-caption');
+    } else if (ITEM_ID_PARTS[n.type]) {
+      const rows = n.type === 'chapters' ? (p as any).chapters : p.items;
+      if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type]!.forEach(part => family.push(`${root}-${part}-${i}`)));
     }
     return family;
   };
@@ -12207,7 +12228,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
           + arrowSvg;
         const rowEl = href
           ? `<a class="pagecraft-exhibit-row" href="${esc(href)}" data-exhibit-idx="${i}">${inner}</a>`
-          : `<button type="button" class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner}</button>`;
+          : `<div class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner}</div>`;
         return `<li class="pagecraft-exhibit-item">${rowEl}</li>`;
       }).join('');
       return `<div ${at()} ${cx('pagecraft-exhibit')} data-exhibit${o.edit ? ' data-exhibit-edit' : ''}${ratioStyle}>`
@@ -12251,12 +12272,10 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const num = (v: unknown, d: number) => { const n = parseFloat(String(v ?? '')); return Number.isFinite(n) ? Math.min(24, Math.max(0, n)) : d; };
       const opens = num(p.opens, 9), closes = num(p.closes, 18);
       const openLabel = String(p.openLabel || 'Office open'), closedLabel = String(p.closedLabel || 'After hours');
-      const now = new Date();
       const cards = items.map((it, i) => {
         const city = String(it.city || `Office ${i + 1}`);
         const tz = String(it.tz || 'UTC');
-        let time = '--:--';
-        try { time = new Intl.DateTimeFormat(h12 ? 'en-US' : 'en-GB', { timeZone: tz, hour: h12 ? 'numeric' : '2-digit', minute: '2-digit', hour12: h12 }).format(now); } catch { /* invalid zone: the runtime keeps the placeholder */ }
+        /* The runtime fills the time in. Writing it here would make every build of an unchanged page differ. */
         const addr = String(it.address || '');
         const phone = String(it.phone || '');
         const tel = phone.replace(/[^+\d]/g, '');
@@ -12272,8 +12291,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">`
           + media
           + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span>`
-          + `<time class="pagecraft-clocks-time" data-clocks-time>${esc(time)}</time></div>`
-          + `<span class="pagecraft-clocks-state" data-clocks-state data-open="0">${esc(closedLabel)}</span>`
+          + `<time class="pagecraft-clocks-time" data-clocks-time>--:--</time></div>`
+          + `<span class="pagecraft-clocks-state" data-clocks-state data-open="0" hidden>${esc(closedLabel)}</span>`
           + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, '<br>')}</address>` : '')
           + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : '')
           + `</li>`;
@@ -12286,7 +12305,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const ratio = cssRatio(p.portraitRatio);
       const ratioStyle = ratio ? ` style="--rs-ratio:${esc(ratio)}"` : '';
       const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
-      const baseId = String(n.id || "pc");
+      const baseId = domId();
+      const label = (value: unknown, legacy: string) => { const text = value === undefined ? legacy : String(value || '').trim(); return text ? `<strong>${esc(text)}:</strong> ` : ''; };
       const initialsOf = (nm: string) => nm.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || 'P';
       const panels = items.map((it, i) => {
         const name = String(it.name || `Partner ${i + 1}`);
@@ -12301,9 +12321,9 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
         const linkLabel = String(it.linkLabel || 'Schedule consultation');
         const metaRow = (seat || cred)
-          ? `<div class="pagecraft-roster-meta">${seat ? `<span><strong>Chambers:</strong> ${esc(seat)}</span>` : ''}${cred ? `<span><strong>Bar:</strong> ${esc(cred)}</span>` : ''}</div>`
+          ? `<div class="pagecraft-roster-meta">${seat ? `<span>${label(p.seatLabel, 'Chambers')}${esc(seat)}</span>` : ''}${cred ? `<span>${label(p.credLabel, 'Bar')}${esc(cred)}</span>` : ''}</div>`
           : '';
-        return `<article class="pagecraft-roster-panel" id="${esc(baseId)}-panel-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+        return `<article class="pagecraft-roster-panel" id="${baseId}-panel-${i}" role="tabpanel" aria-labelledby="${baseId}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
           + `<div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
           + `<div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>`
           + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : '')
@@ -12315,7 +12335,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const tabs = items.map((it, i) => {
         const name = String(it.name || `Partner ${i + 1}`);
         const seat = String(it.seat || it.credential || '');
-        return `<button type="button" class="pagecraft-roster-tab" id="${esc(baseId)}-tab-${i}" role="tab" aria-controls="${esc(baseId)}-panel-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-roster-tab="${i}">`
+        return `<button type="button" class="pagecraft-roster-tab" id="${baseId}-tab-${i}" role="tab" aria-controls="${baseId}-panel-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-roster-tab="${i}">`
           + `<span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span>`
           + `<span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>`
           + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : '')
@@ -12328,11 +12348,15 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
     }
     case 'tiers': {
       const defCur = ['usd', 'eur', 'gbp'].includes(String(p.defaultCurrency)) ? String(p.defaultCurrency) : 'usd';
-      const curBtns = ([
-        ['usd', String(p.usdLabel || 'USD $')],
-        ['eur', String(p.eurLabel || 'EUR €')],
-        ['gbp', String(p.gbpLabel || 'GBP £')]
-      ] as const).map(([code, lbl]) =>
+      /* A currency is offered only when every tier has a price in it; otherwise its button
+         would leave another currency's number on the card. */
+      const tierRows = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const offered = ([
+        ['usd', String(p.usdLabel || 'USD $'), 'priceUsd'],
+        ['eur', String(p.eurLabel || 'EUR €'), 'priceEur'],
+        ['gbp', String(p.gbpLabel || 'GBP £'), 'priceGbp']
+      ] as const).filter(([code, , key]) => code === defCur || (tierRows.length > 0 && tierRows.every(row => String(row[key] || '').trim())));
+      const curBtns = offered.map(([code, lbl]) =>
         `<button type="button" class="pagecraft-tiers-cur" data-tiers-cur="${code}" aria-pressed="${code === defCur ? 'true' : 'false'}">${esc(lbl)}</button>`
       ).join('');
       const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
@@ -12340,9 +12364,9 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         const tName = String(it.tierName || `Tier ${i + 1}`);
         const badge = String(it.badge || '').trim();
         const usd = String(it.priceUsd || '$0');
-        const eur = String(it.priceEur || usd);
-        const gbp = String(it.priceGbp || usd);
-        const initPrice = defCur === 'eur' ? eur : defCur === 'gbp' ? gbp : usd;
+        const eur = String(it.priceEur || '');
+        const gbp = String(it.priceGbp || '');
+        const initPrice = (defCur === 'eur' ? eur : defCur === 'gbp' ? gbp : usd) || usd;
         const period = String(it.period || '');
         const summary = String(it.summary || '');
         const feats = String(it.features || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
@@ -12351,7 +12375,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
           : '';
         const ctaText = String(it.ctaText || 'Select tier');
         const rawHref = safeUrl(String(it.href || '').trim());
-        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
         const featured = Number(it.featured) === 1 ? '1' : '0';
         return `<article class="pagecraft-tiers-card" data-featured="${featured}">`
           + `<div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>`
@@ -12362,11 +12386,11 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
           + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : '')
           + `</div>`
           + featHtml
-          + `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a>`
+          + (link ? `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a>` : o.edit ? `<span class="pagecraft-tiers-btn">${esc(ctaText)}</span>` : '')
           + `</article>`;
       }).join('');
       return `<div ${at()} ${cx('pagecraft-tiers')} data-tiers data-active-cur="${esc(defCur)}">`
-        + `<div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div>`
+        + (offered.length > 1 ? `<div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div>` : '')
         + `<div class="pagecraft-tiers-grid">${cards}</div>`
         + `</div>`;
     }
@@ -12374,10 +12398,10 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const left = String(p.pillAlign) === 'start';
       const alignStyle = left ? ' style="--qp-align:flex-start;--qp-panel-align:flex-start;--qp-text-align:left"' : '';
       const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
-      const baseId = String(n.id || "pc");
+      const baseId = domId();
       const pills = items.map((it, i) => {
         const q = String(it.q || `Question ${i + 1}`);
-        return `<button type="button" class="pagecraft-qapills-pill" id="${esc(baseId)}-pill-${i}" role="tab" aria-controls="${esc(baseId)}-ans-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-qa-idx="${i}">${esc(q)}</button>`;
+        return `<button type="button" class="pagecraft-qapills-pill" id="${baseId}-pill-${i}" role="tab" aria-controls="${baseId}-ans-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-qa-idx="${i}">${esc(q)}</button>`;
       }).join('');
       const panels = items.map((it, i) => {
         const q = String(it.q || `Question ${i + 1}`);
@@ -12386,7 +12410,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         const rawHref = safeUrl(String(it.href || '').trim());
         const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
         const linkLabel = String(it.linkLabel || 'Learn more');
-        return `<div class="pagecraft-qapills-panel" id="${esc(baseId)}-ans-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-pill-${i}" data-qa-panel="${i}"${i === 0 ? '' : ' hidden'}>`
+        return `<div class="pagecraft-qapills-panel" id="${baseId}-ans-${i}" role="tabpanel" aria-labelledby="${baseId}-pill-${i}" data-qa-panel="${i}"${i === 0 ? '' : ' hidden'}>`
           + `<h3 class="pagecraft-qapills-q">${esc(q)}</h3>`
           + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : '')
           + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : '')
@@ -12437,13 +12461,13 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const autoSec = parseFloat(String(p.autoSeconds ?? '6'));
       const autoAttr = Number.isFinite(autoSec) && autoSec > 0 ? String(autoSec) : '0';
       const items = (Array.isArray(p.chapters) ? p.chapters as any[] : []).filter(Boolean);
-      const baseId = String(n.id || 'pc');
+      const baseId = domId();
       const slides = items.map((it, i) => {
         const src = esc(String(it.src || PH));
         const alt = esc(String(it.alt || it.chapterTitle || `Chapter ${i + 1}`));
         const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
         const ov = String(it.overlayText || '');
-        return `<figure class="pagecraft-chapters-slide" id="${esc(baseId)}-ch-p-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+        return `<figure class="pagecraft-chapters-slide" id="${baseId}-ch-p-${i}" role="tabpanel" aria-labelledby="${baseId}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
           + `<img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">`
           + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : '')
           + `</figure>`;
@@ -12451,24 +12475,25 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const btns = items.map((it, i) => {
         const t = String(it.chapterTitle || `Chapter ${i + 1}`);
         const sub = String(it.chapterSub || '');
-        return `<button type="button" class="pagecraft-chapters-btn" id="${esc(baseId)}-ch-b-${i}" role="tab" aria-controls="${esc(baseId)}-ch-p-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-ch-btn="${i}">`
+        return `<button type="button" class="pagecraft-chapters-btn" id="${baseId}-ch-b-${i}" role="tab" aria-controls="${baseId}-ch-p-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-ch-btn="${i}">`
           + `<span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span>`
           + `<span class="pagecraft-chapters-title">${esc(t)}</span>`
           + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : '')
           + `</button>`;
       }).join('');
       return `<div ${at()} ${cx('pagecraft-chapters')} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}>`
-        + `<div class="pagecraft-chapters-stage">${slides}</div>`
+        + `<div class="pagecraft-chapters-stage">${slides}${autoAttr !== '0' && items.length > 1 && !o.edit ? '<button type="button" class="pagecraft-chapters-pause" data-ch-pause aria-pressed="false" hidden>Pause</button>' : ''}</div>`
         + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
         + `</div>`;
     }
     case 'slotpicker': {
+      const money = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2);
       const sym = String(p.currencySymbol || '€');
       const slots = String(p.timeSlots || '09:00, 12:00, 16:00').split(',').map(x => x.trim()).filter(Boolean);
       const sumTitle = String(p.summaryTitle || 'Your reservation');
       const confLbl = String(p.confirmLabel || 'Confirm window →');
       const rawHref = safeUrl(String(p.confirmHref || '').trim());
-      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : '';
       const note = String(p.phoneNote || '');
       const items = (Array.isArray(p.passes) ? p.passes as any[] : []).filter(Boolean);
       const first = items[0] || { passName: 'Session', unitPrice: '95', fixedTotal: 0 };
@@ -12480,7 +12505,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? 'true' : 'false'}">`
           + `<span class="pagecraft-sp-pass-name">${esc(nm)}</span>`
           + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : '')
-          + `<span class="pagecraft-sp-pass-price">${esc(sym)}${Math.round(pr)}${fx === '1' ? ' flat' : ' / guest'}</span>`
+          + `<span class="pagecraft-sp-pass-price">${esc(sym)}${money(pr)}${fx === '1' ? ' flat' : ' / guest'}</span>`
           + `</button>`;
       }).join('');
       const guestBtns = [1, 2].map(g =>
@@ -12489,12 +12514,12 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const slotBtns = slots.map((sl, i) =>
         `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(sl)}</button>`
       ).join('');
-      const initPrice = Math.round(parseFloat(String(first.unitPrice || '0')) || 0);
+      const initPrice = money(parseFloat(String(first.unitPrice || '0')) || 0);
       return `<div ${at()} ${cx('pagecraft-slotpicker')} data-slotpicker data-sym="${esc(sym)}">`
         + `<div class="pagecraft-sp-steps">`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Choose immersion pass</p><div class="pagecraft-sp-passes">${passBtns}</div></div>`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Guests in party</p><div class="pagecraft-sp-pills">${guestBtns}</div></div>`
-        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Preferred arrival window</p><div class="pagecraft-sp-pills">${slotBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.passHeading ?? 'Choose immersion pass'))}</p><div class="pagecraft-sp-passes">${passBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.guestHeading ?? 'Guests in party'))}</p><div class="pagecraft-sp-pills">${guestBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.slotHeading ?? 'Preferred arrival window'))}</p><div class="pagecraft-sp-pills">${slotBtns}</div></div>`
         + `</div>`
         + `<aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}">`
         + `<h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3>`
@@ -12504,7 +12529,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || '')}</strong></div>`
         + `</div>`
         + `<div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>`
-        + `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>`
+        + (confHref ? `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` : o.edit ? `<span class="pagecraft-sp-confirm">${esc(confLbl)}</span>` : '')
         + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : '')
         + `</aside></div>`;
     }

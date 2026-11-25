@@ -9,6 +9,7 @@ import { C, L } from '../ctx';
 import { useImageUpload } from '../useImageUpload';
 import { Icon } from '../Icon';
 import { Field } from './Field';
+import { Dropzone } from './Controls';
 import { valueOf, rows, liftRow, moveRow, dropRow } from './ctl';
 import {
   WordPressContentPicker, wordpressContentTargets, wordpressDestinationForValue,
@@ -506,6 +507,39 @@ function TabPanelsCtl({ n, c }: P) {
   </Field>;
 }
 
+/** One image inside a repeater row: upload or pick, the same as an Image element. */
+function RowImage({ n, c, k, prop, label }: P & { k: number; prop: string; label: string }) {
+  const value = String(list(n, c)[k][prop] || '');
+  const ref = value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
+  const asset = ref ? L.asset(ref[1]) : null;
+  const use = (id: string) => {
+    const got = L.asset(id);
+    if (!got) return;
+    C.edit(() => {
+      const row = rows(n, c)[k];
+      row[prop] = 'asset:' + id;
+      if (got.w && got.h) { row.w = String(got.w); row.h = String(got.h); }
+    });
+  };
+  const title = value ? 'Replace image' : 'Choose image';
+  const files = useImageUpload('row-image-' + n.id + '-' + k + '-' + prop, ids => use(ids[ids.length - 1]), false, false, title);
+  return <div class="repeater-long" style={{ marginBottom: 'var(--gap-2)' }}><span>{label}</span>
+    {value ? <div class={'imgset' + (asset ? '' : ' missing')}>
+      {asset ? <img src={asset.url} alt="" /> : null}
+      <span class="an"><b>{asset ? asset.name : 'Not in this project'}</b><small>{asset ? C.kb(asset.size) : value.slice(0, 40)}</small></span>
+      <button type="button" class="x" title="Remove image" aria-label={`Remove ${label.toLowerCase()}, item ${k + 1}`} disabled={files.busy}
+        onClick={() => C.edit(() => { const row = rows(n, c)[k]; row[prop] = ''; delete row.w; delete row.h; })}><Icon name="trash" size={12} /></button>
+    </div> : <Dropzone disabled={files.busy} onChoose={files.choose} onFiles={files.takeFiles} />}
+    <div class="pc-field-actions">
+      <button type="button" class="btn grow" disabled={files.busy} aria-busy={files.busy} onClick={files.choose}>
+        {!files.busy && <Icon name="image" size={13} />} {files.busy ? 'Uploading…' : value ? 'Replace' : 'Upload'}</button>
+      {L.assetCount() ? <button type="button" class="btn grow" disabled={files.busy} title="Pick from the Media library"
+        onClick={async () => { const id = await L.mediaPicker({ title, multiple: false }); if (id) use(String(id)); }}>
+        <Icon name="copy" size={13} /> Library</button> : null}
+    </div>
+  </div>;
+}
+
 /* Questions and tabs use the same compact repeater as form fields. */
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
@@ -522,7 +556,18 @@ export function QaCtl({ n, c }: P) {
     }}>Use editable panels</button>}
     {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
       title={it[firstKey] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
-      {c.rowFields ? c.rowFields.map(rf => rf.area
+      {c.rowFields ? c.rowFields.map(rf => rf.img
+        ? <RowImage n={n} c={c} k={k} prop={rf.k} label={rf.label} key={rf.k} />
+        : rf.toggle
+        ? <label class="frow-control" key={rf.k}><span>{rf.label}</span><input class="field-switch" type="checkbox" role="switch" checked={!!it[rf.k]}
+            aria-label={`${rf.label} for ${it[firstKey] || 'untitled item'}, item ${k + 1}`}
+            onChange={() => C.edit(() => { rows(n, c)[k][rf.k] = it[rf.k] ? 0 : 1; })} /></label>
+        : rf.opts
+        ? <label class="frow-control" key={rf.k}><span>{rf.label}</span><select class="ctl" value={it[rf.k] || rf.def}
+            aria-label={`${rf.label} for ${it[firstKey] || 'untitled item'}, item ${k + 1}`}
+            onChange={e => C.edit(() => { rows(n, c)[k][rf.k] = (e.target as HTMLSelectElement).value; })}>
+            {rf.opts.map(([value, text]) => <option value={value} key={value}>{text}</option>)}</select></label>
+        : rf.area
         ? <label class="repeater-long" key={rf.k}><span>{rf.label}</span>
           <textarea class="ctl" rows={3} value={it[rf.k] || ''} placeholder={rf.ph || rf.label}
             aria-label={`${rf.label} for ${it[firstKey] || 'untitled item'}, item ${k + 1}`}
@@ -542,12 +587,12 @@ export function QaCtl({ n, c }: P) {
           </label>
         </>}
     </RepeaterRow>)}
-    <AddButton label={c.addLabel || 'Add question'} gap={!!arr.length} onClick={() => {
+    {!(c.max && arr.length >= Number(c.max)) && <AddButton label={c.addLabel || 'Add question'} gap={!!arr.length} onClick={() => {
       const at = arr.length;
       C.edit(() => {
         if (c.rowFields) {
           const fresh: Record<string, string> = {};
-          c.rowFields.forEach(rf => { fresh[rf.k] = rf.def ?? ''; });
+          c.rowFields.forEach(rf => { if (!rf.toggle) fresh[rf.k] = rf.def ?? ''; });
           rows(n, c).push(fresh);
         } else {
           const [vA, vB] = c.rowNew || ['A new question', ''];
@@ -555,7 +600,7 @@ export function QaCtl({ n, c }: P) {
         }
       });
       setOpen(at);
-    }} />
+    }} />}
   </Field>;
 }
 

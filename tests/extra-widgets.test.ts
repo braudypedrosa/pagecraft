@@ -762,4 +762,95 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     spDispose!();
     spDom.window.close();
   });
+
+  test('audit fixes: zero compare position, stable clock output, unique ids, honest prices and links', () => {
+    const win = (html: string, js: string) => { const d = domFor(html); (d.window as any).eval(scriptBody(js)); return d; };
+
+    const cmp = win(C.renderNode(C.N('compare', { position: '0' }), { edit: false }), C.COMPARE_JS);
+    expect((cmp.window.document.querySelector('.pagecraft-compare') as HTMLElement).style.getPropertyValue('--cmp-pos')).toBe('0%');
+
+    const clocks = C.N('clocks');
+    const RealDate = globalThis.Date;
+    const at = (iso: string) => class extends RealDate {
+      constructor(...args: any[]) { args.length ? super(...args as [any]) : super(iso); }
+      static now() { return new RealDate(iso).getTime(); }
+    } as any;
+    const build = (iso: string) => { globalThis.Date = at(iso); try { return C.renderNode(clocks, { edit: false }); } finally { globalThis.Date = RealDate; } };
+    expect(build('2026-11-25T03:00:00Z')).toBe(build('2026-11-25T19:30:00Z'));
+
+    const overnight = (iso: string) => {
+      const d = domFor(C.renderNode(C.N('clocks', { opens: '22', closes: '6', openLabel: 'Open', closedLabel: 'Closed', items: [{ city: 'UTC', tz: 'UTC' }] }), { edit: false }));
+      const w = d.window as any, WD = w.Date;
+      w.Date = class extends WD { constructor(...args: any[]) { args.length ? super(...args) : super(iso); } };
+      w.Intl = { DateTimeFormat: Intl.DateTimeFormat };
+      w.eval(scriptBody(C.CLOCKS_JS));
+      const state = w.document.querySelector('[data-clocks-state]');
+      const result = [state.hidden, state.textContent];
+      w.close();
+      return result;
+    };
+    expect(overnight('2026-11-25T23:00:00Z')).toEqual([false, 'Open']);      // Wednesday night
+    expect(overnight('2026-11-28T03:00:00Z')).toEqual([false, 'Open']);      // Friday's shift, Saturday 3 am
+    expect(overnight('2026-11-30T03:00:00Z')).toEqual([false, 'Closed']);    // Sunday's shift, Monday 3 am
+    expect(overnight('2026-11-25T12:00:00Z')).toEqual([false, 'Closed']);
+
+    for (const type of ['roster', 'qapills', 'chapters'] as const) {
+      const node = C.N(type);
+      node.adv = { ...(node.adv || {}), htmlId: 'team' } as any;
+      const html = C.renderNode(node, { edit: false });
+      expect(html).toContain('id="team-');
+      const ids = [...html.matchAll(/ id="([^"]+)"/g)].map(m => m[1]);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+
+    const noEuro = C.renderNode(C.N('tiers', { defaultCurrency: 'usd', items: [{ tierName: 'A', priceUsd: '$10', priceGbp: '£8' }, { tierName: 'B', priceUsd: '$20', priceGbp: '£16', priceEur: '€18' }] }), { edit: false });
+    expect(noEuro).not.toContain('data-tiers-cur="eur"');
+    expect(noEuro).toContain('data-tiers-cur="gbp"');
+    expect(noEuro).not.toContain('href="#"');
+
+    const sp = win(C.renderNode(C.N('slotpicker', { currencySymbol: '$', passes: [{ passName: 'A', unitPrice: '95.25' }] }), { edit: false }), C.SLOTPICKER_JS);
+    expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$95.25');
+    (sp.window.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$190.50');
+    expect(sp.window.document.querySelector('.pagecraft-sp-confirm')).toBeNull();
+
+    // Words that were fixed in the code stay for documents that predate the controls.
+    expect(C.renderNode({ ...C.N('roster'), props: { items: [{ name: 'A', seat: 'DC', credential: 'X' }] } } as any, { edit: false })).toContain('Chambers:');
+    expect(C.renderNode(C.N('roster'), { edit: false })).not.toContain('Chambers');
+  });
+
+  test('audit fixes: renamed pages keep both single-link blocks working', () => {
+    const doc = blankDoc('Rename');
+    doc.pages.push({ ...structuredClone(doc.pages[0]), id: 'p2', name: 'Book', slug: 'book', tree: [] } as any);
+    doc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [
+      C.N('dockbar', { destHref: 'book.html#form' }), C.N('slotpicker', { confirmHref: 'book.html' }), C.N('qapills')])])])];
+    C.restore(doc, false);
+    C.pageSlugSet(1, 'reserve');
+    const text = JSON.stringify(C.state.pages[0].tree);
+    expect(text).toContain('"destHref":"reserve.html#form"');
+    expect(text).toContain('"confirmHref":"reserve.html"');
+  });
+
+  test('audit fixes: chapters hold while focused and can be paused', async () => {
+    const d = domFor(C.renderNode(C.N('chapters', { autoSeconds: '0.05' }), { edit: false }));
+    const w = d.window as any;
+    w.eval(scriptBody(C.CHAPTERS_JS));
+    const active = () => [...w.document.querySelectorAll('[data-ch-slide]')].findIndex((s: any) => s.dataset.active === '1');
+    const wait = (ms: number) => new Promise(done => setTimeout(done, ms));
+    const pause = w.document.querySelector('[data-ch-pause]');
+    expect(pause.hidden).toBe(false);
+    pause.click();
+    const held = active();
+    await wait(180);
+    expect(active()).toBe(held);
+    pause.click();
+    const button = w.document.querySelector('[data-ch-btn]');
+    button.focus();
+    const focused = active();
+    await wait(180);
+    expect(active()).toBe(focused);
+    button.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(active()).toBe(2);
+    w.close();
+  });
 });

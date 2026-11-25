@@ -53,7 +53,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['clocks', 'Office clocks'], ['roster', 'Partner spotlight'], ['tiers', 'Currency tiers'], ['qapills', 'Question pills'], ['dockbar', 'Docked intake bar'], ['chapters', 'Chapter frame'], ['slotpicker', 'Slot picker'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['clocks', 'Office clocks'], ['roster', 'Team spotlight'], ['tiers', 'Currency tiers'], ['qapills', 'Question pills'], ['dockbar', 'Docked intake bar'], ['chapters', 'Chapter frame'], ['slotpicker', 'Slot picker'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }

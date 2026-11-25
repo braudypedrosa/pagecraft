@@ -215,7 +215,7 @@ test('a server with nowhere to store images links template images origin-relativ
     a.doesNotMatch(serialized, /https?:\/\/[^"]*\/templates\//, 'no environment host is written into the site');
     const html = [...renderSite(installed.document, []).files.values()].join('\n');
     a.ok(html.includes(`"/templates/${template.id}/${template.version}/preview/assets/`));
-    const urls = [...new Set(serialized.match(/\/templates\/[a-z0-9-]+\/[\d.]+\/preview\/[^"\s\\]+/g))];
+    const urls = [...new Set(serialized.match(/\/templates\/[a-z0-9-]+\/[\d.]+\/preview\/[^"\s\\)]+/g))];
     a.ok(urls.length);
     for (const url of urls) {
       const image = await store.preview(template.id, template.version, url.split('/preview/')[1]);

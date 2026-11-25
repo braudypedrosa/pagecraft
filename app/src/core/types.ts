@@ -282,7 +282,7 @@ export interface ScrollyProps { stickyRatio?: string; items?: ScrollyItem[] }
 export interface ClocksItem { city?: string; tz?: string; address?: string; phone?: string; href?: string; linkLabel?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface ClocksProps { hour12?: number; opens?: string; closes?: string; openLabel?: string; closedLabel?: string; items?: ClocksItem[] }
 export interface RosterItem { name?: string; role?: string; seat?: string; credential?: string; quote?: string; href?: string; linkLabel?: string; src?: string; alt?: string; w?: string; h?: string }
-export interface RosterProps { portraitRatio?: string; items?: RosterItem[] }
+export interface RosterProps { portraitRatio?: string; seatLabel?: string; credLabel?: string; items?: RosterItem[] }
 export interface TiersItem { tierName?: string; badge?: string; priceUsd?: string; priceEur?: string; priceGbp?: string; period?: string; summary?: string; features?: string; ctaText?: string; href?: string; featured?: number }
 export interface TiersProps { defaultCurrency?: string; usdLabel?: string; eurLabel?: string; gbpLabel?: string; items?: TiersItem[] }
 export interface QapillsItem { q?: string; a?: string; note?: string; href?: string; linkLabel?: string }
@@ -293,7 +293,7 @@ export interface ArchesProps { archSpread?: string; items?: GalleryTile[] }
 export interface ChaptersItem { chapterTitle?: string; chapterSub?: string; overlayText?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface ChaptersProps { frameRatio?: string; autoSeconds?: string; chapters?: ChaptersItem[] }
 export interface SlotpickerItem { passName?: string; passMeta?: string; unitPrice?: string; fixedTotal?: number }
-export interface SlotpickerProps { currencySymbol?: string; timeSlots?: string; confirmLabel?: string; confirmHref?: string; summaryTitle?: string; phoneNote?: string; passes?: SlotpickerItem[] }
+export interface SlotpickerProps { passHeading?: string; guestHeading?: string; slotHeading?: string; currencySymbol?: string; timeSlots?: string; confirmLabel?: string; confirmHref?: string; summaryTitle?: string; phoneNote?: string; passes?: SlotpickerItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -559,7 +559,7 @@ export interface Control {
       start empty the way an unanswered question can. */
   rowNew?: [string, string];
   /** multi-field item definition for `qa` repeaters that hold 2+ columns per item. */
-  rowFields?: { k: string; label: string; ph?: string; def?: string; area?: 0 | 1 }[];
+  rowFields?: { k: string; label: string; ph?: string; def?: string; area?: 0 | 1; img?: 0 | 1; toggle?: 0 | 1; opts?: [string, string][] }[];
   addLabel?: string;
   /** a setting rather than content, so it never appears as bindable. `BIND_CTL` decides by
       control kind, which is right until the same kind means both things: a filter's value is

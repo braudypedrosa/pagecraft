@@ -2338,7 +2338,7 @@ var KIND = {
   exhibit: "exhibit index",
   scrolly: "sticky steps",
   clocks: "office clocks",
-  roster: "partner roster",
+  roster: "team spotlight",
   tiers: "currency tiers",
   qapills: "question pills",
   dockbar: "docked intake bar",
@@ -2871,7 +2871,7 @@ var COMPARE_JS = `<script>
     if(!range)return;
     root.setAttribute('data-pc-cmp-ready','');
     function sync(){
-      var v=Math.max(0,Math.min(100,parseFloat(range.value)||50));
+      var raw=parseFloat(range.value);var v=isFinite(raw)?Math.max(0,Math.min(100,raw)):50;
       root.style.setProperty('--cmp-pos',v+'%');
       range.setAttribute('aria-valuetext',Math.round(v)+'%');
     }
@@ -3171,6 +3171,7 @@ var EXHIBIT_CSS = `.pagecraft-exhibit{position:relative;width:100%}
 .pagecraft-exhibit-float{position:absolute;inset-inline-end:52px;inset-block-start:0;width:276px;aspect-ratio:var(--ex-ratio,4 / 3);border-radius:var(--ex-radius,12px);overflow:hidden;border:1px solid var(--ex-line,rgba(19,49,40,.18));background-color:var(--ex-surface,#133128);background-size:cover;background-position:center;box-shadow:0 20px 48px rgba(14,30,24,.22);pointer-events:none;z-index:20;opacity:0;visibility:hidden;transform:translate3d(0,var(--ex-y,12px),0) scale(.96);transition:opacity .24s cubic-bezier(.22,1,.36,1),visibility .24s ease,transform .28s cubic-bezier(.22,1,.36,1)}
 .pagecraft-exhibit-float[data-open="1"]{opacity:1;visibility:visible;transform:translate3d(0,var(--ex-y,12px),0) scale(1)}
 @media (max-width:860px){
+  .pagecraft-exhibit-year{grid-column:3;grid-row:1}
   .pagecraft-exhibit-row{grid-template-columns:64px minmax(0,1fr) auto;gap:12px 14px;padding:16px 8px}
   .pagecraft-exhibit-row:hover,.pagecraft-exhibit-row:focus-visible,.pagecraft-exhibit-row[data-active="1"]{padding-inline-start:10px}
   .pagecraft-exhibit-thumb{width:64px}
@@ -3252,7 +3253,7 @@ var SCROLLY_CSS = `.pagecraft-scrolly{display:grid;grid-template-columns:minmax(
 .pagecraft-scrolly-img{display:block;width:100%;height:auto;aspect-ratio:var(--sc-ratio,4 / 3);object-fit:cover;background:#133128;transform:scale(1.03);transition:transform .55s cubic-bezier(.22,1,.36,1)}
 .pagecraft-scrolly-plate[data-active="1"] .pagecraft-scrolly-img{transform:scale(1)}
 .pagecraft-scrolly-cap{padding:14px 20px;font-size:13.5px;line-height:1.45;font-weight:500;font-variant-numeric:tabular-nums;color:var(--sc-muted,#435A51);border-top:1px solid var(--sc-line,rgba(19,49,40,.12));background:var(--sc-surface,#fff)}
-@media (max-width:860px){
+@media (max-width:767px){
   .pagecraft-scrolly{grid-template-columns:minmax(0,1fr);gap:20px}
   .pagecraft-scrolly-stage{position:relative;top:auto;order:-1}
   .pagecraft-scrolly-card{padding:20px}
@@ -3325,6 +3326,7 @@ var CLOCKS_CSS = `.pagecraft-clocks{width:100%}
 .pagecraft-clocks-city{font-size:var(--ck-city-size,22px);line-height:1.15;font-weight:600;letter-spacing:-.01em;color:var(--ck-ink,#0C0F1A)}
 .pagecraft-clocks-time{font-size:var(--ck-time-size,40px);line-height:1;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ck-ink,#0C0F1A);white-space:nowrap}
 .pagecraft-clocks-state{display:inline-flex;align-items:center;gap:8px;font-size:13px;line-height:1.3;font-weight:600;color:var(--ck-muted,#525A6B)}
+.pagecraft-clocks-state[hidden]{display:none}
 .pagecraft-clocks-state::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ck-line,#CDD2DC);flex-shrink:0}
 .pagecraft-clocks-state[data-open="1"]{color:var(--ck-accent,#1B36B8)}
 .pagecraft-clocks-state[data-open="1"]::before{background:var(--ck-accent,#1B36B8);box-shadow:0 0 0 3px color-mix(in srgb,var(--ck-accent,#1B36B8) 18%,transparent)}
@@ -3367,8 +3369,13 @@ var CLOCKS_JS = `<script>
             timeEl.setAttribute('datetime',now.toISOString());
           }
           if(stateEl){
-            var dec=hh+mm/60;var weekend=wd==='Sat'||wd==='Sun';
-            var isOpen=!weekend&&dec>=opens&&dec<closes;
+            var dec=hh+mm/60;
+            var overnight=closes<opens;
+            /* After midnight an overnight shift still belongs to the day it started. */
+            var day=overnight&&dec<closes?({Mon:'Sun',Tue:'Mon',Wed:'Tue',Thu:'Wed',Fri:'Thu',Sat:'Fri',Sun:'Sat'})[wd]:wd;
+            var weekend=day==='Sat'||day==='Sun';
+            var isOpen=!weekend&&(overnight?dec>=opens||dec<closes:dec>=opens&&dec<closes);
+            stateEl.removeAttribute('hidden');
             stateEl.setAttribute('data-open',isOpen?'1':'0');
             stateEl.textContent=isOpen?openLabel:closedLabel;
           }
@@ -3418,7 +3425,7 @@ var ROSTER_CSS = `.pagecraft-roster{width:100%;display:flex;flex-direction:colum
 .pagecraft-roster-tmeta{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pagecraft-roster-tname{font-size:14.5px;line-height:1.35;font-weight:600;color:var(--rs-ink,#0C1220)}
 .pagecraft-roster-tseat{font-size:12.5px;line-height:1.35;color:var(--rs-muted,#4A566E)}
-@media (max-width:860px){
+@media (max-width:767px){
   .pagecraft-roster-panel{grid-template-columns:1fr}
   .pagecraft-roster-img{height:auto;min-height:0;aspect-ratio:var(--rs-ratio,4 / 5)}
   .pagecraft-roster-body{padding:24px 20px}
@@ -3489,14 +3496,14 @@ var TIERS_CSS = `.pagecraft-tiers{width:100%;display:flex;flex-direction:column;
 .pagecraft-tiers-bar{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .pagecraft-tiers-cur-lbl{font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tr-muted,#4A566E);margin-right:4px}
 .pagecraft-tiers-cur{appearance:none;margin:0;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;line-height:1.3;border:1px solid var(--tr-line,#C8D0DF);border-radius:var(--tr-radius,2px);background:var(--tr-surface,#FFFFFF);color:var(--tr-ink,#0C1220);cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
-.pagecraft-tiers-cur[aria-pressed="true"]{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-tiers-cur[aria-pressed="true"]{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:var(--tr-on,#FFFFFF)}
 .pagecraft-tiers-cur:focus-visible{outline:2px solid var(--tr-accent,#1B3B9B);outline-offset:2px}
 .pagecraft-tiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px;align-items:stretch}
 .pagecraft-tiers-card{padding:30px 28px;display:flex;flex-direction:column;gap:18px;background:var(--tr-surface,#FFFFFF);color:var(--tr-ink,#0C1220);border:1px solid var(--tr-line,#C8D0DF);border-radius:var(--tr-radius,2px)}
 .pagecraft-tiers-card[data-featured="1"]{background:var(--tr-feat-bg,#0C1220);color:var(--tr-feat-ink,#F2F4F8);border-color:var(--tr-feat-bg,#0C1220)}
 .pagecraft-tiers-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .pagecraft-tiers-name{margin:0;font-size:22px;line-height:1.3;font-weight:600;color:inherit}
-.pagecraft-tiers-badge{padding:4px 10px;font-size:11.5px;line-height:1.3;font-weight:600;border-radius:2px;background:var(--tr-accent,#1B3B9B);color:#FFFFFF;white-space:nowrap}
+.pagecraft-tiers-badge{padding:4px 10px;font-size:11.5px;line-height:1.3;font-weight:600;border-radius:2px;background:var(--tr-accent,#1B3B9B);color:var(--tr-on,#FFFFFF);white-space:nowrap}
 .pagecraft-tiers-sum{margin:0;font-size:14.5px;line-height:1.58;color:var(--tr-muted,#4A566E);max-width:46ch}
 .pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-sum{color:var(--tr-feat-muted,#B8C6E0)}
 .pagecraft-tiers-price-row{display:flex;align-items:baseline;gap:8px;padding:16px 0;border-top:1px solid var(--tr-line,#C8D0DF);border-bottom:1px solid var(--tr-line,#C8D0DF)}
@@ -3509,8 +3516,8 @@ var TIERS_CSS = `.pagecraft-tiers{width:100%;display:flex;flex-direction:column;
 .pagecraft-tiers-check{color:var(--tr-accent,#1B3B9B);font-weight:700;flex-shrink:0}
 .pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-check{color:#7DA2FF}
 .pagecraft-tiers-btn{margin-top:6px;padding:12px 18px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;line-height:1.3;text-decoration:none;border-radius:var(--tr-radius,2px);border:1px solid var(--tr-ink,#0C1220);color:var(--tr-ink,#0C1220);background:transparent;transition:background-color .16s ease,color .16s ease}
-.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-btn{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
-.pagecraft-tiers-btn:hover,.pagecraft-tiers-btn:focus-visible{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-tiers-card[data-featured="1"] .pagecraft-tiers-btn{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:var(--tr-on,#FFFFFF)}
+.pagecraft-tiers-btn:hover,.pagecraft-tiers-btn:focus-visible{background:var(--tr-accent,#1B3B9B);border-color:var(--tr-accent,#1B3B9B);color:var(--tr-on,#FFFFFF)}
 @media (max-width:860px){.pagecraft-tiers-bar{justify-content:flex-start}.pagecraft-tiers-card{padding:24px 20px}}
 @media (prefers-reduced-motion:reduce){.pagecraft-tiers-cur,.pagecraft-tiers-btn{transition:none}}`;
 var TIERS_JS = `<script>
@@ -3554,7 +3561,7 @@ var TIERS_JS = `<script>
 var QAPILLS_CSS = `.pagecraft-qapills{width:100%;display:flex;flex-direction:column;gap:24px}
 .pagecraft-qapills-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:var(--qp-align,center)}
 .pagecraft-qapills-pill{appearance:none;margin:0;padding:10px 18px;min-height:42px;font-family:inherit;font-size:14px;font-weight:600;line-height:1.35;border:1px solid var(--qp-line,#C8D0DF);border-radius:var(--qp-pill-radius,999px);background:var(--qp-surface,#FFFFFF);color:var(--qp-ink,#0C1220);cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
-.pagecraft-qapills-pill[aria-selected="true"]{background:var(--qp-accent,#1B3B9B);border-color:var(--qp-accent,#1B3B9B);color:#FFFFFF}
+.pagecraft-qapills-pill[aria-selected="true"]{background:var(--qp-accent,#1B3B9B);border-color:var(--qp-accent,#1B3B9B);color:var(--qp-on,#FFFFFF)}
 .pagecraft-qapills-pill:focus-visible{outline:2px solid var(--qp-accent,#1B3B9B);outline-offset:2px}
 .pagecraft-qapills-stage{padding:36px 40px;background:var(--qp-surface,#FFFFFF);border:1px solid var(--qp-line,#C8D0DF);border-radius:var(--qp-radius,2px)}
 .pagecraft-qapills-panel{display:flex;flex-direction:column;align-items:var(--qp-panel-align,center);text-align:var(--qp-text-align,center);gap:14px}
@@ -3624,7 +3631,7 @@ var DOCKBAR_CSS = `.pagecraft-dockbar{position:relative;z-index:3;width:100%}
 .pagecraft-dockbar-input,.pagecraft-dockbar-select{appearance:none;width:100%;min-width:0;margin:0;padding:2px 0;border:0;background:transparent;font-family:inherit;font-size:14.5px;line-height:1.45;color:var(--db-ink,#0C1220);outline:none}
 .pagecraft-dockbar-input::placeholder{color:var(--db-muted,#4A566E);opacity:1}
 .pagecraft-dockbar-field:focus-within{box-shadow:inset 0 0 0 2px var(--db-accent,#1B3B9B)}
-.pagecraft-dockbar-submit{appearance:none;margin:0 0 0 8px;padding:0 26px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:#FFFFFF;font-family:inherit;font-size:14.5px;font-weight:600;line-height:1.3;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .16s ease}
+.pagecraft-dockbar-submit{appearance:none;margin:0 0 0 8px;padding:0 26px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--db-radius,4px);background:var(--db-accent,#1B3B9B);color:var(--db-on,#FFFFFF);font-family:inherit;font-size:14.5px;font-weight:600;line-height:1.3;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .16s ease}
 .pagecraft-dockbar-submit:hover,.pagecraft-dockbar-submit:focus-visible{background:var(--db-ink,#0C1220)}
 .pagecraft-dockbar-submit:focus-visible{outline:2px solid var(--db-accent,#1B3B9B);outline-offset:2px}
 @media (max-width:860px){
@@ -3679,6 +3686,9 @@ var ARCHES_CSS = `.pagecraft-arches{width:100%;padding:14px 0 32px}
 @media (prefers-reduced-motion:reduce){.pagecraft-arches-item{transition:none}}`;
 var CHAPTERS_CSS = `.pagecraft-chapters{width:100%;display:flex;flex-direction:column;gap:22px}
 .pagecraft-chapters-stage{position:relative;display:grid;border-radius:var(--ch-radius,14px);overflow:hidden;background:#161311;border:1px solid var(--ch-line,rgba(244,239,232,.14))}
+.pagecraft-chapters-pause{position:absolute;inset-block-start:14px;inset-inline-end:14px;z-index:2;min-height:36px;padding:6px 14px;border:0;border-radius:999px;background:rgba(18,15,13,.72);color:#fff;font:600 13px/1.2 inherit;cursor:pointer}
+.pagecraft-chapters-pause[hidden]{display:none}
+.pagecraft-chapters-pause:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .pagecraft-chapters-slide{grid-area:1 / 1;position:relative;margin:0;opacity:0;visibility:hidden;transition:opacity .38s cubic-bezier(.22,1,.36,1),visibility .38s ease}
 .pagecraft-chapters-slide[data-active="1"]{opacity:1;visibility:visible}
 .pagecraft-chapters-img{display:block;width:100%;height:auto;aspect-ratio:var(--ch-ratio,16 / 9);object-fit:cover}
@@ -3726,6 +3736,8 @@ var CHAPTERS_JS = `<script>
         var n=btns.length;
         if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();select((idx+1)%n,true);resetTimer();}
         else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();select((idx-1+n)%n,true);resetTimer();}
+        else if(e.key==='Home'){e.preventDefault();select(0,true);resetTimer();}
+        else if(e.key==='End'){e.preventDefault();select(n-1,true);resetTimer();}
       }
       btn.addEventListener('click',onClick);
       btn.addEventListener('keydown',onKey);
@@ -3736,11 +3748,22 @@ var CHAPTERS_JS = `<script>
     });
     var sec=parseFloat(root.getAttribute('data-auto')||'0');
     var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-    var timer=null;
+    var timer=null,hover=false,focus=false,paused=false,held=false;
+    var toggle=root.querySelector('[data-ch-pause]');
+    function hold(){held=hover||focus||paused;}
+    function onEnter(){hover=true;hold();}
+    function onLeave(){hover=false;hold();}
+    function onFocusIn(e){focus=e.target!==toggle;hold();}
+    function onFocusOut(e){if(!root.contains(e.relatedTarget)){focus=false;hold();}}
+    function onToggle(){paused=!paused;toggle.setAttribute('aria-pressed',paused?'true':'false');toggle.textContent=paused?'Play':'Pause';hold();}
+    root.addEventListener('pointerenter',onEnter);root.addEventListener('pointerleave',onLeave);
+    root.addEventListener('focusin',onFocusIn);root.addEventListener('focusout',onFocusOut);
+    if(toggle){if(reduced||btns.length<2)toggle.hidden=true;else toggle.hidden=false;toggle.addEventListener('click',onToggle);}
+    offs.push(function(){root.removeEventListener('pointerenter',onEnter);root.removeEventListener('pointerleave',onLeave);root.removeEventListener('focusin',onFocusIn);root.removeEventListener('focusout',onFocusOut);if(toggle)toggle.removeEventListener('click',onToggle);});
     function resetTimer(){
       if(timer){clearInterval(timer);timer=null;}
       if(sec>0&&!reduced&&btns.length>1){
-        timer=setInterval(function(){if(!document.hidden)select((cur+1)%btns.length,false);},sec*1000);
+        timer=setInterval(function(){if(!document.hidden&&!held)select((cur+1)%btns.length,false);},sec*1000);
       }
     }
     resetTimer();
@@ -3770,7 +3793,7 @@ var SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-templat
 .pagecraft-sp-pass-price{font-size:14px;line-height:1.35;font-weight:700;color:var(--sp-accent,#8F3D22);margin-top:2px}
 .pagecraft-sp-pills{display:flex;flex-wrap:wrap;gap:10px}
 .pagecraft-sp-pill{appearance:none;margin:0;padding:10px 18px;min-height:42px;font-family:inherit;font-size:14px;line-height:1.35;font-weight:600;background:var(--sp-surface,#FAF7F2);color:var(--sp-ink,#181512);border:1px solid var(--sp-line,#DCD3C6);border-radius:999px;cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
-.pagecraft-sp-pill[aria-pressed="true"]{background:var(--sp-accent,#8F3D22);border-color:var(--sp-accent,#8F3D22);color:#FFFFFF}
+.pagecraft-sp-pill[aria-pressed="true"]{background:var(--sp-accent,#8F3D22);border-color:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF)}
 .pagecraft-sp-pass:focus-visible,.pagecraft-sp-pill:focus-visible{outline:2px solid var(--sp-accent,#8F3D22);outline-offset:2px}
 .pagecraft-sp-summary{padding:28px;background:var(--sp-surface,#FAF7F2);border:1px solid var(--sp-line,#DCD3C6);border-radius:var(--sp-radius,10px);display:flex;flex-direction:column;gap:16px}
 .pagecraft-sp-sum-title{margin:0;font-size:20px;line-height:1.35;font-weight:600;color:var(--sp-ink,#181512)}
@@ -3779,7 +3802,7 @@ var SLOTPICKER_CSS = `.pagecraft-slotpicker{width:100%;display:grid;grid-templat
 .pagecraft-sp-row strong{color:var(--sp-ink,#181512);font-weight:600;text-align:right}
 .pagecraft-sp-total-row{padding-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;line-height:1.4;font-weight:600;color:var(--sp-ink,#181512)}
 .pagecraft-sp-total{font-size:28px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sp-accent,#8F3D22)}
-.pagecraft-sp-confirm{padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:#FFFFFF;border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
+.pagecraft-sp-confirm{padding:13px 20px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;background:var(--sp-accent,#8F3D22);color:var(--sp-on,#FFFFFF);border-radius:999px;font-size:14.5px;font-weight:600;line-height:1.35;text-decoration:none;transition:opacity .16s ease}
 .pagecraft-sp-confirm:hover,.pagecraft-sp-confirm:focus-visible{opacity:.9}
 .pagecraft-sp-note{margin:0;font-size:13px;line-height:1.5;color:var(--sp-muted,#5E5349)}
 @media (max-width:860px){.pagecraft-slotpicker{grid-template-columns:1fr;gap:24px}.pagecraft-sp-summary{padding:22px 20px}}
@@ -3810,7 +3833,7 @@ var SLOTPICKER_JS = `<script>
         var fixed=pEl.getAttribute('data-fixed')==='1';
         var total=fixed?unit:unit*gCnt;
         if(outPass)outPass.textContent=nm;
-        if(outTotal)outTotal.textContent=sym+Math.round(total);
+        if(outTotal)outTotal.textContent=sym+(total%1?total.toFixed(2):total);
       }
       if(outGuest)outGuest.textContent=gCnt+(gCnt===1?' Guest':' Guests');
       if(slots[sIdx]&&outSlot)outSlot.textContent=slots[sIdx].getAttribute('data-sp-slot')||'';
@@ -5641,8 +5664,8 @@ var DEF = {
       css: {
         d: {
           width: "100%",
-          "--tl-accent": cvar("brand"),
-          "--tl-accent-ink": "#ffffff",
+          "--tl-accent": cvar("ink"),
+          "--tl-accent-ink": cvar("bg"),
           "--tl-line": cvar("line"),
           "--tl-card": cvar("surface"),
           "--tl-ink": cvar("ink"),
@@ -5809,9 +5832,9 @@ var DEF = {
     make: () => ({
       props: {
         items: [
-          { src: "", alt: "Workshop bench", tag: "Forged Metal", title: "Cold-Swaged Frame", detail: "Select any strip to expand field specifications and surface tolerances." },
-          { src: "", alt: "Kiln cellar", tag: "Seasoned Fiber", title: "Kiln-Cured Cellulose", detail: "Long-cured billets keep temple tension stable through seasonal humidity." },
-          { src: "", alt: "Fitting studio", tag: "Clinical Suite", title: "Bespoke Fitting", detail: "Direct optical center mapping paired with lightweight hardware balance." }
+          { src: "", alt: "", tag: "", title: "First panel", detail: "Add a short description of what this image shows." },
+          { src: "", alt: "", tag: "", title: "Second panel", detail: "Visitors select a panel to expand it." },
+          { src: "", alt: "", tag: "", title: "Third panel", detail: "Use one clear image for each panel." }
         ]
       },
       css: {
@@ -5839,7 +5862,7 @@ var DEF = {
           rowFields: [
             { k: "title", label: "Title", ph: "Panel title", def: "New panel" },
             { k: "tag", label: "Metadata tag", ph: "Optional footnote", def: "" },
-            { k: "src", label: "Photo URL or asset", ph: "asset:photo", def: "" },
+            { k: "src", label: "Photo", ph: "asset:photo", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe the photo", def: "" },
             { k: "detail", label: "Details", ph: "Short description", def: "", area: 1 }
           ]
@@ -5866,8 +5889,8 @@ var DEF = {
         stageLayout: "rail",
         ratio: "3 / 2",
         items: [
-          { label: "Surface Inspection", meta: "Step A", title: "Macro surface alignment", detail: "Inspect raw material grain and tolerance callouts in a dedicated visual stage.", src: "", alt: "Inspection stage view", pos: "50% 50%" },
-          { label: "Optical Assembly", meta: "Step B", title: "Final component integration", detail: "Switch cleanly between sequential phases without scrolling past stacked sections.", src: "", alt: "Assembly stage view", pos: "50% 50%" }
+          { label: "First step", meta: "Step 1", title: "What happens first", detail: "Describe this step in a sentence or two.", src: "", alt: "", pos: "50% 50%" },
+          { label: "Second step", meta: "Step 2", title: "What happens next", detail: "Each step shows its own image and caption.", src: "", alt: "", pos: "50% 50%" }
         ]
       },
       css: {
@@ -5898,7 +5921,7 @@ var DEF = {
             { k: "label", label: "Step button", ph: "Step title", def: "New stage" },
             { k: "meta", label: "Meta", ph: "Duration or step", def: "" },
             { k: "title", label: "Caption heading", ph: "Stage headline", def: "Stage overview" },
-            { k: "src", label: "Stage photo URL or asset", ph: "asset:photo", def: "" },
+            { k: "src", label: "Stage photo", ph: "asset:photo", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe stage visual", def: "" },
             { k: "pos", label: "Object position", ph: "50% 50%", def: "50% 50%" },
             { k: "detail", label: "Details", ph: "Stage description", def: "", area: 1 }
@@ -5925,8 +5948,8 @@ var DEF = {
       props: {
         previewRatio: "4 / 3",
         items: [
-          { title: "Headland Ledge Monograph", location: "Cape Elizabeth, Maine", scope: "3.4 ac \xB7 Coastal Granite", year: "2025", href: "", src: "", alt: "Headland ledge project view" },
-          { title: "Estuary Saltmarsh Basin", location: "Astoria, Oregon", scope: "5.1 ac \xB7 Tidal Weir", year: "2024", href: "", src: "", alt: "Estuary saltmarsh project view" }
+          { title: "First project", location: "City", scope: "What you did", year: "", href: "", src: "", alt: "" },
+          { title: "Second project", location: "City", scope: "What you did", year: "", href: "", src: "", alt: "" }
         ]
       },
       css: {
@@ -5957,7 +5980,7 @@ var DEF = {
             { k: "scope", label: "Scope", ph: "Acreage or discipline", def: "" },
             { k: "year", label: "Year", ph: "2025", def: "2025" },
             { k: "href", label: "Link URL", ph: "sites.html#entry", def: "" },
-            { k: "src", label: "Preview image URL or asset", ph: "asset:preview", def: "" },
+            { k: "src", label: "Preview image", ph: "asset:preview", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe preview visual", def: "" }
           ]
         }
@@ -5981,14 +6004,14 @@ var DEF = {
       props: {
         stickyRatio: "4 / 3",
         items: [
-          { title: "Subsurface soil borings", detail: "Field engineers map percolation horizons and seasonal water tables before grading begins.", fact: "82 mm/hr infiltration", src: "", alt: "Soil boring survey stage" },
-          { title: "Mortarless stone civil work", detail: "Split granite check weirs slow peak stormwater runoff across the slope contour.", fact: "0% Portland cement", src: "", alt: "Dry-laid stone weir stage" }
+          { title: "First step", detail: "Describe this step. Its image stays in view while visitors read.", fact: "", src: "", alt: "" },
+          { title: "Second step", detail: "The image changes as visitors scroll to the next step.", fact: "", src: "", alt: "" }
         ]
       },
       css: {
         d: {
           width: "100%",
-          "--sc-accent": cvar("brand"),
+          "--sc-accent": cvar("ink"),
           "--sc-surface": cvar("surface"),
           "--sc-ink": cvar("ink"),
           "--sc-muted": cvar("muted"),
@@ -6011,7 +6034,7 @@ var DEF = {
           rowFields: [
             { k: "title", label: "Step heading", ph: "Step title", def: "New step" },
             { k: "fact", label: "Metric note", ph: "Key specification", def: "" },
-            { k: "src", label: "Stage image URL or asset", ph: "asset:stage", def: "" },
+            { k: "src", label: "Stage image", ph: "asset:stage", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe stage visual", def: "" },
             { k: "detail", label: "Step narrative", ph: "Describe what happens in this phase", def: "", area: 1 }
           ]
@@ -6041,14 +6064,14 @@ var DEF = {
         openLabel: "Office open",
         closedLabel: "After hours",
         items: [
-          { city: "London", tz: "Europe/London", address: "14 Old Square\nLondon WC2A 3UE", phone: "+44 20 7946 0110", href: "", linkLabel: "" },
-          { city: "New York", tz: "America/New_York", address: "55 Water Street\nNew York, NY 10041", phone: "+1 212 555 0142", href: "", linkLabel: "" }
+          { city: "London", tz: "Europe/London", address: "", phone: "", href: "", linkLabel: "" },
+          { city: "New York", tz: "America/New_York", address: "", phone: "", href: "", linkLabel: "" }
         ]
       },
       css: {
         d: {
           width: "100%",
-          "--ck-accent": cvar("brand"),
+          "--ck-accent": cvar("ink"),
           "--ck-surface": "transparent",
           "--ck-ink": cvar("ink"),
           "--ck-muted": cvar("muted"),
@@ -6079,7 +6102,7 @@ var DEF = {
             { k: "phone", label: "Phone", ph: "+44 20 0000 0000", def: "" },
             { k: "href", label: "Map or page link", ph: "https://maps.example", def: "" },
             { k: "linkLabel", label: "Link label", ph: "Open in Maps", def: "" },
-            { k: "src", label: "Office image URL or asset", ph: "asset:office", def: "" },
+            { k: "src", label: "Office image", ph: "asset:office", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Office exterior or room", def: "" },
             { k: "address", label: "Address", ph: "Street, city, postcode", def: "", area: 1 }
           ]
@@ -6098,22 +6121,24 @@ var DEF = {
     }
   },
   roster: {
-    label: "Partner spotlight",
+    label: "Team spotlight",
     icon: "roster",
     level: 4,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
         portraitRatio: "4 / 5",
+        seatLabel: "Based in",
+        credLabel: "Focus",
         items: [
-          { name: "Claire Mercer", role: "Managing Trial Partner \xB7 J.D., Ph.D. Electrical Engineering", seat: "Washington, D.C.", credential: "U.S. Federal Circuit & PTAB", quote: "\u201CEvery trial brief and cross-examination outline should read cleanly to both a district judge and a silicon architect.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "Claire Mercer portrait" },
-          { name: "David Quinn", role: "Senior Appellate Partner \xB7 KC, UPC Representative", seat: "London & Munich", credential: "Patents Court & UPC", quote: "\u201CSynchronizing European preliminary injunction defenses with U.S. claim construction prevents transatlantic estoppel traps.\u201D", href: "", linkLabel: "Schedule intake", src: "", alt: "David Quinn portrait" }
+          { name: "First person", role: "Role", seat: "City", credential: "Area of focus", quote: "Add a short quote or introduction.", href: "", linkLabel: "", src: "", alt: "" },
+          { name: "Second person", role: "Role", seat: "City", credential: "Area of focus", quote: "Add a short quote or introduction.", href: "", linkLabel: "", src: "", alt: "" }
         ]
       },
       css: {
         d: {
           width: "100%",
-          "--rs-accent": cvar("brand"),
+          "--rs-accent": cvar("ink"),
           "--rs-surface": cvar("surface"),
           "--rs-ink": cvar("ink"),
           "--rs-muted": cvar("muted"),
@@ -6127,21 +6152,23 @@ var DEF = {
     controls: {
       content: [
         { t: "select", k: "portraitRatio", label: "Portrait ratio", opts: [["4 / 5", "4:5"], ["3 / 4", "3:4"], ["1 / 1", "Square"], ["3 / 2", "3:2"]] },
+        { t: "text", k: "seatLabel", label: "Location label", ph: "Based in" },
+        { t: "text", k: "credLabel", label: "Focus label", ph: "Focus" },
         {
           t: "qa",
           k: "items",
           label: "Members",
           addLabel: "Add member",
           rowFields: [
-            { k: "name", label: "Full name", ph: "Claire Mercer", def: "New partner" },
-            { k: "role", label: "Role & degree", ph: "Managing Partner \xB7 Ph.D.", def: "" },
+            { k: "name", label: "Full name", ph: "Full name", def: "New person" },
+            { k: "role", label: "Role", ph: "Role", def: "" },
             { k: "seat", label: "Office / city", ph: "Washington, D.C.", def: "" },
-            { k: "credential", label: "Admission / focus", ph: "Federal Circuit Bar", def: "" },
-            { k: "src", label: "Portrait URL or asset", ph: "asset:partner", def: "" },
-            { k: "alt", label: "Alt text", ph: "Partner portrait", def: "" },
-            { k: "href", label: "Action link", ph: "conflict-check.html", def: "" },
-            { k: "linkLabel", label: "Link label", ph: "Direct intake", def: "" },
-            { k: "quote", label: "Spotlight quote", ph: "Working principle or notable verdict", def: "", area: 1 }
+            { k: "credential", label: "Focus", ph: "Area of focus", def: "" },
+            { k: "src", label: "Portrait", ph: "asset:partner", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe the portrait", def: "" },
+            { k: "href", label: "Action link", ph: "contact.html", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Get in touch", def: "" },
+            { k: "quote", label: "Spotlight quote", ph: "A short quote or introduction", def: "", area: 1 }
           ]
         }
       ],
@@ -6167,14 +6194,15 @@ var DEF = {
         eurLabel: "EUR \u20AC",
         gbpLabel: "GBP \xA3",
         items: [
-          { tierName: "Fixed-Scope Audit", badge: "", priceUsd: "$18,000", priceEur: "\u20AC16,500", priceGbp: "\xA314,200", period: "per tranche", summary: "Freedom-to-operate or AI provenance technical file.", features: "15-business-day turnaround\nWritten partner opinion", ctaText: "Clear conflict", href: "", featured: 0 },
-          { tierName: "Fractional IP Counsel", badge: "Most engaged", priceUsd: "$6,400", priceEur: "\u20AC5,800", priceGbp: "\xA34,950", period: "/ month", summary: "Ongoing docket clearance, claim charting, and regulatory filings.", features: "Same-day partner access\nQuarterly board IP review", ctaText: "Retain counsel", href: "", featured: 1 }
+          { tierName: "Starter", badge: "", priceUsd: "$29", priceEur: "\u20AC27", priceGbp: "\xA323", period: "/ month", summary: "Who this plan is for.", features: "First feature\nSecond feature", ctaText: "Get started", href: "", featured: 0 },
+          { tierName: "Plus", badge: "Most popular", priceUsd: "$59", priceEur: "\u20AC55", priceGbp: "\xA347", period: "/ month", summary: "Who this plan is for.", features: "Everything in Starter\nAnother feature", ctaText: "Get started", href: "", featured: 1 }
         ]
       },
       css: {
         d: {
           width: "100%",
           "--tr-accent": cvar("brand"),
+          "--tr-on": brandActionForeground(),
           "--tr-surface": cvar("surface"),
           "--tr-ink": cvar("ink"),
           "--tr-muted": cvar("muted"),
@@ -6200,13 +6228,14 @@ var DEF = {
           addLabel: "Add tier",
           rowFields: [
             { k: "tierName", label: "Tier name", ph: "Advisory Retainer", def: "New tier" },
-            { k: "badge", label: "Badge (optional)", ph: "Most engaged", def: "" },
+            { k: "badge", label: "Badge (optional)", ph: "Most popular", def: "" },
+            { k: "featured", label: "Highlight this tier", toggle: 1 },
             { k: "priceUsd", label: "USD price", ph: "$6,400", def: "$5,000" },
             { k: "priceEur", label: "EUR price", ph: "\u20AC5,800", def: "\u20AC4,600" },
             { k: "priceGbp", label: "GBP price", ph: "\xA34,950", def: "\xA33,900" },
             { k: "period", label: "Billing period", ph: "/ month", def: "/ month" },
             { k: "ctaText", label: "Button label", ph: "Select tier", def: "Get started" },
-            { k: "href", label: "Button link", ph: "conflict-check.html", def: "" },
+            { k: "href", label: "Button link", ph: "contact.html", def: "" },
             { k: "summary", label: "Summary", ph: "One-sentence tier scope", def: "", area: 1 },
             { k: "features", label: "Features (one per line)", ph: "Feature one\nFeature two", def: "", area: 1 }
           ]
@@ -6214,6 +6243,7 @@ var DEF = {
       ],
       style: [
         { t: "color", c: "--tr-accent", label: "Accent colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tr-on", label: "Text on accent", r: 1, layout: "inline" },
         { t: "color", c: "--tr-surface", label: "Card surface", r: 1, layout: "inline" },
         { t: "color", c: "--tr-ink", label: "Text colour", r: 1, layout: "inline" },
         { t: "color", c: "--tr-muted", label: "Muted colour", r: 1, layout: "inline" },
@@ -6233,14 +6263,15 @@ var DEF = {
       props: {
         pillAlign: "center",
         items: [
-          { q: "Why submit only counterparty names first?", a: "Screening corporate entity names before confidential facts are shared protects both existing clients and your privilege.", note: "ABA Model Rule 1.18 compliant", href: "", linkLabel: "" },
-          { q: "How fast is emergency clearance?", a: "Standard docket screening completes within 24 hours; active TRO or customs seizure matters clear in two hours.", note: "24/7 duty partner desk", href: "", linkLabel: "" }
+          { q: "First question?", a: "Write a direct answer here.", note: "", href: "", linkLabel: "" },
+          { q: "Second question?", a: "Visitors pick a question to see its answer.", note: "", href: "", linkLabel: "" }
         ]
       },
       css: {
         d: {
           width: "100%",
-          "--qp-accent": cvar("brand"),
+          "--qp-accent": cvar("ink"),
+          "--qp-on": cvar("bg"),
           "--qp-surface": cvar("surface"),
           "--qp-ink": cvar("ink"),
           "--qp-muted": cvar("muted"),
@@ -6262,15 +6293,16 @@ var DEF = {
           addLabel: "Add question",
           rowFields: [
             { k: "q", label: "Question pill", ph: "Short question", def: "New question?" },
-            { k: "note", label: "Policy / rule note", ph: "ABA Rule 1.18", def: "" },
-            { k: "href", label: "Action link", ph: "#check-desk", def: "" },
-            { k: "linkLabel", label: "Link label", ph: "Proceed to intake", def: "" },
+            { k: "note", label: "Note", ph: "Optional note", def: "" },
+            { k: "href", label: "Action link", ph: "contact.html", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Learn more", def: "" },
             { k: "a", label: "Full answer", ph: "Direct answer shown in panel", def: "", area: 1 }
           ]
         }
       ],
       style: [
         { t: "color", c: "--qp-accent", label: "Active pill accent", r: 1, layout: "inline" },
+        { t: "color", c: "--qp-on", label: "Text on accent", r: 1, layout: "inline" },
         { t: "color", c: "--qp-surface", label: "Panel surface", r: 1, layout: "inline" },
         { t: "color", c: "--qp-ink", label: "Question colour", r: 1, layout: "inline" },
         { t: "color", c: "--qp-muted", label: "Answer colour", r: 1, layout: "inline" },
@@ -6287,19 +6319,19 @@ var DEF = {
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
-        submitLabel: "Screen Conflict \u2192",
+        submitLabel: "Continue",
         destHref: "",
-        ariaLabel: "Quick screening bar",
+        ariaLabel: "Quick form",
         items: [
-          { fieldLabel: "Requesting Entity", fieldType: "text", ph: "Helios Silicon GmbH", choices: "" },
-          { fieldLabel: "Counterparty Entity", fieldType: "text", ph: "Entity name only", choices: "" },
-          { fieldLabel: "Primary Forum", fieldType: "select", ph: "", choices: "U.S. Federal Circuit, Unified Patent Court, PTAB Inter Partes, EU AI Act Audit" }
+          { fieldLabel: "Name", fieldType: "text", ph: "Your name", choices: "" },
+          { fieldLabel: "Topic", fieldType: "select", ph: "", choices: "General, Booking, Support" }
         ]
       },
       css: {
         d: {
           width: "100%",
           "--db-accent": cvar("brand"),
+          "--db-on": brandActionForeground(),
           "--db-surface": cvar("surface"),
           "--db-ink": cvar("ink"),
           "--db-muted": cvar("muted"),
@@ -6312,17 +6344,17 @@ var DEF = {
     }),
     controls: {
       content: [
-        { t: "text", k: "submitLabel", label: "Submit button", ph: "Screen Conflict \u2192" },
+        { t: "text", k: "submitLabel", label: "Submit button", ph: "Continue" },
         { t: "link", k: "destHref", label: "Destination page" },
-        { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick screening bar" },
+        { t: "text", k: "ariaLabel", label: "Accessible label", ph: "Quick form" },
         {
           t: "qa",
           k: "items",
           label: "Fields",
           addLabel: "Add field",
           rowFields: [
-            { k: "fieldLabel", label: "Field label", ph: "Requesting Entity", def: "Field" },
-            { k: "fieldType", label: "Type (text or select)", ph: "text", def: "text" },
+            { k: "fieldLabel", label: "Field label", ph: "Name", def: "Field" },
+            { k: "fieldType", label: "Type", def: "text", opts: [["text", "Text"], ["select", "Dropdown"]] },
             { k: "ph", label: "Placeholder", ph: "Enter value", def: "" },
             { k: "choices", label: "Select options (comma-separated)", ph: "Option A, Option B", def: "" }
           ]
@@ -6330,6 +6362,7 @@ var DEF = {
       ],
       style: [
         { t: "color", c: "--db-accent", label: "Button & focus accent", r: 1, layout: "inline" },
+        { t: "color", c: "--db-on", label: "Text on accent", r: 1, layout: "inline" },
         { t: "color", c: "--db-surface", label: "Bar surface", r: 1, layout: "inline" },
         { t: "color", c: "--db-ink", label: "Text colour", r: 1, layout: "inline" },
         { t: "color", c: "--db-muted", label: "Placeholder colour", r: 1, layout: "inline" },
@@ -6347,11 +6380,11 @@ var DEF = {
       props: {
         archSpread: "fan",
         items: [
-          { src: "", alt: "Linen & mineral oil", caption: "" },
-          { src: "", alt: "Stoneware tea ritual", caption: "" },
-          { src: "", alt: "Morning studio stillness", caption: "" },
-          { src: "", alt: "Treatment sanctuary", caption: "" },
-          { src: "", alt: "Warm flax rest", caption: "" }
+          { src: "", alt: "", caption: "" },
+          { src: "", alt: "", caption: "" },
+          { src: "", alt: "", caption: "" },
+          { src: "", alt: "", caption: "" },
+          { src: "", alt: "", caption: "" }
         ]
       },
       css: {
@@ -6367,8 +6400,9 @@ var DEF = {
           k: "items",
           label: "Arch frames (up to 5)",
           addLabel: "Add arch",
+          max: 5,
           rowFields: [
-            { k: "src", label: "Image URL or asset", ph: "asset:arch-1", def: "" },
+            { k: "src", label: "Image", ph: "asset:arch-1", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe image", def: "Arch frame" }
           ]
         }
@@ -6389,18 +6423,18 @@ var DEF = {
         frameRatio: "16 / 9",
         autoSeconds: "6",
         chapters: [
-          { chapterTitle: "Caldarium \xB7 40\xB0C", chapterSub: "Geothermal mineral buoyancy", overlayText: "Artesian spring water rises through volcanic basalt without chlorine.", src: "", alt: "Caldarium basin" },
-          { chapterTitle: "Hinoki Vault \xB7 88\xB0C", chapterSub: "Mountain pine vapor", overlayText: "Kiln-cured Japanese cedar dome infused every half hour with wild hydrosols.", src: "", alt: "Hinoki steam vault" },
-          { chapterTitle: "Glacial Plunge \xB7 8\xB0C", chapterSub: "90-second vagal reset", overlayText: "Gravity-chilled silent channel restoring vascular tone between warm cycles.", src: "", alt: "Cold plunge channel" }
+          { chapterTitle: "First chapter", chapterSub: "", overlayText: "One sentence over the image.", src: "", alt: "" },
+          { chapterTitle: "Second chapter", chapterSub: "", overlayText: "One sentence over the image.", src: "", alt: "" },
+          { chapterTitle: "Third chapter", chapterSub: "", overlayText: "One sentence over the image.", src: "", alt: "" }
         ]
       },
       css: {
         d: {
           width: "100%",
           "--ch-accent": cvar("brand"),
-          "--ch-ink": "#FAF7F2",
-          "--ch-muted": "#C8BDB0",
-          "--ch-line": "rgba(244,239,232,0.2)",
+          "--ch-ink": cvar("ink"),
+          "--ch-muted": cvar("muted"),
+          "--ch-line": cvar("line"),
           "--ch-radius": "14px"
         },
         t: {},
@@ -6417,9 +6451,9 @@ var DEF = {
           label: "Chapters",
           addLabel: "Add chapter",
           rowFields: [
-            { k: "chapterTitle", label: "Chapter title", ph: "Caldarium \xB7 40\xB0C", def: "New chapter" },
-            { k: "chapterSub", label: "Subtitle", ph: "Geothermal buoyancy", def: "" },
-            { k: "src", label: "Frame image URL or asset", ph: "asset:chapter", def: "" },
+            { k: "chapterTitle", label: "Chapter title", ph: "Chapter title", def: "New chapter" },
+            { k: "chapterSub", label: "Subtitle", ph: "Optional subtitle", def: "" },
+            { k: "src", label: "Frame image", ph: "asset:chapter", def: "", img: 1 },
             { k: "alt", label: "Alt text", ph: "Describe chapter scene", def: "" },
             { k: "overlayText", label: "Frame caption", ph: "One sentence overlaid on the frame", def: "", area: 1 }
           ]
@@ -6442,21 +6476,24 @@ var DEF = {
     make: () => ({
       props: {
         currencySymbol: "\u20AC",
-        timeSlots: "06:30 Dawn Vapor, 10:30 Midday Light, 15:00 Quiet Afternoon, 19:30 Nocturne Candlelight",
-        summaryTitle: "Your sanctuary hold",
-        confirmLabel: "Continue to Guest Details \u2192",
-        confirmHref: "#soak-desk",
-        phoneNote: "Free rescheduling up to 24 hours ahead of arrival.",
+        timeSlots: "09:00, 12:00, 15:00",
+        passHeading: "Choose a service",
+        guestHeading: "Guests",
+        slotHeading: "Preferred time",
+        summaryTitle: "Your selection",
+        confirmLabel: "Continue",
+        confirmHref: "",
+        phoneNote: "",
         passes: [
-          { passName: "90-Min Contrast Circuit", passMeta: "4 chambers \xB7 flax robe included", unitPrice: "95", fixedTotal: 0 },
-          { passName: "Twilight Candlelight Pass", passMeta: "2 hours \xB7 beeswax & pine steam", unitPrice: "115", fixedTotal: 0 },
-          { passName: "Private Basalt Suite (Two)", passMeta: "Private spring tub \xB7 up to 2 guests", unitPrice: "240", fixedTotal: 1 }
+          { passName: "First service", passMeta: "", unitPrice: "50", fixedTotal: 0 },
+          { passName: "Second service", passMeta: "", unitPrice: "80", fixedTotal: 0 }
         ]
       },
       css: {
         d: {
           width: "100%",
-          "--sp-accent": cvar("brand"),
+          "--sp-accent": cvar("ink"),
+          "--sp-on": cvar("bg"),
           "--sp-surface": cvar("surface"),
           "--sp-ink": cvar("ink"),
           "--sp-muted": cvar("muted"),
@@ -6471,7 +6508,10 @@ var DEF = {
       content: [
         { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
         { t: "text", k: "timeSlots", label: "Time slots (comma-separated)", ph: "09:00, 12:00, 16:00" },
-        { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your sanctuary hold" },
+        { t: "text", k: "passHeading", label: "Services heading", ph: "Choose a service" },
+        { t: "text", k: "guestHeading", label: "Guests heading", ph: "Guests" },
+        { t: "text", k: "slotHeading", label: "Times heading", ph: "Preferred time" },
+        { t: "text", k: "summaryTitle", label: "Summary heading", ph: "Your selection" },
         { t: "text", k: "confirmLabel", label: "Confirm button", ph: "Continue \u2192" },
         { t: "link", k: "confirmHref", label: "Confirm link" },
         { t: "text", k: "phoneNote", label: "Policy note", ph: "Free 24h rescheduling" },
@@ -6483,12 +6523,14 @@ var DEF = {
           rowFields: [
             { k: "passName", label: "Pass name", ph: "90-Min Circuit", def: "New pass" },
             { k: "passMeta", label: "Included note", ph: "90 min \xB7 robes included", def: "" },
-            { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" }
+            { k: "unitPrice", label: "Numeric price", ph: "95", def: "95" },
+            { k: "fixedTotal", label: "One price for the whole party", toggle: 1 }
           ]
         }
       ],
       style: [
         { t: "color", c: "--sp-accent", label: "Selected accent", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-on", label: "Text on accent", r: 1, layout: "inline" },
         { t: "color", c: "--sp-surface", label: "Card surface", r: 1, layout: "inline" },
         { t: "color", c: "--sp-ink", label: "Text colour", r: 1, layout: "inline" },
         { t: "color", c: "--sp-muted", label: "Muted colour", r: 1, layout: "inline" },
@@ -10364,6 +10406,7 @@ var animUsed = (lists) => {
 };
 var ANIM_EDGE = `html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}`;
 var ANIM_CALM = `@media (prefers-reduced-motion:reduce){.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}` + ANIM_EDGE;
+var OWN_LINK_PROP = { dockbar: "destHref", slotpicker: "confirmHref" };
 function relink(from, to) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -10390,9 +10433,11 @@ function relink(from, to) {
       if (vals[k]) vals[k] = swap2(vals[k]);
     });
     if (p.link !== void 0) p.link = swap2(p.link);
+    const own = OWN_LINK_PROP[node.type];
+    if (own && p[own] !== void 0) p[own] = swap2(p[own]);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       p.items.forEach((it) => {
-        it.href = swap2(it.href);
+        if (it.href !== void 0) it.href = swap2(it.href);
       });
     }
     if (node.type === "text" && typeof p.html === "string") {
@@ -13298,6 +13343,14 @@ var PFX = "pagecraft-";
 var widgetSlug = (type) => type === "text" ? "wysiwyg" : slugify(DEF[type] && DEF[type].label || type);
 var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
+var ITEM_ID_PARTS = {
+  progress: ["p"],
+  hotspot: ["hs"],
+  switcher: ["sw-t", "sw-p"],
+  roster: ["panel", "tab"],
+  qapills: ["pill", "ans"],
+  chapters: ["ch-p", "ch-b"]
+};
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
 var IMAGE_CONTENT_STYLE_LEGACY = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
@@ -14487,6 +14540,9 @@ function renderNode(n, o) {
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "")).action) family.push(root + "-status");
     } else if (n.type === "image" && captionNamesImageLink(p, o)) {
       family.push(root + "-caption");
+    } else if (ITEM_ID_PARTS[n.type]) {
+      const rows = n.type === "chapters" ? p.chapters : p.items;
+      if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type].forEach((part) => family.push(`${root}-${part}-${i}`)));
     }
     return family;
   };
@@ -15026,7 +15082,7 @@ function renderNode(n, o) {
         const rawHref = safeUrl(String(it.href || "").trim());
         const href = rawHref && !o.edit ? pageHref(rawHref, o) : "";
         const inner2 = `<span class="pagecraft-exhibit-thumb"><img class="pagecraft-exhibit-thumb-img" src="${src}" alt="${alt}"${dim} decoding="async"></span><span class="pagecraft-exhibit-main"><span class="pagecraft-exhibit-title">${esc(title)}</span>` + (loc ? `<span class="pagecraft-exhibit-loc">${esc(loc)}</span>` : "") + `</span>` + (scope ? `<span class="pagecraft-exhibit-scope">${esc(scope)}</span>` : "<span></span>") + (year ? `<span class="pagecraft-exhibit-year">${esc(year)}</span>` : "<span></span>") + arrowSvg;
-        const rowEl = href ? `<a class="pagecraft-exhibit-row" href="${esc(href)}" data-exhibit-idx="${i}">${inner2}</a>` : `<button type="button" class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner2}</button>`;
+        const rowEl = href ? `<a class="pagecraft-exhibit-row" href="${esc(href)}" data-exhibit-idx="${i}">${inner2}</a>` : `<div class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner2}</div>`;
         return `<li class="pagecraft-exhibit-item">${rowEl}</li>`;
       }).join("");
       return `<div ${at()} ${cx("pagecraft-exhibit")} data-exhibit${o.edit ? " data-exhibit-edit" : ""}${ratioStyle}><ol class="pagecraft-exhibit-list">${listRows}</ol><div class="pagecraft-exhibit-float" data-open="0" aria-hidden="true"></div></div>`;
@@ -15059,15 +15115,9 @@ function renderNode(n, o) {
       };
       const opens = num(p.opens, 9), closes = num(p.closes, 18);
       const openLabel = String(p.openLabel || "Office open"), closedLabel = String(p.closedLabel || "After hours");
-      const now = /* @__PURE__ */ new Date();
       const cards = items.map((it, i) => {
         const city = String(it.city || `Office ${i + 1}`);
         const tz = String(it.tz || "UTC");
-        let time = "--:--";
-        try {
-          time = new Intl.DateTimeFormat(h12 ? "en-US" : "en-GB", { timeZone: tz, hour: h12 ? "numeric" : "2-digit", minute: "2-digit", hour12: h12 }).format(now);
-        } catch {
-        }
         const addr = String(it.address || "");
         const phone = String(it.phone || "");
         const tel = phone.replace(/[^+\d]/g, "");
@@ -15079,7 +15129,7 @@ function renderNode(n, o) {
         const media = rawSrc ? `<div class="pagecraft-clocks-media"><img class="pagecraft-clocks-img" src="${esc(rawSrc)}" alt="${esc(String(it.alt || city))}"${dim} decoding="async"></div>` : "";
         const telEl = phone && !o.edit ? `<a class="pagecraft-clocks-link" href="tel:${esc(tel)}">${esc(phone)}</a>` : phone ? `<span class="pagecraft-clocks-link">${esc(phone)}</span>` : "";
         const links = telEl + (link ? `<a class="pagecraft-clocks-link" href="${esc(link)}"${/^https?:/i.test(link) ? ' target="_blank" rel="noopener"' : ""}>${esc(linkLabel)}</a>` : "");
-        return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">` + media + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span><time class="pagecraft-clocks-time" data-clocks-time>${esc(time)}</time></div><span class="pagecraft-clocks-state" data-clocks-state data-open="0">${esc(closedLabel)}</span>` + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, "<br>")}</address>` : "") + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : "") + `</li>`;
+        return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">` + media + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span><time class="pagecraft-clocks-time" data-clocks-time>--:--</time></div><span class="pagecraft-clocks-state" data-clocks-state data-open="0" hidden>${esc(closedLabel)}</span>` + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, "<br>")}</address>` : "") + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : "") + `</li>`;
       }).join("");
       return `<div ${at()} ${cx("pagecraft-clocks")} data-clocks data-hour12="${h12 ? "1" : "0"}" data-opens="${opens}" data-closes="${closes}" data-open-label="${esc(openLabel)}" data-closed-label="${esc(closedLabel)}"><ul class="pagecraft-clocks-list">${cards}</ul></div>`;
     }
@@ -15087,7 +15137,11 @@ function renderNode(n, o) {
       const ratio = cssRatio(p.portraitRatio);
       const ratioStyle = ratio ? ` style="--rs-ratio:${esc(ratio)}"` : "";
       const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
-      const baseId = String(n.id || "pc");
+      const baseId = domId();
+      const label = (value, legacy) => {
+        const text = value === void 0 ? legacy : String(value || "").trim();
+        return text ? `<strong>${esc(text)}:</strong> ` : "";
+      };
       const initialsOf = (nm) => nm.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "P";
       const panels = items.map((it, i) => {
         const name = String(it.name || `Partner ${i + 1}`);
@@ -15101,23 +15155,25 @@ function renderNode(n, o) {
         const rawHref = safeUrl(String(it.href || "").trim());
         const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
         const linkLabel = String(it.linkLabel || "Schedule consultation");
-        const metaRow = seat || cred ? `<div class="pagecraft-roster-meta">${seat ? `<span><strong>Chambers:</strong> ${esc(seat)}</span>` : ""}${cred ? `<span><strong>Bar:</strong> ${esc(cred)}</span>` : ""}</div>` : "";
-        return `<article class="pagecraft-roster-panel" id="${esc(baseId)}-panel-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div><div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>` + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : "") + metaRow + `</div>` + (quote ? `<blockquote class="pagecraft-roster-quote">${esc(quote)}</blockquote>` : "") + (link ? `<a class="pagecraft-roster-cta" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div></article>`;
+        const metaRow = seat || cred ? `<div class="pagecraft-roster-meta">${seat ? `<span>${label(p.seatLabel, "Chambers")}${esc(seat)}</span>` : ""}${cred ? `<span>${label(p.credLabel, "Bar")}${esc(cred)}</span>` : ""}</div>` : "";
+        return `<article class="pagecraft-roster-panel" id="${baseId}-panel-${i}" role="tabpanel" aria-labelledby="${baseId}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div><div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>` + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : "") + metaRow + `</div>` + (quote ? `<blockquote class="pagecraft-roster-quote">${esc(quote)}</blockquote>` : "") + (link ? `<a class="pagecraft-roster-cta" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div></article>`;
       }).join("");
       const tabs = items.map((it, i) => {
         const name = String(it.name || `Partner ${i + 1}`);
         const seat = String(it.seat || it.credential || "");
-        return `<button type="button" class="pagecraft-roster-tab" id="${esc(baseId)}-tab-${i}" role="tab" aria-controls="${esc(baseId)}-panel-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-roster-tab="${i}"><span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span><span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>` + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : "") + `</span></button>`;
+        return `<button type="button" class="pagecraft-roster-tab" id="${baseId}-tab-${i}" role="tab" aria-controls="${baseId}-panel-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-roster-tab="${i}"><span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span><span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>` + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : "") + `</span></button>`;
       }).join("");
       return `<div ${at()} ${cx("pagecraft-roster")} data-roster${ratioStyle}><div class="pagecraft-roster-stage">${panels}</div><div class="pagecraft-roster-strip" role="tablist" aria-label="Team spotlight">${tabs}</div></div>`;
     }
     case "tiers": {
       const defCur = ["usd", "eur", "gbp"].includes(String(p.defaultCurrency)) ? String(p.defaultCurrency) : "usd";
-      const curBtns = [
-        ["usd", String(p.usdLabel || "USD $")],
-        ["eur", String(p.eurLabel || "EUR \u20AC")],
-        ["gbp", String(p.gbpLabel || "GBP \xA3")]
-      ].map(
+      const tierRows = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const offered = [
+        ["usd", String(p.usdLabel || "USD $"), "priceUsd"],
+        ["eur", String(p.eurLabel || "EUR \u20AC"), "priceEur"],
+        ["gbp", String(p.gbpLabel || "GBP \xA3"), "priceGbp"]
+      ].filter(([code, , key]) => code === defCur || tierRows.length > 0 && tierRows.every((row) => String(row[key] || "").trim()));
+      const curBtns = offered.map(
         ([code, lbl]) => `<button type="button" class="pagecraft-tiers-cur" data-tiers-cur="${code}" aria-pressed="${code === defCur ? "true" : "false"}">${esc(lbl)}</button>`
       ).join("");
       const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
@@ -15125,29 +15181,29 @@ function renderNode(n, o) {
         const tName = String(it.tierName || `Tier ${i + 1}`);
         const badge = String(it.badge || "").trim();
         const usd = String(it.priceUsd || "$0");
-        const eur = String(it.priceEur || usd);
-        const gbp = String(it.priceGbp || usd);
-        const initPrice = defCur === "eur" ? eur : defCur === "gbp" ? gbp : usd;
+        const eur = String(it.priceEur || "");
+        const gbp = String(it.priceGbp || "");
+        const initPrice = (defCur === "eur" ? eur : defCur === "gbp" ? gbp : usd) || usd;
         const period = String(it.period || "");
         const summary = String(it.summary || "");
         const feats = String(it.features || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
         const featHtml = feats.length ? `<ul class="pagecraft-tiers-feats">${feats.map((f) => `<li class="pagecraft-tiers-feat"><span class="pagecraft-tiers-check" aria-hidden="true">\u2713</span><span>${esc(f)}</span></li>`).join("")}</ul>` : "";
         const ctaText = String(it.ctaText || "Select tier");
         const rawHref = safeUrl(String(it.href || "").trim());
-        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "#";
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
         const featured = Number(it.featured) === 1 ? "1" : "0";
-        return `<article class="pagecraft-tiers-card" data-featured="${featured}"><div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>` + (badge ? `<span class="pagecraft-tiers-badge">${esc(badge)}</span>` : "") + `</div>` + (summary ? `<p class="pagecraft-tiers-sum">${esc(summary)}</p>` : "") + `<div class="pagecraft-tiers-price-row"><span class="pagecraft-tiers-price" data-usd="${esc(usd)}" data-eur="${esc(eur)}" data-gbp="${esc(gbp)}">${esc(initPrice)}</span>` + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : "") + `</div>` + featHtml + `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a></article>`;
+        return `<article class="pagecraft-tiers-card" data-featured="${featured}"><div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>` + (badge ? `<span class="pagecraft-tiers-badge">${esc(badge)}</span>` : "") + `</div>` + (summary ? `<p class="pagecraft-tiers-sum">${esc(summary)}</p>` : "") + `<div class="pagecraft-tiers-price-row"><span class="pagecraft-tiers-price" data-usd="${esc(usd)}" data-eur="${esc(eur)}" data-gbp="${esc(gbp)}">${esc(initPrice)}</span>` + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : "") + `</div>` + featHtml + (link ? `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a>` : o.edit ? `<span class="pagecraft-tiers-btn">${esc(ctaText)}</span>` : "") + `</article>`;
       }).join("");
-      return `<div ${at()} ${cx("pagecraft-tiers")} data-tiers data-active-cur="${esc(defCur)}"><div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div><div class="pagecraft-tiers-grid">${cards}</div></div>`;
+      return `<div ${at()} ${cx("pagecraft-tiers")} data-tiers data-active-cur="${esc(defCur)}">` + (offered.length > 1 ? `<div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div>` : "") + `<div class="pagecraft-tiers-grid">${cards}</div></div>`;
     }
     case "qapills": {
       const left = String(p.pillAlign) === "start";
       const alignStyle = left ? ' style="--qp-align:flex-start;--qp-panel-align:flex-start;--qp-text-align:left"' : "";
       const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
-      const baseId = String(n.id || "pc");
+      const baseId = domId();
       const pills = items.map((it, i) => {
         const q = String(it.q || `Question ${i + 1}`);
-        return `<button type="button" class="pagecraft-qapills-pill" id="${esc(baseId)}-pill-${i}" role="tab" aria-controls="${esc(baseId)}-ans-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-qa-idx="${i}">${esc(q)}</button>`;
+        return `<button type="button" class="pagecraft-qapills-pill" id="${baseId}-pill-${i}" role="tab" aria-controls="${baseId}-ans-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-qa-idx="${i}">${esc(q)}</button>`;
       }).join("");
       const panels = items.map((it, i) => {
         const q = String(it.q || `Question ${i + 1}`);
@@ -15156,7 +15212,7 @@ function renderNode(n, o) {
         const rawHref = safeUrl(String(it.href || "").trim());
         const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
         const linkLabel = String(it.linkLabel || "Learn more");
-        return `<div class="pagecraft-qapills-panel" id="${esc(baseId)}-ans-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-pill-${i}" data-qa-panel="${i}"${i === 0 ? "" : " hidden"}><h3 class="pagecraft-qapills-q">${esc(q)}</h3>` + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : "") + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : "") + (link ? `<a class="pagecraft-qapills-link" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div>`;
+        return `<div class="pagecraft-qapills-panel" id="${baseId}-ans-${i}" role="tabpanel" aria-labelledby="${baseId}-pill-${i}" data-qa-panel="${i}"${i === 0 ? "" : " hidden"}><h3 class="pagecraft-qapills-q">${esc(q)}</h3>` + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : "") + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : "") + (link ? `<a class="pagecraft-qapills-link" href="${esc(link)}">${esc(linkLabel)} \u2192</a>` : "") + `</div>`;
       }).join("");
       return `<div ${at()} ${cx("pagecraft-qapills")} data-qapills${alignStyle}><div class="pagecraft-qapills-bar" role="tablist" aria-label="Questions">${pills}</div><div class="pagecraft-qapills-stage">${panels}</div></div>`;
     }
@@ -15193,28 +15249,29 @@ function renderNode(n, o) {
       const autoSec = parseFloat(String(p.autoSeconds ?? "6"));
       const autoAttr = Number.isFinite(autoSec) && autoSec > 0 ? String(autoSec) : "0";
       const items = (Array.isArray(p.chapters) ? p.chapters : []).filter(Boolean);
-      const baseId = String(n.id || "pc");
+      const baseId = domId();
       const slides = items.map((it, i) => {
         const src = esc(String(it.src || PH));
         const alt = esc(String(it.alt || it.chapterTitle || `Chapter ${i + 1}`));
         const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
         const ov = String(it.overlayText || "");
-        return `<figure class="pagecraft-chapters-slide" id="${esc(baseId)}-ch-p-${i}" role="tabpanel" aria-labelledby="${esc(baseId)}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">` + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : "") + `</figure>`;
+        return `<figure class="pagecraft-chapters-slide" id="${baseId}-ch-p-${i}" role="tabpanel" aria-labelledby="${baseId}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? "1" : "0"}" aria-hidden="${i === 0 ? "false" : "true"}"><img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">` + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : "") + `</figure>`;
       }).join("");
       const btns = items.map((it, i) => {
         const t = String(it.chapterTitle || `Chapter ${i + 1}`);
         const sub = String(it.chapterSub || "");
-        return `<button type="button" class="pagecraft-chapters-btn" id="${esc(baseId)}-ch-b-${i}" role="tab" aria-controls="${esc(baseId)}-ch-p-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-ch-btn="${i}"><span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span><span class="pagecraft-chapters-title">${esc(t)}</span>` + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : "") + `</button>`;
+        return `<button type="button" class="pagecraft-chapters-btn" id="${baseId}-ch-b-${i}" role="tab" aria-controls="${baseId}-ch-p-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}" data-ch-btn="${i}"><span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span><span class="pagecraft-chapters-title">${esc(t)}</span>` + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : "") + `</button>`;
       }).join("");
-      return `<div ${at()} ${cx("pagecraft-chapters")} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}><div class="pagecraft-chapters-stage">${slides}</div><div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div></div>`;
+      return `<div ${at()} ${cx("pagecraft-chapters")} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}><div class="pagecraft-chapters-stage">${slides}${autoAttr !== "0" && items.length > 1 && !o.edit ? '<button type="button" class="pagecraft-chapters-pause" data-ch-pause aria-pressed="false" hidden>Pause</button>' : ""}</div><div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div></div>`;
     }
     case "slotpicker": {
+      const money = (value) => Number.isInteger(value) ? String(value) : value.toFixed(2);
       const sym = String(p.currencySymbol || "\u20AC");
       const slots = String(p.timeSlots || "09:00, 12:00, 16:00").split(",").map((x) => x.trim()).filter(Boolean);
       const sumTitle = String(p.summaryTitle || "Your reservation");
       const confLbl = String(p.confirmLabel || "Confirm window \u2192");
       const rawHref = safeUrl(String(p.confirmHref || "").trim());
-      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : "#";
+      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : "";
       const note = String(p.phoneNote || "");
       const items = (Array.isArray(p.passes) ? p.passes : []).filter(Boolean);
       const first = items[0] || { passName: "Session", unitPrice: "95", fixedTotal: 0 };
@@ -15223,7 +15280,7 @@ function renderNode(n, o) {
         const mt = String(it.passMeta || "");
         const pr = parseFloat(String(it.unitPrice || "0")) || 0;
         const fx = Number(it.fixedTotal) === 1 ? "1" : "0";
-        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? "true" : "false"}"><span class="pagecraft-sp-pass-name">${esc(nm)}</span>` + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : "") + `<span class="pagecraft-sp-pass-price">${esc(sym)}${Math.round(pr)}${fx === "1" ? " flat" : " / guest"}</span></button>`;
+        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? "true" : "false"}"><span class="pagecraft-sp-pass-name">${esc(nm)}</span>` + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : "") + `<span class="pagecraft-sp-pass-price">${esc(sym)}${money(pr)}${fx === "1" ? " flat" : " / guest"}</span></button>`;
       }).join("");
       const guestBtns = [1, 2].map(
         (g) => `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? "true" : "false"}">${g} ${g === 1 ? "Guest" : "Guests"}</button>`
@@ -15231,8 +15288,8 @@ function renderNode(n, o) {
       const slotBtns = slots.map(
         (sl, i) => `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? "true" : "false"}">${esc(sl)}</button>`
       ).join("");
-      const initPrice = Math.round(parseFloat(String(first.unitPrice || "0")) || 0);
-      return `<div ${at()} ${cx("pagecraft-slotpicker")} data-slotpicker data-sym="${esc(sym)}"><div class="pagecraft-sp-steps"><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Choose immersion pass</p><div class="pagecraft-sp-passes">${passBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Guests in party</p><div class="pagecraft-sp-pills">${guestBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">Preferred arrival window</p><div class="pagecraft-sp-pills">${slotBtns}</div></div></div><aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}"><h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3><div class="pagecraft-sp-rows"><div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || "Session"))}</strong></div><div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div><div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || "")}</strong></div></div><div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div><a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : "") + `</aside></div>`;
+      const initPrice = money(parseFloat(String(first.unitPrice || "0")) || 0);
+      return `<div ${at()} ${cx("pagecraft-slotpicker")} data-slotpicker data-sym="${esc(sym)}"><div class="pagecraft-sp-steps"><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.passHeading ?? "Choose immersion pass"))}</p><div class="pagecraft-sp-passes">${passBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.guestHeading ?? "Guests in party"))}</p><div class="pagecraft-sp-pills">${guestBtns}</div></div><div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.slotHeading ?? "Preferred arrival window"))}</p><div class="pagecraft-sp-pills">${slotBtns}</div></div></div><aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}"><h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3><div class="pagecraft-sp-rows"><div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || "Session"))}</strong></div><div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div><div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || "")}</strong></div></div><div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>` + (confHref ? `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` : o.edit ? `<span class="pagecraft-sp-confirm">${esc(confLbl)}</span>` : "") + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : "") + `</aside></div>`;
     }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
