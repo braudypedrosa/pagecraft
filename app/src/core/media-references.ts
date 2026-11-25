@@ -49,7 +49,7 @@ export function mediaReferences(document: Doc): MediaReference[] {
       : node.type === 'typemask' ? ['maskSrc']
       : [];
     fields.forEach(key => scan(props[key], [...base, 'props', key], where));
-    if ((node.type === 'gallery' || node.type === 'strips' || node.type === 'switcher' || node.type === 'exhibit' || node.type === 'scrolly' || node.type === 'clocks' || node.type === 'roster' || node.type === 'arches') && Array.isArray(props.items)) props.items.forEach((item, j) =>
+    if ((node.type === 'gallery' || node.type === 'strips' || node.type === 'switcher' || node.type === 'exhibit' || node.type === 'scrolly' || node.type === 'clocks' || node.type === 'roster' || node.type === 'arches' || node.type === 'masonry') && Array.isArray(props.items)) props.items.forEach((item, j) =>
       scan(item.src, [...base, 'props', 'items', j, 'src'], where));
     if (node.type === 'chapters' && Array.isArray(props.chapters)) props.chapters.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'chapters', j, 'src'], where));

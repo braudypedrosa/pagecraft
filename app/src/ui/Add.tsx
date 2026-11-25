@@ -65,7 +65,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
       ['arches', 'Fanned arches'], ['typemask', 'Masked wordmark'], ['fullmenu', 'Fullscreen menu'],
       ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps'],
       ['dragstrip', 'Draggable filmstrip'], ['stayfilter', 'Stay finder'],
-      ['roicalc', 'ROI calculator'], ['stackcards', 'Stacked cards']
+      ['roicalc', 'ROI calculator'], ['stackcards', 'Stacked cards'],
+      ['showbill', 'Venue bill'], ['masonry', 'Masonry archive']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -94,7 +95,9 @@ export const PURPOSE: Record<string, string> = {
   dragstrip: 'A horizontal image strip visitors drag or scrub with a bar below.',
   stayfilter: 'A list of rooms or houses filtered by guest count and season.',
   roicalc: 'Dual range sliders that model annual savings and comparison bars live.',
-  stackcards: 'Protocol or feature cards that pin and stack neatly as you scroll.'
+  stackcards: 'Protocol or feature cards that pin and stack neatly as you scroll.',
+  showbill: 'Date-block schedule of performances or sessions with room filter buttons.',
+  masonry: 'Mixed-aspect media archive grid with an integrated lightbox viewer.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -161,6 +164,8 @@ const ALIASES: Record<string, string> = {
   stayfilter: 'villas houses rooms guests stepper season rates availability hospitality',
   roicalc: 'roi savings calculator sliders fleet bunker emissions cost model',
   stackcards: 'sticky stacking protocol cards scroll pin sequence deck',
+  showbill: 'events lineup concert club schedule date block tickets bill',
+  masonry: 'masonry gallery archive mixed aspect vinyl lookbook lightbox',
   list: 'collection cms dynamic',
 };
 

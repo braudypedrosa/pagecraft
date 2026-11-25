@@ -2025,6 +2025,45 @@
       "previewPage": "index.html",
       "assetCount": 20,
       "assetBytes": 1201166
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "subbass-halle",
+      "version": "1.0.0",
+      "name": "SUBBASS HALLE · Sound System & Vinyl Imprint",
+      "sampleName": "SUBBASS HALLE — Spatial Sound System, Club Program & Vinyl Imprint",
+      "description": "Four-page brutalist sound sanctuary and independent vinyl imprint featuring a 100dvh turbine-hall poster hero with live countdown, filterable date-block showbill schedule, dubplate calibration audio test, eight-stack horn hotspot diagram, mixed-aspect masonry vinyl archive with native lightbox, acoustic specification table, and season-pass booking.",
+      "categories": [
+        "Music & Culture",
+        "Events & Venues"
+      ],
+      "pages": [
+        {
+          "id": "sh-page-index",
+          "name": "Program",
+          "slug": "index"
+        },
+        {
+          "id": "sh-page-sound-system",
+          "name": "Sound System",
+          "slug": "sound-system"
+        },
+        {
+          "id": "sh-page-vinyl",
+          "name": "Vinyl Releases",
+          "slug": "vinyl"
+        },
+        {
+          "id": "sh-page-venue",
+          "name": "Venue Info",
+          "slug": "venue"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "36766c8649217561f6a755b396c2f75d101051b66d2e291c01330ac353bb8472",
+      "previewPage": "index.html",
+      "assetCount": 21,
+      "assetBytes": 1376019
     }
   ]
 }

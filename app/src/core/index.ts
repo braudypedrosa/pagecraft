@@ -39,7 +39,8 @@ import {
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
   TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
-  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS
+  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS,
+  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2671,6 +2672,102 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--sc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  showbill: {
+    label: 'Venue bill', icon: 'showbill', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        allLabel: 'All rooms',
+        shows: [
+          { dayNum: '06', month: 'NOV', title: 'Rrose · Polyrhythmic Sub Study', artists: 'Rrose (Live A/V) · Neel · Ena Lind', room: 'Turbine Hall', doors: '23:30 – 07:00', price: '€24', ctaLabel: 'Passes →', href: '' },
+          { dayNum: '13', month: 'NOV', title: 'Sub-30Hz Horn Calibration Night', artists: 'Klangwerk Resident Crew · Polar Inertia', room: 'Vault B2', doors: '22:00 – 05:00', price: '€18', ctaLabel: 'Passes →', href: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--sb-surface': '#14141A', '--sb-bg': '#0D0D10', '--sb-ink': '#F5F5FA',
+          '--sb-muted': '#B4B4C6', '--sb-accent': '#9D6BFF', '--sb-accent-ink': '#C8ADFF',
+          '--sb-on': '#0D0D10', '--sb-line': '#282834', '--sb-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'allLabel', label: 'All rooms label', ph: 'All rooms' },
+        {
+          t: 'qa', k: 'shows', label: 'Program dates', addLabel: 'Add show',
+          rowFields: [
+            { k: 'dayNum', label: 'Day', ph: '06', def: '01' },
+            { k: 'month', label: 'Month', ph: 'NOV', def: 'NOV' },
+            { k: 'title', label: 'Session title', ph: 'Night or live set', def: 'New session' },
+            { k: 'artists', label: 'Lineup', ph: 'Artists & live acts', def: '' },
+            { k: 'room', label: 'Room', ph: 'Turbine Hall', def: 'Main Hall' },
+            { k: 'doors', label: 'Hours', ph: '23:30 – 07:00', def: '23:00 – 06:00' },
+            { k: 'price', label: 'Entry price', ph: '€24', def: '€20' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Passes →', def: 'Passes →' },
+            { k: 'href', label: 'Button link', ph: 'venue.html#passes', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sb-surface', label: 'Row surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-bg', label: 'Backing surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-accent', label: 'Accent fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-accent-ink', label: 'Meta highlight', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sb-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  masonry: {
+    label: 'Masonry archive', icon: 'masonry', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        cols: '3',
+        items: [
+          { src: '', alt: 'Catalog item 1', title: 'SUB-014 · Dubplate Test', meta: '180 g · 45 RPM', ratio: '4 / 5' },
+          { src: '', alt: 'Catalog item 2', title: 'SUB-015 · Concrete Resonance', meta: '2xLP · Half-Speed Master', ratio: '3 / 2' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ms-surface': '#14141A', '--ms-ink': '#F5F5FA',
+          '--ms-muted': '#B4B4C6', '--ms-accent': '#9D6BFF',
+          '--ms-line': '#282834', '--ms-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'cols', label: 'Columns', opts: [['2', '2 columns'], ['3', '3 columns'], ['4', '4 columns']] },
+        {
+          t: 'qa', k: 'items', label: 'Archive plates', addLabel: 'Add plate',
+          rowFields: [
+            { k: 'src', label: 'Image', ph: 'asset:plate', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'title', label: 'Title', ph: 'Catalogue title', def: 'New plate' },
+            { k: 'meta', label: 'Metadata', ph: '180 g · 45 RPM', def: '' },
+            { k: 'ratio', label: 'Frame aspect', ph: '4 / 5', def: '4 / 5' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ms-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-accent', label: 'Focus ring accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ms-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -3276,6 +3373,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'stayfilter') return `Stay finder · ${((n.props.stays as any[]) || []).length} stay${((n.props.stays as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'roicalc') return `ROI calculator · ${n.props.heading || 'Savings model'}`;
   if (n.type === 'stackcards') return `Stacked cards · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'showbill') return `Venue bill · ${((n.props.shows as any[]) || []).length} date${((n.props.shows as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'masonry') return `Masonry · ${((n.props.items as any[]) || []).length} plate${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -3735,7 +3834,8 @@ function tabAdd(n: PcNode): string {
   if (!hasRichTabPanels(n)) enableTabPanels(n);
   if (tabPanelProblem(n)) return '';
   const panel = N('box');
-  n.props.items = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  const nextTabs: TabPanel[] = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  (n.props as Record<string, unknown>).items = nextTabs;
   n.children.push(panel);
   return panel.id;
 }
@@ -6505,6 +6605,8 @@ const TEXT_SLOTS = {
   stayfilter: ['currencySymbol', 'lowLabel', 'midLabel', 'highLabel', 'guestsLabel', 'singularLabel', 'unitLabel', 'perNightLabel', 'emptyText', ['stays', 'stayName', 'location', 'summary', 'tags', 'lowRate', 'midRate', 'highRate', 'ctaLabel', 'alt']],
   roicalc: ['heading', 'summary', 'slider1Label', 'slider1Unit', 'slider2Label', 'slider2Unit', 'currencySymbol', 'baselineLabel', 'optimizedLabel', 'savingsLabel', 'co2Label', 'ctaLabel'],
   stackcards: [['cards', 'stepNum', 'badge', 'title', 'detail', 'stat', 'alt']],
+  showbill: ['allLabel', ['shows', 'dayNum', 'month', 'title', 'artists', 'room', 'doors', 'price', 'ctaLabel']],
+  masonry: [['items', 'alt', 'title', 'meta']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -11003,7 +11105,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -11036,14 +11138,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'stayfilter') stayfilter = true;
     else if (node.type === 'roicalc') roicalc = true;
     else if (node.type === 'stackcards') stackcards = true;
+    else if (node.type === 'showbill') showbill = true;
+    else if (node.type === 'masonry') masonry = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -11075,6 +11179,8 @@ function extraWidgetCss(used: {
     + (used.stayfilter ? `\n${STAYFILTER_CSS}` : '')
     + (used.roicalc ? `\n${ROICALC_CSS}` : '')
     + (used.stackcards ? `\n${STACKCARDS_CSS}` : '')
+    + (used.showbill ? `\n${SHOWBILL_CSS}` : '')
+    + (used.masonry ? `\n${MASONRY_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -13440,6 +13546,70 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       return `<div ${at()} ${cx('pagecraft-stackcards')} data-stackcards${o.edit ? ' data-stackcards-edit' : ''}${offsetStyle}>`
         + `<ol class="pagecraft-stackcards-list" role="list">${cardsHtml}</ol></div>`;
     }
+    case 'showbill': {
+      const shows = (Array.isArray(p.shows) ? p.shows as any[] : []).filter(Boolean);
+      const allLbl = String(p.allLabel || 'All rooms');
+      const rooms = [...new Set(shows.map(s => String(s.room || '').trim()).filter(Boolean))];
+      const fBtns = rooms.length > 1
+        ? `<div class="pagecraft-showbill-filters" role="group" aria-label="Room filter">`
+          + `<button type="button" class="pagecraft-showbill-fbtn" data-sb-filter="__all__" aria-pressed="true">${esc(allLbl)}</button>`
+          + rooms.map(r => `<button type="button" class="pagecraft-showbill-fbtn" data-sb-filter="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')
+          + `</div>`
+        : '';
+      const rows = shows.map((it, i) => {
+        const day = String(it.dayNum || '01');
+        const mon = String(it.month || 'NOV');
+        const title = String(it.title || `Session ${i + 1}`);
+        const artists = String(it.artists || '').trim();
+        const room = String(it.room || '').trim();
+        const doors = String(it.doors || '').trim();
+        const price = String(it.price || '').trim();
+        const cta = String(it.ctaLabel || 'Passes →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const metaTxt = [room, doors].filter(Boolean).join(' · ');
+        return `<li class="pagecraft-showbill-row" data-sb-room="${esc(room)}">`
+          + `<div class="pagecraft-showbill-date"><span class="pagecraft-showbill-day">${esc(day)}</span><span class="pagecraft-showbill-mon">${esc(mon)}</span></div>`
+          + `<div class="pagecraft-showbill-body">`
+          + (metaTxt ? `<p class="pagecraft-showbill-meta">${esc(metaTxt)}</p>` : '')
+          + `<h3 class="pagecraft-showbill-title">${esc(title)}</h3>`
+          + (artists ? `<p class="pagecraft-showbill-artists">${esc(artists)}</p>` : '')
+          + `</div>`
+          + `<div class="pagecraft-showbill-side">`
+          + (price ? `<span class="pagecraft-showbill-price">${esc(price)}</span>` : '')
+          + (link ? `<a class="pagecraft-showbill-cta" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-showbill-cta">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-showbill')} data-showbill>${fBtns}<ul class="pagecraft-showbill-list" role="list">${rows}</ul></div>`;
+    }
+    case 'masonry': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const cols = ['2', '3', '4'].includes(String(p.cols)) ? String(p.cols) : '3';
+      const first = items[0] || {};
+      const tiles = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Plate ${i + 1}`));
+        const title = String(it.title || '').trim();
+        const meta = String(it.meta || '').trim();
+        const ratio = cssRatio(it.ratio) || '4 / 5';
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const inner = `<img class="pagecraft-masonry-img" src="${src}" alt="${alt}"${dim} style="--ms-r:${esc(ratio)}" decoding="async">`
+          + ((title || meta) ? `<div class="pagecraft-masonry-cap">${title ? `<h3 class="pagecraft-masonry-title">${esc(title)}</h3>` : ''}${meta ? `<p class="pagecraft-masonry-meta">${esc(meta)}</p>` : ''}</div>` : '');
+        return `<figure class="pagecraft-masonry-card">`
+          + (o.edit
+            ? `<div class="pagecraft-masonry-trigger">${inner}</div>`
+            : `<button type="button" class="pagecraft-masonry-trigger" data-ms-open="${i}" data-ms-src="${src}" data-ms-alt="${alt}" data-ms-title="${esc(title)}" data-ms-meta="${esc(meta)}">${inner}</button>`)
+          + `</figure>`;
+      }).join('');
+      const dlg = o.edit ? '' : `<dialog class="pagecraft-masonry-dlg" aria-label="Image viewer">`
+        + `<div class="pagecraft-masonry-stage">`
+        + `<img class="pagecraft-masonry-dlg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${esc(String(first.alt || ''))}">`
+        + `<div class="pagecraft-masonry-bar">`
+        + `<div><strong data-ms-dtitle>${esc(String(first.title || ''))}</strong> <span class="pagecraft-masonry-meta" data-ms-dmeta>${esc(String(first.meta || ''))}</span></div>`
+        + `<div class="pagecraft-masonry-nav"><button type="button" class="pagecraft-masonry-btn" data-ms-prev>Prev</button><button type="button" class="pagecraft-masonry-btn" data-ms-next>Next</button><button type="button" class="pagecraft-masonry-btn" data-ms-close>Close</button></div>`
+        + `</div></div></dialog>`;
+      return `<div ${at()} ${cx('pagecraft-masonry')} data-masonry style="--ms-cols:${cols}"><div class="pagecraft-masonry-grid">${tiles}</div>${dlg}</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -14061,7 +14231,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14571,7 +14741,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

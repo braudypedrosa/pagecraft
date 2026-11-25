@@ -220,6 +220,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('stayfilter', { currencySymbol: '€', defaultGuests: '2', maxGuests: '8', stays: [{ stayName: 'Cliff Villa', location: 'West Ridge', summary: 'Plunge pool.', sleeps: '4', tags: 'Sleeps 4, Plunge pool', lowRate: '480', midRate: '640', highRate: '820', src: 'https://example.test/sf1.webp', alt: 'Cliff Villa' }] }),
     C.N('roicalc', { heading: 'Bunker model', slider1Value: '16', slider2Value: '260', baseFactor: '1400', savingsPct: '31', co2Factor: '4.1', currencySymbol: '€', href: 'https://example.test/audit' }),
     C.N('stackcards', { stickyOffset: '88px', cards: [{ stepNum: '01', badge: 'Telemetry', title: 'Slot sync', detail: 'Quay ETA lock.', stat: '14 ports', src: 'https://example.test/sc1.webp', alt: 'Quay sync' }] }),
+    C.N('showbill', { allLabel: 'All rooms', shows: [{ dayNum: '06', month: 'NOV', title: 'Rrose Live', artists: 'Rrose · Neel', room: 'Turbine Hall', doors: '23:30', price: '€24', ctaLabel: 'Passes', href: 'https://example.test/passes' }] }),
+    C.N('masonry', { cols: '3', items: [{ src: 'https://example.test/ms1.webp', alt: 'Vinyl 1', title: 'SUB-014', meta: '180 g', ratio: '4 / 5' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -259,8 +261,8 @@ describe('full customer document round trip', () => {
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(56);
-    expect(new Set(choices)).toHaveLength(56);
+    expect(choices).toHaveLength(58);
+    expect(new Set(choices)).toHaveLength(58);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

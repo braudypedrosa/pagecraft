@@ -80,6 +80,8 @@ const runtimeSource = [
   Core.DRAGSTRIP_JS,
   Core.STAYFILTER_JS,
   Core.ROICALC_JS,
+  Core.SHOWBILL_JS,
+  Core.MASONRY_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {

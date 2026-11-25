@@ -946,5 +946,27 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const scHtml = C.renderNode(C.N('stackcards'), { edit: false });
     expect(scHtml).toContain('pagecraft-stackcards');
     expect(scHtml).toContain('--sc-i:1');
+
+    const sbDom = domFor(C.renderNode(C.N('showbill'), { edit: false }));
+    const sbWin = sbDom.window as any;
+    let sbDispose: (() => void) | null = null;
+    sbWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { sbDispose = fn; };
+    sbWin.eval(scriptBody(C.SHOWBILL_JS));
+    (sbWin.document.querySelector('[data-sb-filter="Vault B2"]') as HTMLElement).click();
+    expect((sbWin.document.querySelector('[data-sb-room="Turbine Hall"]') as HTMLElement).hidden).toBe(true);
+    expect((sbWin.document.querySelector('[data-sb-room="Vault B2"]') as HTMLElement).hidden).toBe(false);
+    sbDispose!();
+    sbDom.window.close();
+
+    const msDom = domFor(C.renderNode(C.N('masonry'), { edit: false }));
+    const msWin = msDom.window as any;
+    let msDispose: (() => void) | null = null;
+    msWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { msDispose = fn; };
+    msWin.eval(scriptBody(C.MASONRY_JS));
+    (msWin.document.querySelector('[data-ms-open="1"]') as HTMLElement).click();
+    expect(msWin.document.querySelector('.pagecraft-masonry-dlg')?.getAttribute('data-open')).toBe('1');
+    expect(msWin.document.querySelector('[data-ms-dtitle]')?.textContent).toContain('SUB-015');
+    msDispose!();
+    msDom.window.close();
   });
 });
