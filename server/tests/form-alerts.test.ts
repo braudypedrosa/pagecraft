@@ -135,6 +135,14 @@ test('only owners see or change the setting, and only from this site', () => wor
 test('a test email goes only to the owner asking, and is limited', () => world(async w => {
   for (const expected of ['sent', 'sent', 'sent', 'wait']) expect((await w.settings('action=test&person=u-editor')).headers.get('location')).toContain('alerts=test-' + expected);
   expect(w.sent.map((s: any) => s[0])).toEqual(Array(3).fill('owner@example.test'));
+  const [, subject, text, replyTo] = w.sent[0];
+  expect(subject).toBe('Sample entry: Contact us · Corner Shop');
+  expect(text).toContain('it is not saved in Submissions');
+  expect(text).toContain('Email: visitor@example.com');
+  expect(text).toContain('Message: This is where');
+  expect(text).not.toContain('Replying');
+  expect(replyTo).toBeUndefined();
+  expect(await w.submissions.list(w.site.id)).toEqual([]);
 }));
 
 test('many entries in an hour stop emailing, and the last email says so', () => world(async w => {

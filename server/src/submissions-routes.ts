@@ -110,7 +110,7 @@ export function submissionRoutes(app: Hono, o: {
       if (data.get('action') === 'test') {
         const site = await o.store.byId(id);
         if (!site) return c.notFound();
-        result = 'test-' + await o.alerts.test(id, site.name, access.user.email);
+        result = 'test-' + await o.alerts.test(id, site.name, access.user.email, siteForms(site.doc)[0]);
       } else { await o.alerts.choose(id, data.getAll('person')); result = 'saved'; }
       query.set('alerts', result);
       return c.redirect('/sites/' + encodeURIComponent(id) + '/submissions?' + query, 303);

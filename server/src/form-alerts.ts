@@ -5,7 +5,7 @@
  *  safe the moment it is saved, so nothing about mail can delay, fail or repeat a submission. */
 import { throttle, type NoticeSender } from './mail.ts';
 import { roleAllows, type Role } from './auth.ts';
-import type { FormAlertSettings, FileSubmissionStore, Submission } from './submissions.ts';
+import type { FormAlertSettings, FileSubmissionStore, SiteForm, Submission } from './submissions.ts';
 
 export interface AlertMember { userId: string; email: string; name: string; role: Role }
 export interface FormAlertsOptions {
@@ -30,7 +30,24 @@ export function alertRecipients(settings: FormAlertSettings, members: AlertMembe
   return members.filter(member => member.email && (chosen ? chosen.includes(member.userId) : member.role === 'owner'));
 }
 
-export function entryMessage(input: { siteName: string; entry: Submission; url: string; capped?: boolean }) {
+const SAMPLE_VALUES: Record<string, string> = {
+  email: 'visitor@example.com', tel: '555 0100', number: '2', date: '2027-01-15', checkbox: 'on',
+  textarea: 'This is where a longer answer appears.'
+};
+/** What an entry in one of the site's own forms would look like. */
+export function sampleEntry(form?: SiteForm): Submission {
+  const fields = form?.fields.length ? form.fields.slice(0, 50) : [{ type: 'text', label: 'Name' }, { type: 'email', label: 'Email' }, { type: 'textarea', label: 'Message' }];
+  return {
+    id: 'sample', formId: form?.id || '', formName: form?.name || 'Contact form', createdAt: new Date().toISOString(), status: 'success',
+    values: fields.map((field, i) => ({
+      label: field.label || field.name || 'Field ' + (i + 1),
+      value: field.type === 'select' ? String(field.opts || '').split(',')[0].trim() || 'First choice'
+        : SAMPLE_VALUES[field.type || 'text'] || (/name/i.test(field.label || '') ? 'Sample Visitor' : 'Sample answer')
+    }))
+  };
+}
+
+export function entryMessage(input: { siteName: string; entry: Submission; url: string; capped?: boolean; sample?: boolean }) {
   const form = line(input.entry.formName, 80) || 'Form', site = line(input.siteName, 80) || 'your site';
   const values = input.entry.values.filter(value => value.value).map(value => {
     const text = value.value.replace(/\r\n?/g, '\n').slice(0, 4000);
@@ -38,15 +55,16 @@ export function entryMessage(input: { siteName: string; entry: Submission; url: 
   });
   const reply = mailbox((input.entry.values.find(value => mailbox(value.value.trim()))?.value || '').trim());
   return {
-    subject: `New entry: ${form} · ${site}`,
-    replyTo: reply || undefined,
+    subject: `${input.sample ? 'Sample entry' : 'New entry'}: ${form} · ${site}`,
+    replyTo: input.sample ? undefined : reply || undefined,
     text: [
+      ...(input.sample ? ['This is a sample you asked for. Nobody sent it and it is not saved in Submissions.', ''] : []),
       `${form} on ${site} has a new entry.`, '',
       ...(values.length ? values : ['The entry has no text.']), '',
       'See it in Submissions:', input.url,
       ...(input.capped ? ['', 'This site has had many entries in the last hour, so no more will be emailed for now. They are all saved in Submissions.'] : []),
       '', 'You get this email because you are on this Pagecraft site. The site owner can change who gets it in Submissions.',
-      ...(reply ? ['Replying to this email writes to the address in the entry, which has not been verified.'] : [])
+      ...(reply && !input.sample ? ['Replying to this email writes to the address in the entry, which has not been verified.'] : [])
     ].join('\n')
   };
 }
@@ -73,12 +91,13 @@ export class FormAlerts {
     await this.o.submissions.setAlerts(siteId, { ...await this.o.submissions.alerts(siteId), recipients });
     return recipients;
   }
-  async test(siteId: string, siteName: string, email: string): Promise<'sent' | 'off' | 'wait' | 'failed'> {
+  async test(siteId: string, siteName: string, email: string, form?: SiteForm): Promise<'sent' | 'off' | 'wait' | 'failed'> {
     if (!this.o.send) return 'off';
     if (!this.tests.take(siteId + '|' + email)) return 'wait';
     try {
-      await this.o.send(email, `Test: form emails for ${line(siteName, 80)}`,
-        'Form emails are working. New entries will look like this one, with the visitor’s answers and a link to Submissions.');
+      const entry = sampleEntry(form);
+      const message = entryMessage({ siteName, entry, url: this.o.inboxUrl(siteId, entry.formId), sample: true });
+      await this.o.send(email, message.subject, message.text);
       return 'sent';
     } catch { return 'failed'; }
   }
