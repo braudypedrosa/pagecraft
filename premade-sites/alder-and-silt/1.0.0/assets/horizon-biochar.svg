@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280">
+  <rect width="640" height="280" fill="#EFF3EE"/>
+  <rect y="86" width="640" height="30" fill="#D5DED6"/>
+  <rect y="116" width="640" height="106" fill="#223B32"/>
+  <rect y="222" width="640" height="58" fill="#C9D4CB"/>
+  <g stroke="#7ED1B2" stroke-width="1.5" fill="none" opacity="0.88">
+    <path d="M96 86 C96 128, 76 156, 68 198 M96 122 C112 148, 124 176, 130 204"/>
+    <path d="M254 86 C252 132, 236 164, 224 206 M254 118 C272 148, 282 178, 292 208"/>
+    <path d="M412 86 C410 130, 392 162, 382 204 M412 124 C430 152, 442 180, 450 206"/>
+    <path d="M548 86 C546 128, 530 160, 520 202 M548 120 C564 148, 574 176, 582 204"/>
+  </g>
+  <text x="28" y="42" fill="#0F6A53" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.2">HORIZON B · -75 TO -450 MM</text>
+  <text x="612" y="42" text-anchor="end" fill="#132A22" font-family="ui-monospace, monospace" font-size="12" font-weight="700">82 MM/HR PERCOLATION</text>
+  <text x="28" y="256" fill="#3E544B" font-family="ui-monospace, monospace" font-size="11.5">14% KILN BIOCHAR + WASHED GLACIAL BANK SAND</text>
+</svg>

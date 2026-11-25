@@ -1,0 +1,145 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "alder-and-silt",
+  "version": "1.0.0",
+  "name": "ALDER & SILT",
+  "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+  "description": "Four-page ecological landscape architecture and watershed civil practice featuring a floating mineral pill header, coastal elevation transect hero, interactive hover-preview monograph index, pixel-aligned LiDAR floodway compare scrubber, sticky-photo scrolling stewardship steps, subsurface soil horizon schematics, and site walk brief intake.",
+  "categories": [
+    "Landscape & Ecology",
+    "Architecture"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 224,
+      "height": 40
+    },
+    {
+      "id": "logo-light",
+      "file": "assets/logo-light.svg",
+      "name": "logo-light.svg",
+      "width": 224,
+      "height": 40
+    },
+    {
+      "id": "horizon-granite",
+      "file": "assets/horizon-granite.svg",
+      "name": "horizon-granite.svg",
+      "width": 640,
+      "height": 280
+    },
+    {
+      "id": "horizon-biochar",
+      "file": "assets/horizon-biochar.svg",
+      "name": "horizon-biochar.svg",
+      "width": 640,
+      "height": 280
+    },
+    {
+      "id": "horizon-willow",
+      "file": "assets/horizon-willow.svg",
+      "name": "horizon-willow.svg",
+      "width": 640,
+      "height": 280
+    },
+    {
+      "id": "coastal-hero",
+      "file": "assets/coastal-hero.webp",
+      "name": "coastal-hero.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "riparian-bioswale",
+      "file": "assets/riparian-bioswale.webp",
+      "name": "riparian-bioswale.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "timber-weir",
+      "file": "assets/timber-weir.webp",
+      "name": "timber-weir.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "planting-corps",
+      "file": "assets/planting-corps.webp",
+      "name": "planting-corps.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "estuary-marsh",
+      "file": "assets/estuary-marsh.webp",
+      "name": "estuary-marsh.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "granite-terrace",
+      "file": "assets/granite-terrace.webp",
+      "name": "granite-terrace.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "upland-meadow",
+      "file": "assets/upland-meadow.webp",
+      "name": "upland-meadow.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "moss-flagstone",
+      "file": "assets/moss-flagstone.webp",
+      "name": "moss-flagstone.webp",
+      "width": 1280,
+      "height": 714
+    },
+    {
+      "id": "weir-asbuilt",
+      "file": "assets/weir-asbuilt.webp",
+      "name": "weir-asbuilt.webp",
+      "width": 1264,
+      "height": 711
+    },
+    {
+      "id": "weir-lidar-cad",
+      "file": "assets/weir-lidar-cad.webp",
+      "name": "weir-lidar-cad.webp",
+      "width": 1264,
+      "height": 711
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:alder-and-silt:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "53d58bbfbf540b701c78a3a76a88c91446f7db8dce8ebe035a5d8a680326d0ed"
+}

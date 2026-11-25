@@ -5,7 +5,10 @@ const KIND: Record<string, string> = {
   section: 'section', row: 'row', column: 'column', box: 'box', heading: 'heading', text: 'text', quote: 'quote',
   image: 'image', gallery: 'gallery', video: 'video', audio: 'audio player', icon: 'icon', button: 'button', nav: 'menu', form: 'form',
   accordion: 'accordion', tabs: 'tabs', table: 'table', code: 'code', crumbs: 'breadcrumbs', slider: 'slider',
-  embed: 'embed', countdown: 'countdown', marquee: 'marquee', filter: 'tag filter', spacer: 'spacer', divider: 'divider', list: 'list'
+  embed: 'embed', countdown: 'countdown', marquee: 'marquee', filter: 'tag filter',
+  compare: 'image compare', timeline: 'timeline', progress: 'progress bars', hotspot: 'image hotspots',
+  strips: 'expanding strips', switcher: 'stage switcher', exhibit: 'exhibit index', scrolly: 'sticky steps', clocks: 'office clocks', roster: 'team spotlight', tiers: 'currency tiers', qapills: 'question pills', dockbar: 'docked intake bar', arches: 'fanned arches', chapters: 'chapter frame', slotpicker: 'slot configurator',
+  spacer: 'spacer', divider: 'divider', list: 'list'
 };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const kind = (node: PcNode) => KIND[node.type] || 'element';

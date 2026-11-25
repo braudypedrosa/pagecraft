@@ -28,6 +28,13 @@ const education = { id: 'education', label: 'Education' };
 const restaurant = { id: 'restaurant', label: 'Restaurant' };
 
 const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
+  'alder-and-silt': {
+    name: 'ALDER & SILT · Landscape Architecture',
+    description: 'Four-page ecological landscape architecture and coastal watershed practice featuring a floating header over a 100dvh coastal meadow stage, headland slope before-and-after compare slider, biome filter archive, soil infiltration progress gauges, and site walk intake.',
+    industries: [architectureDesign],
+    siteTypes: [portfolio, business],
+    aliases: ['landscape architecture', 'ecological design', 'coastal restoration', 'civil grading', 'native plants'],
+  },
   'architecture-studio': {
     name: 'Common Ground · Architecture Studio',
     description: 'A project-led portfolio and business site for architecture and design studios, with practice, services and contact pages.',
@@ -105,12 +112,33 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [business],
     aliases: ['climbing gym', 'bouldering', 'fitness studio', 'athletic training', 'sports facility'],
   },
+  'kestrel-cargo': {
+    name: 'KESTREL · Electric Cargo Mobility',
+    description: 'Four-page electric utility cargo bike and municipal fleet site featuring a floating header over a 70vh full-bleed studio K-02 hero with docked telemetry bar, standardized 44vh inner-page engineering headers, pixel-aligned exterior-to-X-Ray compare scrubber, dyno progress & CAN-Bus code bento cards, 3 hardware macro cards, interactive hotspot diagram, structured trim configurator tabs, horizontal certification timeline, 6-hub depot network cards, and fleet demo form.',
+    industries: [architectureDesign],
+    siteTypes: [business],
+    aliases: ['electric cargo bike', 'ev fleet', 'urban mobility', 'last-mile logistics', 'industrial design'],
+  },
   'maren-and-tomas': {
     name: 'Maren & Tomás · Destination Wedding',
     description: 'Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.',
     industries: [travelHospitality],
     siteTypes: [portfolio],
     aliases: ['wedding', 'destination wedding', 'wedding invitation', 'event invitation', 'rsvp'],
+  },
+  'masuda-optical': {
+    name: 'MASUDA / 04 · Titanium Eyewear',
+    description: 'Four-page Sabae titanium eyewear and clinical optometry site featuring a floating header over a 1240px four-tile editorial bento hero, interactive chassis anatomy hotspots, native expanding photo strips (strips), pixel-aligned M-09 exterior-to-CAD optical compare workbench, 4-step corneal fitting progress bars, deep slate metallurgy monograph with ruled specification rows, filterable 6-model orthographic catalog, millimeter sizing table, native clinical stage switcher (switcher), high-index lens slider, and Sabae milling film lightbox.',
+    industries: [healthAndWellness, architectureDesign],
+    siteTypes: [business, portfolio],
+    aliases: ['eyewear', 'optometry', 'optical boutique', 'titanium frames', 'glasses'],
+  },
+  'mercer-quinn': {
+    name: 'MERCER QUINN · Patent & AI Litigation',
+    description: 'Four-page intellectual property, Federal Circuit, and AI systems trial law practice featuring a floating header over a 100dvh architectural dossier frame, practice discipline tabs, playable oral argument audio briefing, ruled precedent ledger, and conflict check intake.',
+    industries: [professionalServices],
+    siteTypes: [business],
+    aliases: ['law firm', 'patent litigation', 'ai law', 'trial counsel', 'legal practice'],
   },
   'photographic-portfolio': {
     name: 'Noor Vale · Photography Portfolio',
@@ -125,6 +153,13 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     industries: [travelHospitality],
     siteTypes: [accommodation],
     aliases: ['coastal homes', 'holiday homes', 'holiday rental', 'vacation homes', 'vacation rental collection'],
+  },
+  'soraia-thermal': {
+    name: 'SORAIA · Thermal Bathhouse',
+    description: 'Four-page volcanic basalt bathhouse and thermal reserve featuring a floating header over a 100dvh obsidian water sanctuary with inline video lightbox trigger, four-stage contrast circuit, hydro-acoustic audio player, live silence window countdown, and soak reservation flow.',
+    industries: [healthAndWellness, travelHospitality],
+    siteTypes: [business],
+    aliases: ['bathhouse', 'thermal spa', 'sauna', 'hot springs', 'wellness sanctuary'],
   },
   'wellness-practice': {
     name: 'Still Day · Wellness Practice',

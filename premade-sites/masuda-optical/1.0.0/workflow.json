@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "masuda-optical",
+  "version": "1.0.0",
+  "sampleName": "MASUDA / 04 — Sabae Titanium Eyewear",
+  "packageSha256": "0d2f2cc7104ad9a112be239799d71bf06e696d14625c11f7c90c942d6d9a4838",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

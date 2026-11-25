@@ -195,6 +195,22 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('filter', { group: 'roundtrip' }, {}, [
       C.N('box', { tags: 'Feature' }, {}, [C.N('text', { html: '<p>Filter card.</p>' })]),
     ]),
+    C.N('compare', { beforeSrc: 'https://example.test/before.webp', afterSrc: 'https://example.test/after.webp', beforeAlt: 'Before', afterAlt: 'After' }),
+    C.N('timeline', { orientation: 'horizontal', marker: 'numbers', items: [{ tag: '01', title: 'Step one', detail: 'Step details.' }] }),
+    C.N('progress', { showValue: 1, rounded: 1, items: [{ label: 'Efficiency', value: '91', unit: '%' }] }),
+    C.N('hotspot', { src: 'https://example.test/diagram.webp', alt: 'Diagram', items: [{ label: 'A', title: 'Part A', detail: 'Spec A', x: '45', y: '55' }] }),
+    C.N('strips', { items: [{ src: 'https://example.test/strip.webp', alt: 'Strip', tag: 'Metal', title: 'Cold swaging', detail: 'Swaged front.' }] }),
+    C.N('switcher', { stageLayout: 'rail', ratio: '3 / 2', items: [{ label: 'Phase A', meta: '15 min', title: 'Corneal map', detail: 'Wavefront scan.', src: 'https://example.test/stage.webp', alt: 'Stage view' }] }),
+    C.N('exhibit', { previewRatio: '4 / 3', items: [{ title: 'Headland Ledge', location: 'Cape Elizabeth', scope: '3.4 ac', year: '2025', href: 'https://example.test/work', src: 'https://example.test/exhibit.webp', alt: 'Exhibit plate' }] }),
+    C.N('scrolly', { stickyRatio: '4 / 3', items: [{ title: 'Soil Borings', detail: 'Percolation survey.', fact: '82 mm/hr', src: 'https://example.test/scrolly.webp', alt: 'Scrolly plate' }] }),
+    C.N('clocks', { hour12: 0, opens: '9', closes: '18', items: [{ city: 'London', tz: 'Europe/London', address: '14 Old Square', phone: '+44 20 7946 0110', href: 'https://example.test/map', linkLabel: 'Open in Maps', src: 'https://example.test/london.webp', alt: 'London office' }] }),
+    C.N('roster', { portraitRatio: '4 / 5', items: [{ name: 'Claire Mercer', role: 'Partner', seat: 'Washington', credential: 'Fed. Cir.', quote: 'Direct advocacy.', href: 'https://example.test/bio', linkLabel: 'Bio', src: 'https://example.test/p1.webp', alt: 'Claire' }] }),
+    C.N('tiers', { defaultCurrency: 'usd', items: [{ tierName: 'Audit', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200', period: 'tranche', summary: 'FTO audit.', features: 'Partner review', ctaText: 'Select', href: 'https://example.test/intake', featured: 1 }] }),
+    C.N('qapills', { pillAlign: 'center', items: [{ q: 'Why entity names first?', a: 'Ethics wall protection.', note: 'Rule 1.18', href: 'https://example.test/rules', linkLabel: 'Details' }] }),
+    C.N('dockbar', { submitLabel: 'Screen →', destHref: 'https://example.test/check', ariaLabel: 'Conflict bar', items: [{ fieldLabel: 'Entity', fieldType: 'text', ph: 'Company' }] }),
+    C.N('arches', { items: [{ src: 'https://example.test/a1.webp', alt: 'Arch 1' }] }),
+    C.N('chapters', { frameRatio: '16 / 9', autoSeconds: '0', chapters: [{ chapterTitle: 'Caldarium', chapterSub: '40C', overlayText: 'Warm spring.', src: 'https://example.test/ch1.webp', alt: 'Caldarium' }] }),
+    C.N('slotpicker', { currencySymbol: '€', timeSlots: '06:30, 19:30', confirmLabel: 'Hold →', confirmHref: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -228,14 +244,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 31 Add choices map to stable persisted module shapes', () => {
+  test('all 47 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(31);
-    expect(new Set(choices)).toHaveLength(31);
+    expect(choices).toHaveLength(47);
+    expect(new Set(choices)).toHaveLength(47);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

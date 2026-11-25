@@ -177,7 +177,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 28 module renderers emit their representative authored value', () => {
+test('all 44 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -213,6 +213,22 @@ test('all 28 module renderers emit their representative authored value', () => {
     countdown: { expected: /data-countdown="2035-06-15T18:00:00Z"/, configure: n => { n.props.target = '2035-06-15T18:00:00Z'; } },
     marquee: { expected: /QA marquee item/, configure: n => { n.children = [C.N('heading', { text: 'QA marquee item' })]; } },
     filter: { expected: /data-filter-tag="QA tag"/, configure: n => { n.children = [C.N('box', { tags: 'QA tag' })]; } },
+    compare: { expected: /data-compare/, configure: n => { n.props.beforeSrc = 'https://example.com/a.jpg'; n.props.afterSrc = 'https://example.com/b.jpg'; } },
+    timeline: { expected: /QA milestone/, configure: n => { n.props.items = [{ tag: 'Step 1', title: 'QA milestone', detail: 'Details' }]; } },
+    progress: { expected: /<progress[^>]+value="82"/, configure: n => { n.props.items = [{ label: 'QA progress', value: '82', unit: '%' }]; } },
+    hotspot: { expected: /popovertarget="/, configure: n => { n.props.src = 'https://example.com/diagram.jpg'; n.props.items = [{ label: '01', title: 'QA pin', detail: 'Detail', x: '40', y: '60' }]; } },
+    strips: { expected: /data-strips/, configure: n => { n.props.items = [{ src: 'https://example.com/a.jpg', alt: 'QA strip', title: 'QA strip', detail: 'Detail' }]; } },
+    switcher: { expected: /data-switcher/, configure: n => { n.props.items = [{ label: 'QA stage', meta: '10 min', title: 'QA stage title', detail: 'Stage detail', src: 'https://example.com/s.jpg', alt: 'Stage photo' }]; } },
+    exhibit: { expected: /data-exhibit/, configure: n => { n.props.items = [{ title: 'QA exhibit', location: 'Portland', scope: '2.4 ac', year: '2025', src: 'https://example.com/e.jpg', alt: 'Exhibit preview' }]; } },
+    scrolly: { expected: /data-scrolly/, configure: n => { n.props.items = [{ title: 'QA step', detail: 'Step detail', fact: '82 mm/hr', src: 'https://example.com/sc.jpg', alt: 'Step visual' }]; } },
+    clocks: { expected: /data-clocks/, configure: n => { n.props.items = [{ city: 'Munich', tz: 'Europe/Berlin', address: 'Maximilianstr. 35a', phone: '+49 89 555 010', href: 'https://example.com/map', linkLabel: 'Maps', src: 'https://example.com/ofc.jpg', alt: 'Munich chambers' }]; } },
+    roster: { expected: /data-roster/, configure: n => { n.props.items = [{ name: 'Claire Mercer', role: 'Partner', seat: 'DC', credential: 'USPTO', quote: 'Trial first.', src: 'https://example.com/p.jpg', alt: 'Claire' }]; } },
+    tiers: { expected: /data-tiers/, configure: n => { n.props.items = [{ tierName: 'Retainer', priceUsd: '$6,400', priceEur: '€5,800', priceGbp: '£4,950', period: '/mo', summary: 'Counsel', features: 'Partner access', ctaText: 'Engage', href: 'https://example.com/go', featured: 1 }]; } },
+    qapills: { expected: /data-qapills/, configure: n => { n.props.items = [{ q: 'Question?', a: 'Answer.', note: 'Rule 1.7' }]; } },
+    dockbar: { expected: /data-dockbar/, configure: n => { n.props.items = [{ fieldLabel: 'Entity', fieldType: 'text', ph: 'Helios' }]; } },
+    arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
+    chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
+    slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -277,7 +293,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(111);
+  expect(declarations).toHaveLength(158);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -315,7 +331,7 @@ function cssValue(c: Control, n: PcNode, before: unknown) {
   return 'initial';
 }
 
-test('all 174 CSS declarations compile and share the same Undo/save model', () => {
+test('all 197 CSS declarations compile and share the same Undo/save model', () => {
   const declarations: Array<{ owner: string; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF))
     for (const control of [...def.controls.content, ...def.controls.style])
@@ -325,7 +341,7 @@ test('all 174 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(174);
+  expect(declarations).toHaveLength(276);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

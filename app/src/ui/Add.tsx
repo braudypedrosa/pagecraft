@@ -44,7 +44,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
   {
     g: 'Content', items: [
       ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
-      ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['audio', 'Audio'], ['icon', 'Icon']
+      ['image', 'Image'], ['gallery', 'Gallery'], ['compare', 'Image compare'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches'], ['video', 'Video'], ['audio', 'Audio'],
+      ['timeline', 'Timeline'], ['progress', 'Progress bars'], ['icon', 'Icon']
     ]
   },
   {
@@ -52,7 +53,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['clocks', 'Office clocks'], ['roster', 'Team spotlight'], ['tiers', 'Currency tiers'], ['qapills', 'Question pills'], ['dockbar', 'Docked intake bar'], ['chapters', 'Chapter frame'], ['slotpicker', 'Slot picker'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -97,6 +98,22 @@ const ALIASES: Record<string, string> = {
   audio: 'podcast player sound mp3 track episode',
   countdown: 'timer event deadline clock launch',
   filter: 'tags category tabs portfolio schedule',
+  compare: 'before after slider diff image comparison',
+  timeline: 'steps roadmap milestones process phases',
+  progress: 'bars meters benchmark stats percentages',
+  hotspot: 'annotations pins diagram map callouts popover',
+  strips: 'expanding strips accordion gallery showcase panels',
+  switcher: 'stage visual switcher process steps showcase tabs',
+  exhibit: 'monograph ledger hover preview index projects exhibitions',
+  scrolly: 'sticky scroll steps narrative scrollytelling sequence',
+  clocks: 'office locations time zones local time world clock addresses',
+  roster: 'team leadership partners spotlight directory members bios',
+  tiers: 'pricing plans retainers currency switcher usd eur gbp rates',
+  qapills: 'faq questions pills answers selector help desk',
+  dockbar: 'search bar intake booking filter horizontal hero dock',
+  arches: 'fanned arc collage arch showcase triptych wellness hero',
+  chapters: 'cinematic frame chapters story progress showcase',
+  slotpicker: 'booking appointment session time slot summary configurator',
   list: 'collection cms dynamic',
 };
 

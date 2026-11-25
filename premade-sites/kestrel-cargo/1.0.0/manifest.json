@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "kestrel-cargo",
+  "version": "1.0.0",
+  "name": "KESTREL",
+  "sampleName": "KESTREL — Urban Cargo EV Engineering",
+  "description": "Four-page electric utility cargo bike and municipal fleet site featuring a 70vh full-bleed dark studio hero with docked 4-metric telemetry bar, standardized 44vh inner-page engineering headers, pixel-aligned exterior-to-X-Ray scrubber, CAN-Bus & dyno progress cards, 3 hardware macro cards, interactive hotspot chassis diagram, visual trim tabs, horizontal certification timeline, 6-hub depot network cards, and fleet pilot desk.",
+  "categories": [
+    "Hardware & Mobility",
+    "Industrial Craft"
+  ],
+  "pages": [
+    {
+      "id": "ksl-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "ksl-page-models",
+      "name": "Models & Specs",
+      "slug": "models"
+    },
+    {
+      "id": "ksl-page-drivetrain",
+      "name": "Drivetrain X-Ray",
+      "slug": "drivetrain"
+    },
+    {
+      "id": "ksl-page-fleet",
+      "name": "Test Ride & Fleet",
+      "slug": "fleet"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "5c4d5505c3ee4e02052b04d42de4fbc6fb249259112ef55be93849b96f073172",
+  "previewPage": "index.html",
+  "assetCount": 11,
+  "assetBytes": 439767
+}

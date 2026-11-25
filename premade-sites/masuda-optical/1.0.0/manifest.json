@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "masuda-optical",
+  "version": "1.0.0",
+  "name": "MASUDA / 04",
+  "sampleName": "MASUDA / 04 — Sabae Titanium Eyewear",
+  "description": "Four-page Sabae titanium eyewear and clinical optometry editorial template featuring a 1240px four-tile editorial bento hero, interactive anatomical frame hotspot stage, dark obsidian hardware lineup with orthographic CAD elevations, native expanding photo strips (strips), pixel-aligned M-09 exterior-to-CAD compare workbench, standardized 21:8 architectural inner heroes, filterable 6-model catalog, finish swatch comparison cards, CMM sizing ledger, native clinical fitting stage switcher (switcher), Tokai high-index resin comparator, Sabae traceability film rows, boutique directory, and exam booking desk.",
+  "categories": [
+    "Fashion & Optics",
+    "Industrial Craft"
+  ],
+  "pages": [
+    {
+      "id": "msd-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "msd-page-frames",
+      "name": "Frames",
+      "slug": "frames"
+    },
+    {
+      "id": "msd-page-fitting",
+      "name": "Fitting & Optics",
+      "slug": "fitting"
+    },
+    {
+      "id": "msd-page-boutiques",
+      "name": "Sabae & Boutiques",
+      "slug": "boutiques"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "0d2f2cc7104ad9a112be239799d71bf06e696d14625c11f7c90c942d6d9a4838",
+  "previewPage": "index.html",
+  "assetCount": 28,
+  "assetBytes": 1117894
+}

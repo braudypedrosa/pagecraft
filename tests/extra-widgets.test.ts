@@ -415,4 +415,442 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
 
     dom.window.close();
   });
+
+  test('floating section header, dvh units, compare, timeline, progress, and hotspot widgets', () => {
+    expect(C.U.len).toContain('dvh');
+    expect(C.U.len).toContain('svh');
+    expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
+
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker'] as const) {
+      expect(C.DEF[type]).toBeTruthy();
+      expect(C.DEF[type].caps).toContain('spacing');
+      expect(C.DEF[type].caps).toContain('animation');
+      const node = C.N(type);
+      expect(node.type).toBe(type);
+      expect(C.nameOf(node)).toBeTruthy();
+      expect(C.kindOf(node)).toBeTruthy();
+      expect(quickAddChoices(type).map(x => x[0])).toContain(type);
+    }
+
+    const mediaDoc = blankDoc('Asset refs');
+    const cmpNode = C.N('compare', { beforeSrc: 'asset:cmp-before', afterSrc: 'asset:cmp-after' });
+    const hsNode = C.N('hotspot', { src: 'asset:hs-diagram' });
+    const stNode = C.N('strips', { items: [{ src: 'asset:strip-photo', title: 'Panel', detail: 'Detail' }] });
+    const swNode = C.N('switcher', { items: [{ label: 'Stage 1', src: 'asset:stage-photo', title: 'Stage', detail: 'Detail' }] });
+    const exNode = C.N('exhibit', { items: [{ title: 'Entry 1', src: 'asset:exhibit-photo', alt: 'Exhibit' }] });
+    const scNode = C.N('scrolly', { items: [{ title: 'Step 1', src: 'asset:scrolly-photo', alt: 'Scrolly' }] });
+    const ckNode = C.N('clocks', { items: [{ city: 'London', tz: 'Europe/London', src: 'asset:clock-office', alt: 'London' }] });
+    const rsNode = C.N('roster', { items: [{ name: 'Claire', src: 'asset:roster-partner', alt: 'Claire' }] });
+    const arNode = C.N('arches', { items: [{ src: 'asset:arch-frame', alt: 'Arch' }] });
+    const chNode = C.N('chapters', { chapters: [{ chapterTitle: 'Ch', src: 'asset:chapter-frame', alt: 'Ch' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode])])])];
+    const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
+    expect(assetIds).toContain('cmp-before');
+    expect(assetIds).toContain('cmp-after');
+    expect(assetIds).toContain('hs-diagram');
+    expect(assetIds).toContain('strip-photo');
+    expect(assetIds).toContain('stage-photo');
+    expect(assetIds).toContain('exhibit-photo');
+    expect(assetIds).toContain('scrolly-photo');
+    expect(assetIds).toContain('clock-office');
+    expect(assetIds).toContain('roster-partner');
+    expect(assetIds).toContain('arch-frame');
+    expect(assetIds).toContain('chapter-frame');
+
+    // Zero-drift when absent
+    const plainHtml = C.buildPage(C.state.pages[0]);
+    expect(plainHtml).not.toContain('data-floating="1"');
+    expect(plainHtml).not.toContain('.pagecraft-compare');
+    expect(plainHtml).not.toContain('.pagecraft-timeline');
+    expect(plainHtml).not.toContain('.pagecraft-progress');
+    expect(plainHtml).not.toContain('.pagecraft-hotspot');
+    expect(plainHtml).not.toContain('.pagecraft-strips');
+    expect(plainHtml).not.toContain('.pagecraft-switcher');
+    expect(plainHtml).not.toContain('.pagecraft-exhibit');
+    expect(plainHtml).not.toContain('.pagecraft-scrolly');
+    expect(plainHtml).not.toContain('.pagecraft-clocks');
+    expect(plainHtml).not.toContain('.pagecraft-roster');
+    expect(plainHtml).not.toContain('.pagecraft-tiers');
+    expect(plainHtml).not.toContain('.pagecraft-qapills');
+    expect(plainHtml).not.toContain('.pagecraft-dockbar');
+    expect(plainHtml).not.toContain('.pagecraft-arches');
+    expect(plainHtml).not.toContain('.pagecraft-chapters');
+    expect(plainHtml).not.toContain('.pagecraft-slotpicker');
+
+    // Floating header & 100dvh hero
+    const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
+    const editHdr = C.renderNode(hdr, { edit: true });
+    expect(editHdr).toContain('data-floating="1"');
+    expect(editHdr).toContain('data-floating-edit="1"');
+    const pubHdr = C.renderNode(hdr, { edit: false });
+    expect(pubHdr).toContain('data-floating="1"');
+    expect(pubHdr).not.toContain('data-floating-edit');
+
+    // Compare interaction
+    const cmpHtml = C.renderNode(cmpNode, { edit: false });
+    expect(cmpHtml).toContain('style="--cmp-pos:50%;--cmp-ratio:16 / 9"');
+    expect(C.COMPARE_CSS).toContain('clip-path:inset(0 calc(100% - var(--cmp-pos,50%)) 0 0)');
+    const cmpDom = domFor(cmpHtml);
+    const cmpWin = cmpDom.window as any;
+    let cmpDispose: (() => void) | null = null;
+    cmpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { cmpDispose = fn; };
+    cmpWin.eval(scriptBody(C.COMPARE_JS));
+    const cmpRoot = cmpWin.document.querySelector('.pagecraft-compare') as HTMLElement;
+    const range = cmpWin.document.querySelector('[data-compare-range]') as HTMLInputElement;
+    range.value = '74';
+    range.dispatchEvent(new cmpWin.Event('input', { bubbles: true }));
+    expect(cmpRoot.style.getPropertyValue('--cmp-pos')).toBe('74%');
+    expect(range.getAttribute('aria-valuetext')).toBe('74%');
+    cmpDispose!();
+    expect(cmpRoot.hasAttribute('data-pc-cmp-ready')).toBe(false);
+    cmpDom.window.close();
+
+    // Progress + Timeline
+    const tlHtml = C.renderNode(C.N('timeline', {
+      orientation: 'horizontal', marker: 'dots',
+      items: [{ tag: 'Day 01', title: 'Intake', detail: 'Site survey.' }]
+    }), { edit: false });
+    expect(tlHtml).toContain('data-orientation="horizontal"');
+    expect(tlHtml).toContain('data-marker="dots"');
+    expect(tlHtml).toContain('Intake');
+
+    const pgHtml = C.renderNode(C.N('progress', {
+      showValue: 1, rounded: 0,
+      items: [{ label: 'Retention', value: '94', unit: '%' }]
+    }), { edit: false });
+    expect(pgHtml).toContain('data-rounded="0"');
+    expect(pgHtml).toContain('<progress');
+    expect(pgHtml).toContain('value="94"');
+    expect(pgHtml).toContain('94%');
+
+    // Hotspot popover fallback interaction (JSDOM lacks native popover)
+    const hsHtml = C.renderNode(C.N('hotspot', {
+      src: 'https://example.test/diagram.jpg', alt: 'Chassis anatomy',
+      items: [{ label: '01', title: 'Mid-Drive Motor', detail: '110 Nm planetary torque', x: '42', y: '58' }]
+    }), { edit: false });
+    const hsDom = domFor(hsHtml);
+    const hsWin = hsDom.window as any;
+    let hsDispose: (() => void) | null = null;
+    hsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { hsDispose = fn; };
+    hsWin.eval(scriptBody(C.HOTSPOT_JS));
+    const pin = hsWin.document.querySelector('.pagecraft-hotspot-pin') as HTMLButtonElement;
+    const card = hsWin.document.querySelector('.pagecraft-hotspot-card') as HTMLElement;
+    pin.click();
+    expect(card.classList.contains(':popover-open')).toBe(true);
+    expect(pin.getAttribute('aria-expanded')).toBe('true');
+    (card.querySelector('.pagecraft-hotspot-close') as HTMLButtonElement).click();
+    expect(card.classList.contains(':popover-open')).toBe(false);
+    expect(pin.getAttribute('aria-expanded')).toBe('false');
+    hsDispose!();
+    hsDom.window.close();
+
+    // Expanding strips click + keyboard interaction
+    const stHtml = C.renderNode(C.N('strips', {
+      items: [
+        { src: 'https://example.test/one.jpg', alt: 'One', tag: 'First', title: 'Panel One', detail: 'Detail one' },
+        { src: 'https://example.test/two.jpg', alt: 'Two', tag: 'Second', title: 'Panel Two', detail: 'Detail two' },
+      ]
+    }), { edit: false });
+    const stDom = domFor(stHtml);
+    const stWin = stDom.window as any;
+    let stDispose: (() => void) | null = null;
+    stWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { stDispose = fn; };
+    stWin.eval(scriptBody(C.STRIPS_JS));
+    const strips = [...stWin.document.querySelectorAll('.pagecraft-strip')] as HTMLButtonElement[];
+    expect(strips[0].getAttribute('aria-expanded')).toBe('true');
+    expect(strips[1].getAttribute('aria-expanded')).toBe('false');
+    strips[1].click();
+    expect(strips[0].getAttribute('aria-expanded')).toBe('false');
+    expect(strips[1].getAttribute('aria-expanded')).toBe('true');
+    strips[1].dispatchEvent(new stWin.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(strips[0].getAttribute('aria-expanded')).toBe('true');
+    stDispose!();
+    expect(stWin.document.querySelector('.pagecraft-strips')?.hasAttribute('data-pc-st-ready')).toBe(false);
+    stDom.window.close();
+
+    // Stage switcher click + keyboard interaction
+    const swHtml = C.renderNode(C.N('switcher', {
+      stageLayout: 'rail', ratio: '3 / 2',
+      items: [
+        { label: 'Step A', meta: '10 min', title: 'Stage A', detail: 'Alpha detail', src: 'https://example.test/a.jpg', alt: 'Stage A photo' },
+        { label: 'Step B', meta: '15 min', title: 'Stage B', detail: 'Beta detail', src: 'https://example.test/b.jpg', alt: 'Stage B photo' },
+      ]
+    }), { edit: false });
+    const swDom = domFor(swHtml);
+    const swWin = swDom.window as any;
+    let swDispose: (() => void) | null = null;
+    swWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { swDispose = fn; };
+    swWin.eval(scriptBody(C.SWITCHER_JS));
+    const swTabs = [...swWin.document.querySelectorAll('.pagecraft-switcher-tab')] as HTMLButtonElement[];
+    const swPanels = [...swWin.document.querySelectorAll('.pagecraft-switcher-panel')] as HTMLElement[];
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('1');
+    swTabs[1].click();
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('false');
+    expect(swTabs[1].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('0');
+    expect(swPanels[1].getAttribute('data-active')).toBe('1');
+    swTabs[1].dispatchEvent(new swWin.KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    expect(swTabs[0].getAttribute('aria-selected')).toBe('true');
+    expect(swPanels[0].getAttribute('data-active')).toBe('1');
+    swDispose!();
+    expect(swWin.document.querySelector('.pagecraft-switcher')?.hasAttribute('data-pc-sw-ready')).toBe(false);
+    swDom.window.close();
+
+    // Exhibit index hover/focus preview interaction
+    const exHtml = C.renderNode(C.N('exhibit', {
+      previewRatio: '4 / 3',
+      items: [
+        { title: 'Headland Ledge', location: 'Cape Elizabeth', scope: '3.4 ac', year: '2025', href: 'https://example.test/a', src: 'https://example.test/a.jpg', alt: 'Headland' },
+        { title: 'Estuary Basin', location: 'Astoria', scope: '5.1 ac', year: '2024', href: 'https://example.test/b', src: 'https://example.test/b.jpg', alt: 'Estuary' },
+      ]
+    }), { edit: false });
+    const exDom = domFor(exHtml);
+    const exWin = exDom.window as any;
+    let exDispose: (() => void) | null = null;
+    exWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { exDispose = fn; };
+    exWin.eval(scriptBody(C.EXHIBIT_JS));
+    const exRows = [...exWin.document.querySelectorAll('.pagecraft-exhibit-row')] as HTMLElement[];
+    const exFloat = exWin.document.querySelector('.pagecraft-exhibit-float') as HTMLElement;
+    expect(exFloat.getAttribute('data-open')).toBe('0');
+    exRows[1].dispatchEvent(new exWin.FocusEvent('focus'));
+    expect(exFloat.getAttribute('data-open')).toBe('1');
+    expect(exFloat.getAttribute('data-active-idx')).toBe('1');
+    exDispose!();
+    expect(exWin.document.querySelector('.pagecraft-exhibit')?.hasAttribute('data-pc-ex-ready')).toBe(false);
+    exDom.window.close();
+
+    // Scrolly sticky steps click + keyboard activation
+    const scHtml = C.renderNode(C.N('scrolly', {
+      stickyRatio: '4 / 3',
+      items: [
+        { title: 'Soil Borings', detail: 'Phase one.', fact: '82 mm/hr', src: 'https://example.test/s1.jpg', alt: 'Phase 1' },
+        { title: 'Granite Weirs', detail: 'Phase two.', fact: '0% mortar', src: 'https://example.test/s2.jpg', alt: 'Phase 2' },
+      ]
+    }), { edit: false });
+    const scDom = domFor(scHtml);
+    const scWin = scDom.window as any;
+    let scDispose: (() => void) | null = null;
+    scWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { scDispose = fn; };
+    scWin.eval(scriptBody(C.SCROLLY_JS));
+    const scSteps = [...scWin.document.querySelectorAll('.pagecraft-scrolly-step')] as HTMLElement[];
+    const scPlates = [...scWin.document.querySelectorAll('.pagecraft-scrolly-plate')] as HTMLElement[];
+    expect(scSteps[0].getAttribute('data-active')).toBe('1');
+    expect(scPlates[0].getAttribute('data-active')).toBe('1');
+    scSteps[1].click();
+    expect(scSteps[0].getAttribute('data-active')).toBe('0');
+    expect(scSteps[1].getAttribute('data-active')).toBe('1');
+    expect(scPlates[1].getAttribute('data-active')).toBe('1');
+    scDispose!();
+    expect(scWin.document.querySelector('.pagecraft-scrolly')?.hasAttribute('data-pc-sc-ready')).toBe(false);
+    scDom.window.close();
+
+    // Office clocks live timezone tick + dispose
+    const ckHtml = C.renderNode(C.N('clocks', {
+      hour12: 0, opens: '0', closes: '24', openLabel: 'Chambers open', closedLabel: 'After hours',
+      items: [
+        { city: 'Washington, D.C.', tz: 'America/New_York', address: '700 K Street NW', phone: '+1 202 555 0114', href: 'https://maps.example/dc', linkLabel: 'Open in Maps', src: 'https://example.test/dc.jpg', alt: 'Washington office' },
+        { city: 'Munich', tz: 'Europe/Berlin', address: 'Maximilianstraße 35a', phone: '+49 89 555 0190' }
+      ]
+    }), { edit: false });
+    const ckDom = domFor(ckHtml);
+    const ckWin = ckDom.window as any;
+    let ckDispose: (() => void) | null = null;
+    ckWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { ckDispose = fn; };
+    ckWin.eval(scriptBody(C.CLOCKS_JS));
+    const ckTimes = [...ckWin.document.querySelectorAll('[data-clocks-time]')] as HTMLElement[];
+    expect(ckTimes).toHaveLength(2);
+    expect(ckTimes[0].textContent).toMatch(/^\d{2}:\d{2}$/);
+    expect(ckTimes[0].getAttribute('datetime')).toBeTruthy();
+    expect(ckWin.document.querySelectorAll('.pagecraft-clocks-img')).toHaveLength(1);
+    ckDispose!();
+    expect(ckWin.document.querySelector('.pagecraft-clocks')?.hasAttribute('data-pc-ck-ready')).toBe(false);
+    ckDom.window.close();
+
+    // Roster partner spotlight switching
+    const rsHtml = C.renderNode(C.N('roster', {
+      items: [
+        { name: 'Claire Mercer', role: 'Partner', seat: 'DC', src: 'https://example.test/p1.jpg', alt: 'Claire' },
+        { name: 'David Quinn', role: 'Partner', seat: 'London', src: 'https://example.test/p2.jpg', alt: 'David' }
+      ]
+    }), { edit: false });
+    const rsDom = domFor(rsHtml);
+    const rsWin = rsDom.window as any;
+    let rsDispose: (() => void) | null = null;
+    rsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rsDispose = fn; };
+    rsWin.eval(scriptBody(C.ROSTER_JS));
+    const rsTabs = [...rsWin.document.querySelectorAll('.pagecraft-roster-tab')] as HTMLElement[];
+    const rsPanels = [...rsWin.document.querySelectorAll('.pagecraft-roster-panel')] as HTMLElement[];
+    rsTabs[1].click();
+    expect(rsTabs[1].getAttribute('aria-selected')).toBe('true');
+    expect(rsPanels[1].getAttribute('data-active')).toBe('1');
+    rsDispose!();
+    rsDom.window.close();
+
+    // Tiers currency switching
+    const trHtml = C.renderNode(C.N('tiers', {
+      defaultCurrency: 'usd',
+      items: [{ tierName: 'Audit', priceUsd: '$18,000', priceEur: '€16,500', priceGbp: '£14,200' }]
+    }), { edit: false });
+    const trDom = domFor(trHtml);
+    const trWin = trDom.window as any;
+    let trDispose: (() => void) | null = null;
+    trWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { trDispose = fn; };
+    trWin.eval(scriptBody(C.TIERS_JS));
+    const eurBtn = trWin.document.querySelector('[data-tiers-cur="eur"]') as HTMLElement;
+    eurBtn.click();
+    expect(trWin.document.querySelector('.pagecraft-tiers-price')?.textContent).toBe('€16,500');
+    trDispose!();
+    trDom.window.close();
+
+    // QApills pill switching
+    const qpHtml = C.renderNode(C.N('qapills', {
+      items: [{ q: 'Q1?', a: 'A1.' }, { q: 'Q2?', a: 'A2.' }]
+    }), { edit: false });
+    const qpDom = domFor(qpHtml);
+    const qpWin = qpDom.window as any;
+    let qpDispose: (() => void) | null = null;
+    qpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { qpDispose = fn; };
+    qpWin.eval(scriptBody(C.QAPILLS_JS));
+    const qpPills = [...qpWin.document.querySelectorAll('.pagecraft-qapills-pill')] as HTMLElement[];
+    const qpPanels = [...qpWin.document.querySelectorAll('.pagecraft-qapills-panel')] as HTMLElement[];
+    qpPills[1].click();
+    expect(qpPills[1].getAttribute('aria-selected')).toBe('true');
+    expect(qpPanels[0].hasAttribute('hidden')).toBe(true);
+    expect(qpPanels[1].hasAttribute('hidden')).toBe(false);
+    qpDispose!();
+    qpDom.window.close();
+
+    // Chapters click switching + Slotpicker guest/pass live calculation
+    const chHtml = C.renderNode(C.N('chapters', {
+      autoSeconds: '0',
+      chapters: [
+        { chapterTitle: 'Caldarium', src: 'https://example.test/c1.jpg', alt: 'C1' },
+        { chapterTitle: 'Plunge', src: 'https://example.test/c2.jpg', alt: 'C2' }
+      ]
+    }), { edit: false });
+    const chDom = domFor(chHtml);
+    const chWin = chDom.window as any;
+    let chDispose: (() => void) | null = null;
+    chWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { chDispose = fn; };
+    chWin.eval(scriptBody(C.CHAPTERS_JS));
+    const chBtns = [...chWin.document.querySelectorAll('.pagecraft-chapters-btn')] as HTMLElement[];
+    const chSlides = [...chWin.document.querySelectorAll('.pagecraft-chapters-slide')] as HTMLElement[];
+    chBtns[1].click();
+    expect(chBtns[1].getAttribute('aria-selected')).toBe('true');
+    expect(chSlides[1].getAttribute('data-active')).toBe('1');
+    chDispose!();
+    chDom.window.close();
+
+    const spHtml = C.renderNode(C.N('slotpicker', {
+      currencySymbol: '€',
+      timeSlots: '06:30 Dawn, 19:30 Nocturne',
+      passes: [
+        { passName: 'Contrast Circuit', unitPrice: '95', fixedTotal: 0 },
+        { passName: 'Private Suite', unitPrice: '240', fixedTotal: 1 }
+      ]
+    }), { edit: false });
+    const spDom = domFor(spHtml);
+    const spWin = spDom.window as any;
+    let spDispose: (() => void) | null = null;
+    spWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { spDispose = fn; };
+    spWin.eval(scriptBody(C.SLOTPICKER_JS));
+    (spWin.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€190');
+    (spWin.document.querySelector('[data-sp-pass="1"]') as HTMLElement).click();
+    expect(spWin.document.querySelector('[data-sp-total]')?.textContent).toBe('€240');
+    spDispose!();
+    spDom.window.close();
+  });
+
+  test('audit fixes: zero compare position, stable clock output, unique ids, honest prices and links', () => {
+    const win = (html: string, js: string) => { const d = domFor(html); (d.window as any).eval(scriptBody(js)); return d; };
+
+    const cmp = win(C.renderNode(C.N('compare', { position: '0' }), { edit: false }), C.COMPARE_JS);
+    expect((cmp.window.document.querySelector('.pagecraft-compare') as HTMLElement).style.getPropertyValue('--cmp-pos')).toBe('0%');
+
+    const clocks = C.N('clocks');
+    const RealDate = globalThis.Date;
+    const at = (iso: string) => class extends RealDate {
+      constructor(...args: any[]) { args.length ? super(...args as [any]) : super(iso); }
+      static now() { return new RealDate(iso).getTime(); }
+    } as any;
+    const build = (iso: string) => { globalThis.Date = at(iso); try { return C.renderNode(clocks, { edit: false }); } finally { globalThis.Date = RealDate; } };
+    expect(build('2026-11-25T03:00:00Z')).toBe(build('2026-11-25T19:30:00Z'));
+
+    const overnight = (iso: string) => {
+      const d = domFor(C.renderNode(C.N('clocks', { opens: '22', closes: '6', openLabel: 'Open', closedLabel: 'Closed', items: [{ city: 'UTC', tz: 'UTC' }] }), { edit: false }));
+      const w = d.window as any, WD = w.Date;
+      w.Date = class extends WD { constructor(...args: any[]) { args.length ? super(...args) : super(iso); } };
+      w.Intl = { DateTimeFormat: Intl.DateTimeFormat };
+      w.eval(scriptBody(C.CLOCKS_JS));
+      const state = w.document.querySelector('[data-clocks-state]');
+      const result = [state.hidden, state.textContent];
+      w.close();
+      return result;
+    };
+    expect(overnight('2026-11-25T23:00:00Z')).toEqual([false, 'Open']);      // Wednesday night
+    expect(overnight('2026-11-28T03:00:00Z')).toEqual([false, 'Open']);      // Friday's shift, Saturday 3 am
+    expect(overnight('2026-11-30T03:00:00Z')).toEqual([false, 'Closed']);    // Sunday's shift, Monday 3 am
+    expect(overnight('2026-11-25T12:00:00Z')).toEqual([false, 'Closed']);
+
+    for (const type of ['roster', 'qapills', 'chapters'] as const) {
+      const node = C.N(type);
+      node.adv = { ...(node.adv || {}), htmlId: 'team' } as any;
+      const html = C.renderNode(node, { edit: false });
+      expect(html).toContain('id="team-');
+      const ids = [...html.matchAll(/ id="([^"]+)"/g)].map(m => m[1]);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+
+    const noEuro = C.renderNode(C.N('tiers', { defaultCurrency: 'usd', items: [{ tierName: 'A', priceUsd: '$10', priceGbp: '£8' }, { tierName: 'B', priceUsd: '$20', priceGbp: '£16', priceEur: '€18' }] }), { edit: false });
+    expect(noEuro).not.toContain('data-tiers-cur="eur"');
+    expect(noEuro).toContain('data-tiers-cur="gbp"');
+    expect(noEuro).not.toContain('href="#"');
+
+    const sp = win(C.renderNode(C.N('slotpicker', { currencySymbol: '$', passes: [{ passName: 'A', unitPrice: '95.25' }] }), { edit: false }), C.SLOTPICKER_JS);
+    expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$95.25');
+    (sp.window.document.querySelector('[data-sp-guests="2"]') as HTMLElement).click();
+    expect(sp.window.document.querySelector('[data-sp-total]')?.textContent).toBe('$190.50');
+    expect(sp.window.document.querySelector('.pagecraft-sp-confirm')).toBeNull();
+
+    // Words that were fixed in the code stay for documents that predate the controls.
+    expect(C.renderNode({ ...C.N('roster'), props: { items: [{ name: 'A', seat: 'DC', credential: 'X' }] } } as any, { edit: false })).toContain('Chambers:');
+    expect(C.renderNode(C.N('roster'), { edit: false })).not.toContain('Chambers');
+  });
+
+  test('audit fixes: renamed pages keep both single-link blocks working', () => {
+    const doc = blankDoc('Rename');
+    doc.pages.push({ ...structuredClone(doc.pages[0]), id: 'p2', name: 'Book', slug: 'book', tree: [] } as any);
+    doc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [
+      C.N('dockbar', { destHref: 'book.html#form' }), C.N('slotpicker', { confirmHref: 'book.html' }), C.N('qapills')])])])];
+    C.restore(doc, false);
+    C.pageSlugSet(1, 'reserve');
+    const text = JSON.stringify(C.state.pages[0].tree);
+    expect(text).toContain('"destHref":"reserve.html#form"');
+    expect(text).toContain('"confirmHref":"reserve.html"');
+  });
+
+  test('audit fixes: chapters hold while focused and can be paused', async () => {
+    const d = domFor(C.renderNode(C.N('chapters', { autoSeconds: '0.05' }), { edit: false }));
+    const w = d.window as any;
+    w.eval(scriptBody(C.CHAPTERS_JS));
+    const active = () => [...w.document.querySelectorAll('[data-ch-slide]')].findIndex((s: any) => s.dataset.active === '1');
+    const wait = (ms: number) => new Promise(done => setTimeout(done, ms));
+    const pause = w.document.querySelector('[data-ch-pause]');
+    expect(pause.hidden).toBe(false);
+    pause.click();
+    const held = active();
+    await wait(180);
+    expect(active()).toBe(held);
+    pause.click();
+    const button = w.document.querySelector('[data-ch-btn]');
+    button.focus();
+    const focused = active();
+    await wait(180);
+    expect(active()).toBe(focused);
+    button.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(active()).toBe(2);
+    w.close();
+  });
 });

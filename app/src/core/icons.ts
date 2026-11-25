@@ -88,7 +88,23 @@ const IC: Record<string, string> = {
   audio:'<path d="M2.5 9.5v-3M5.5 11.5v-7M8.5 13.5v-11M11.5 10.5v-5M14 9v-2" stroke-linecap="round"/>',
   countdown:'<circle cx="8" cy="9" r="5.2"/><path d="M6.2 2.2h3.6M8 9V6.5l1.8 1.3" stroke-linecap="round" stroke-linejoin="round"/>',
   marquee:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.2" opacity=".45"/><path d="M3.5 8h9M10.5 6l2 2-2 2" stroke-linecap="round" stroke-linejoin="round"/>',
-  filter:'<path d="M2 3.2h12L9.4 8.5v4.1l-2.8 1.2V8.5z" stroke-linejoin="round"/>'
+  filter:'<path d="M2 3.2h12L9.4 8.5v4.1l-2.8 1.2V8.5z" stroke-linejoin="round"/>',
+  compare:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M8 1.8v12.4M5.4 8L3.8 8M10.6 8h1.6" stroke-linecap="round"/>',
+  timeline:'<path d="M4.2 3v10" stroke-linecap="round"/><circle cx="4.2" cy="4.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.2" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.2" cy="11.8" r="1.4" fill="currentColor" stroke="none"/><path d="M7.5 4.2h6M7.5 8h5M7.5 11.8h6" stroke-linecap="round"/>',
+  progress:'<rect x="1.5" y="3.5" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="3.5" width="9" height="2.6" rx="1.3" fill="currentColor" stroke="none"/><rect x="1.5" y="9.9" width="13" height="2.6" rx="1.3" opacity=".35"/><rect x="1.5" y="9.9" width="6.2" height="2.6" rx="1.3" fill="currentColor" stroke="none"/>',
+  hotspot:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" opacity=".55"/><circle cx="6" cy="7" r="2.1"/><circle cx="6" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="10.8" cy="10" r="1.7"/>',
+  strips:'<rect x="1.5" y="2.5" width="6.5" height="11" rx="1.2"/><rect x="9.6" y="2.5" width="2" height="11" rx=".8" opacity=".6"/><rect x="13" y="2.5" width="1.5" height="11" rx=".75" opacity=".4"/>',
+  switcher:'<rect x="1.5" y="2.8" width="4.5" height="2.4" rx=".8" fill="currentColor" stroke="none"/><rect x="1.5" y="6.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="1.5" y="10.8" width="4.5" height="2.4" rx=".8" opacity=".45"/><rect x="7.8" y="2.5" width="6.7" height="11" rx="1.3"/>',
+  exhibit:'<path d="M1.5 4.2h8M1.5 8h7M1.5 11.8h8" stroke-linecap="round"/><rect x="10.4" y="4.2" width="4.1" height="5.2" rx="1"/>',
+  scrolly:'<path d="M2 3.5h4.2M2 6h3.2M2 9.8h4.2M2 12.3h3.2" stroke-linecap="round"/><rect x="8" y="2.8" width="6.5" height="10.4" rx="1.3"/>',
+  clocks:'<circle cx="5" cy="8" r="3.5"/><path d="M5 6v2l1.2 1" stroke-linecap="round"/><circle cx="12" cy="8" r="2.6" opacity=".55"/><path d="M12 6.8V8h.9" stroke-linecap="round" opacity=".55"/>',
+  roster:'<rect x="2" y="2.5" width="5" height="7" rx="1"/><path d="M9 4h5M9 6.8h4" stroke-linecap="round"/><circle cx="3.2" cy="12.6" r="1.1"/><circle cx="6.8" cy="12.6" r="1.1" opacity=".5"/><circle cx="10.4" cy="12.6" r="1.1" opacity=".5"/>',
+  tiers:'<rect x="1.8" y="4" width="3.6" height="9.5" rx=".8"/><rect x="6.2" y="2.5" width="3.6" height="11" rx=".8"/><rect x="10.6" y="4" width="3.6" height="9.5" rx=".8" opacity=".6"/>',
+  qapills:'<rect x="1.8" y="2.8" width="4" height="2.4" rx="1.2"/><rect x="6.6" y="2.8" width="4" height="2.4" rx="1.2" opacity=".5"/><rect x="1.8" y="7.2" width="12.4" height="6" rx="1.2"/>',
+  dockbar:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.3"/><path d="M5.5 4.5v7M9.8 4.5v7"/>',
+  arches:'<path d="M2 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/><path d="M5.8 13V5.8a2.2 2.2 0 0 1 4.4 0V13z"/><path d="M9.6 13V7.5a2.2 2.2 0 0 1 4.4 0V13z" opacity=".55"/>',
+  chapters:'<rect x="1.8" y="2.5" width="12.4" height="7.8" rx="1.2"/><path d="M2 12.8h3.5M6.3 12.8h3.5M10.6 12.8h3.4" stroke-linecap="round"/>',
+  slotpicker:'<rect x="1.8" y="3" width="6.8" height="3.2" rx=".8"/><rect x="1.8" y="7.6" width="6.8" height="3.2" rx=".8" opacity=".55"/><rect x="10" y="3" width="4.2" height="10" rx="1"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

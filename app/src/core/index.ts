@@ -31,16 +31,23 @@ import { sha256 } from './libraries.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
 import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
 import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
-import { AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS } from './extra-widgets.ts';
+import {
+  FLOATING_SECTION_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS,
+  MARQUEE_CSS, FILTER_CSS, FILTER_JS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS,
+  PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
+  EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
+  ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS,
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
+} from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
 const uid = () => (_seq++, 'n' + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/** Nav menu and manual Breadcrumb are the two widgets whose links live in `props.items`.
+/** Nav menu, manual Breadcrumb, and Exhibit index are the widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
-const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs';
+const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills';
 
 /** A WordPress-owned destination is stored in the editor as a typed, target-neutral
  * reference. It is not a browser URL: `pageHref` converts it to the exact signed
@@ -241,7 +248,7 @@ const BUTTON_VARIANT_BASES: Record<string, Decls> = {
    the same units wherever it appears. */
 const U = {
   size: ['px', 'rem', 'em', 'vw'],
-  len: ['px', 'rem', '%', 'vw', 'vh'],
+  len: ['px', 'rem', '%', 'vw', 'vh', 'dvh', 'svh'],
   space: ['px', 'rem', '%'],
   radius: ['px', 'rem', '%'],
   line: ['', 'px', 'em', '%'],
@@ -473,11 +480,12 @@ const DEF: Record<string, WidgetDef> = {
   section: {
     label: 'Section', icon: 'section', level: 1,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
-    make: () => ({ props: { tag: 'section', width: 'boxed', inner: '' }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
+    make: () => ({ props: { tag: 'section', width: 'boxed', inner: '', floating: 0 }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
     controls: {
       content: [
         { t: 'pick', k: 'width', label: 'Content width', opts: [['boxed', 'Boxed'], ['full', 'Full width']], text: 1 },
         { t: 'unit', c: 'min-height', label: 'Min height', layout: 'inline', r: 1, units: U.len },
+        { t: 'toggle', k: 'floating', label: 'Float over hero', note: 'Overlays this section at the top of the page so a header blends with a full-height hero.' },
         { t: 'select', k: 'tag', label: 'HTML tag', layout: 'inline', opts: [['section', 'section'], ['div', 'div'], ['header', 'header'], ['footer', 'footer'], ['main', 'main'], ['article', 'article'], ['aside', 'aside']] }
       ],
       style: []
@@ -1426,6 +1434,760 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--fl-pill-radius', label: 'Tab radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+
+  compare: {
+    label: 'Image compare', icon: 'compare', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        beforeSrc: '', afterSrc: '',
+        beforeAlt: 'Before comparison view', afterAlt: 'After comparison view',
+        beforeLabel: 'Before', afterLabel: 'After', ratio: '16 / 9', position: '50'
+      },
+      css: {
+        d: { width: '100%', '--cmp-accent': '#ffffff', '--cmp-ink': '#111311', '--cmp-radius': '12px' },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'beforeSrc', label: 'Before image' },
+        { t: 'text', k: 'beforeAlt', label: 'Before alt text', ph: 'Describe before view' },
+        { t: 'text', k: 'beforeLabel', label: 'Before badge', ph: 'Before' },
+        { t: 'img', k: 'afterSrc', label: 'After image' },
+        { t: 'text', k: 'afterAlt', label: 'After alt text', ph: 'Describe after view' },
+        { t: 'text', k: 'afterLabel', label: 'After badge', ph: 'After' },
+        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['1 / 1', 'Square'], ['21 / 9', '21:9']] },
+        { t: 'unit', k: 'position', label: 'Initial split (%)', integer: 1, min: 0, max: 100, units: [''] }
+      ],
+      style: [
+        { t: 'color', c: '--cmp-accent', label: 'Handle & divider', r: 1, layout: 'inline' },
+        { t: 'color', c: '--cmp-ink', label: 'Handle icon', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--cmp-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  timeline: {
+    label: 'Timeline', icon: 'timeline', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        orientation: 'vertical', marker: 'numbers',
+        items: [
+          { tag: 'Phase 01', title: 'Initial assessment', detail: 'Outline what happens during the first stage.' },
+          { tag: 'Phase 02', title: 'Build & review', detail: 'Document key milestones along the timeline.' },
+          { tag: 'Phase 03', title: 'Delivery & handoff', detail: 'Close out with verification and next steps.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tl-accent': cvar('ink'), '--tl-accent-ink': cvar('bg'),
+          '--tl-line': cvar('line'), '--tl-card': cvar('surface'),
+          '--tl-ink': cvar('ink'), '--tl-muted': cvar('muted'),
+          '--tl-gap': '22px', '--tl-radius': '10px', '--tl-title-size': '18px', '--tl-body-size': '15px'
+        },
+        t: {}, m: { '--tl-gap': '16px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'orientation', label: 'Orientation', opts: [['vertical', 'Vertical'], ['horizontal', 'Horizontal']], text: 1 },
+        { t: 'select', k: 'marker', label: 'Markers', opts: [['numbers', 'Numbers'], ['dots', 'Dots']] },
+        {
+          t: 'qa', k: 'items', label: 'Milestones', addLabel: 'Add milestone',
+          rowFields: [
+            { k: 'tag', label: 'Phase tag', ph: 'Phase 01', def: 'Next step' },
+            { k: 'title', label: 'Title', ph: 'Milestone title', def: 'New milestone' },
+            { k: 'detail', label: 'Details', ph: 'Description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tl-accent', label: 'Marker accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-accent-ink', label: 'Marker text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-line', label: 'Spine & border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-card', label: 'Card fill', r: 1 },
+        { t: 'color', c: '--tl-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tl-gap', label: 'Step gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--tl-radius', label: 'Card radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  progress: {
+    label: 'Progress bars', icon: 'progress', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        showValue: 1, rounded: 1,
+        items: [
+          { label: 'Completion rate', value: '88', unit: '%' },
+          { label: 'Target benchmark', value: '72', unit: '%' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--pg-fill': cvar('brand'), '--pg-track': cvar('line'),
+          '--pg-text': cvar('ink'), '--pg-muted': cvar('muted'),
+          '--pg-height': '10px', '--pg-gap': '16px', '--pg-radius': '999px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Meters', addLabel: 'Add bar',
+          rowFields: [
+            { k: 'label', label: 'Label', ph: 'Metric name', def: 'New metric' },
+            { k: 'value', label: 'Value (0–100)', ph: '75', def: '75' },
+            { k: 'unit', label: 'Unit', ph: '%', def: '%' }
+          ]
+        },
+        { t: 'toggle', k: 'showValue', label: 'Show numeric value' },
+        { t: 'toggle', k: 'rounded', label: 'Pill ends' }
+      ],
+      style: [
+        { t: 'color', c: '--pg-fill', label: 'Fill colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-track', label: 'Track colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-text', label: 'Label colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--pg-muted', label: 'Value colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--pg-height', label: 'Bar height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--pg-gap', label: 'Row gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  hotspot: {
+    label: 'Image hotspots', icon: 'hotspot', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        src: '', alt: '', w: '', h: '', ratio: '',
+        items: [
+          { label: '01', title: 'Primary detail', detail: 'Click pin markers to inspect technical specifications.', x: '38', y: '48' },
+          { label: '02', title: 'Secondary detail', detail: 'Position markers anywhere across the diagram.', x: '66', y: '62' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--hs-pin': cvar('ink'), '--hs-pin-ink': '#ffffff', '--hs-ring': '#ffffff',
+          '--hs-card': cvar('bg'), '--hs-card-ink': cvar('ink'), '--hs-line': cvar('line'), '--hs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'src', label: 'Diagram / Photo' },
+        { t: 'text', k: 'alt', label: 'Alt text', ph: 'Describe the diagram or product view' },
+        { t: 'dims', label: 'Intrinsic size' },
+        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['', 'Natural image ratio'], ['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Hotspot pins', addLabel: 'Add pin',
+          rowFields: [
+            { k: 'label', label: 'Pin badge', ph: '01', def: '03' },
+            { k: 'title', label: 'Callout title', ph: 'Feature name', def: 'New callout' },
+            { k: 'x', label: 'X position (%)', ph: '50', def: '50' },
+            { k: 'y', label: 'Y position (%)', ph: '50', def: '50' },
+            { k: 'detail', label: 'Details', ph: 'Callout copy', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--hs-pin', label: 'Pin fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-pin-ink', label: 'Pin text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-ring', label: 'Pin border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--hs-card', label: 'Popover background', r: 1 },
+        { t: 'color', c: '--hs-card-ink', label: 'Popover text', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--hs-radius', label: 'Image radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  strips: {
+    label: 'Expanding strips', icon: 'strips', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        items: [
+          { src: '', alt: '', tag: '', title: 'First panel', detail: 'Add a short description of what this image shows.' },
+          { src: '', alt: '', tag: '', title: 'Second panel', detail: 'Visitors select a panel to expand it.' },
+          { src: '', alt: '', tag: '', title: 'Third panel', detail: 'Use one clear image for each panel.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--st-height': '520px', '--st-gap': '10px', '--st-radius': '14px',
+          '--st-bg': '#16191D', '--st-ink': '#FFFFFF', '--st-accent': cvar('brand'), '--st-tag': '#F7B084'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Strips', addLabel: 'Add strip',
+          rowFields: [
+            { k: 'title', label: 'Title', ph: 'Panel title', def: 'New panel' },
+            { k: 'tag', label: 'Metadata tag', ph: 'Optional footnote', def: '' },
+            { k: 'src', label: 'Photo', ph: 'asset:photo', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the photo', def: '' },
+            { k: 'detail', label: 'Details', ph: 'Short description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--st-height', label: 'Strip height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--st-gap', label: 'Panel gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--st-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--st-bg', label: 'Backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-accent', label: 'Focus accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-tag', label: 'Tag colour', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  switcher: {
+    label: 'Stage switcher', icon: 'switcher', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stageLayout: 'rail', ratio: '3 / 2',
+        items: [
+          { label: 'First step', meta: 'Step 1', title: 'What happens first', detail: 'Describe this step in a sentence or two.', src: '', alt: '', pos: '50% 50%' },
+          { label: 'Second step', meta: 'Step 2', title: 'What happens next', detail: 'Each step shows its own image and caption.', src: '', alt: '', pos: '50% 50%' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sw-accent': cvar('brand'), '--sw-surface': cvar('surface'),
+          '--sw-ink': cvar('ink'), '--sw-muted': cvar('muted'), '--sw-line': cvar('line'),
+          '--sw-radius': '14px', '--sw-gap': '36px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'stageLayout', label: 'Navigation style', opts: [['rail', 'Vertical step rail'], ['tabs', 'Horizontal tabs']] },
+        { t: 'select', k: 'ratio', label: 'Stage ratio', opts: [['3 / 2', '3:2'], ['16 / 9', '16:9'], ['4 / 3', '4:3'], ['16 / 10', '16:10'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Stages', addLabel: 'Add stage',
+          rowFields: [
+            { k: 'label', label: 'Step button', ph: 'Step title', def: 'New stage' },
+            { k: 'meta', label: 'Meta', ph: 'Duration or step', def: '' },
+            { k: 'title', label: 'Caption heading', ph: 'Stage headline', def: 'Stage overview' },
+            { k: 'src', label: 'Stage photo', ph: 'asset:photo', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe stage visual', def: '' },
+            { k: 'pos', label: 'Object position', ph: '50% 50%', def: '50% 50%' },
+            { k: 'detail', label: 'Details', ph: 'Stage description', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sw-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-surface', label: 'Stage surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sw-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sw-radius', label: 'Stage radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--sw-gap', label: 'Split gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  exhibit: {
+    label: 'Exhibit index', icon: 'exhibit', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        previewRatio: '4 / 3',
+        items: [
+          { title: 'First project', location: 'City', scope: 'What you did', year: '', href: '', src: '', alt: '' },
+          { title: 'Second project', location: 'City', scope: 'What you did', year: '', href: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ex-accent': cvar('brand'), '--ex-surface': cvar('surface'),
+          '--ex-ink': cvar('ink'), '--ex-muted': cvar('muted'), '--ex-line': cvar('line'),
+          '--ex-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'previewRatio', label: 'Preview ratio', opts: [['4 / 3', '4:3'], ['3 / 2', '3:2'], ['16 / 10', '16:10'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Entries', addLabel: 'Add entry',
+          rowFields: [
+            { k: 'title', label: 'Project title', ph: 'Project or monograph title', def: 'New entry' },
+            { k: 'location', label: 'Location', ph: 'City or region', def: '' },
+            { k: 'scope', label: 'Scope', ph: 'Acreage or discipline', def: '' },
+            { k: 'year', label: 'Year', ph: '2025', def: '2025' },
+            { k: 'href', label: 'Link URL', ph: 'sites.html#entry', def: '' },
+            { k: 'src', label: 'Preview image', ph: 'asset:preview', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe preview visual', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ex-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ex-surface', label: 'Preview surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ex-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ex-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ex-line', label: 'Rule line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ex-radius', label: 'Preview radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  scrolly: {
+    label: 'Sticky steps', icon: 'scrolly', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stickyRatio: '4 / 3',
+        items: [
+          { title: 'First step', detail: 'Describe this step. Its image stays in view while visitors read.', fact: '', src: '', alt: '' },
+          { title: 'Second step', detail: 'The image changes as visitors scroll to the next step.', fact: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sc-accent': cvar('ink'), '--sc-surface': cvar('surface'),
+          '--sc-ink': cvar('ink'), '--sc-muted': cvar('muted'), '--sc-line': cvar('line'),
+          '--sc-radius': '14px', '--sc-gap': '44px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'stickyRatio', label: 'Sticky frame ratio', opts: [['4 / 3', '4:3'], ['3 / 2', '3:2'], ['16 / 10', '16:10'], ['16 / 9', '16:9'], ['1 / 1', 'Square']] },
+        {
+          t: 'qa', k: 'items', label: 'Scrolling steps', addLabel: 'Add step',
+          rowFields: [
+            { k: 'title', label: 'Step heading', ph: 'Step title', def: 'New step' },
+            { k: 'fact', label: 'Metric note', ph: 'Key specification', def: '' },
+            { k: 'src', label: 'Stage image', ph: 'asset:stage', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe stage visual', def: '' },
+            { k: 'detail', label: 'Step narrative', ph: 'Describe what happens in this phase', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sc-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--sc-gap', label: 'Column gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  clocks: {
+    label: 'Office clocks', icon: 'clocks', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        hour12: 0, opens: '9', closes: '18', openLabel: 'Office open', closedLabel: 'After hours',
+        items: [
+          { city: 'London', tz: 'Europe/London', address: '', phone: '', href: '', linkLabel: '' },
+          { city: 'New York', tz: 'America/New_York', address: '', phone: '', href: '', linkLabel: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ck-accent': cvar('ink'), '--ck-surface': 'transparent',
+          '--ck-ink': cvar('ink'), '--ck-muted': cvar('muted'), '--ck-line': cvar('line'),
+          '--ck-radius': '0px', '--ck-gap': '0px', '--ck-time-size': '40px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'toggle', k: 'hour12', label: '12-hour clock' },
+        { t: 'text', k: 'opens', label: 'Opens (hour, 0–24)', ph: '9' },
+        { t: 'text', k: 'closes', label: 'Closes (hour, 0–24)', ph: '18' },
+        { t: 'text', k: 'openLabel', label: 'Open label', ph: 'Office open' },
+        { t: 'text', k: 'closedLabel', label: 'Closed label', ph: 'After hours' },
+        {
+          t: 'qa', k: 'items', label: 'Offices', addLabel: 'Add office',
+          rowFields: [
+            { k: 'city', label: 'City', ph: 'London', def: 'New office' },
+            { k: 'tz', label: 'Time zone (IANA)', ph: 'Europe/London', def: 'UTC' },
+            { k: 'phone', label: 'Phone', ph: '+44 20 0000 0000', def: '' },
+            { k: 'href', label: 'Map or page link', ph: 'https://maps.example', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Open in Maps', def: '' },
+            { k: 'src', label: 'Office image', ph: 'asset:office', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Office exterior or room', def: '' },
+            { k: 'address', label: 'Address', ph: 'Street, city, postcode', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ck-accent', label: 'Open accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-surface', label: 'Card fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ck-line', label: 'Rule colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ck-time-size', label: 'Time size', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--ck-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--ck-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  roster: {
+    label: 'Team spotlight', icon: 'roster', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        portraitRatio: '4 / 5', seatLabel: 'Based in', credLabel: 'Focus',
+        items: [
+          { name: 'First person', role: 'Role', seat: 'City', credential: 'Area of focus', quote: 'Add a short quote or introduction.', href: '', linkLabel: '', src: '', alt: '' },
+          { name: 'Second person', role: 'Role', seat: 'City', credential: 'Area of focus', quote: 'Add a short quote or introduction.', href: '', linkLabel: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--rs-accent': cvar('ink'), '--rs-surface': cvar('surface'),
+          '--rs-ink': cvar('ink'), '--rs-muted': cvar('muted'), '--rs-line': cvar('line'),
+          '--rs-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'portraitRatio', label: 'Portrait ratio', opts: [['4 / 5', '4:5'], ['3 / 4', '3:4'], ['1 / 1', 'Square'], ['3 / 2', '3:2']] },
+        { t: 'text', k: 'seatLabel', label: 'Location label', ph: 'Based in' },
+        { t: 'text', k: 'credLabel', label: 'Focus label', ph: 'Focus' },
+        {
+          t: 'qa', k: 'items', label: 'Members', addLabel: 'Add member',
+          rowFields: [
+            { k: 'name', label: 'Full name', ph: 'Full name', def: 'New person' },
+            { k: 'role', label: 'Role', ph: 'Role', def: '' },
+            { k: 'seat', label: 'Office / city', ph: 'Washington, D.C.', def: '' },
+            { k: 'credential', label: 'Focus', ph: 'Area of focus', def: '' },
+            { k: 'src', label: 'Portrait', ph: 'asset:partner', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the portrait', def: '' },
+            { k: 'href', label: 'Action link', ph: 'contact.html', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Get in touch', def: '' },
+            { k: 'quote', label: 'Spotlight quote', ph: 'A short quote or introduction', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--rs-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-surface', label: 'Stage surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  tiers: {
+    label: 'Currency tiers', icon: 'tiers', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        defaultCurrency: 'usd', usdLabel: 'USD $', eurLabel: 'EUR €', gbpLabel: 'GBP £',
+        items: [
+          { tierName: 'Starter', badge: '', priceUsd: '$29', priceEur: '€27', priceGbp: '£23', period: '/ month', summary: 'Who this plan is for.', features: 'First feature\nSecond feature', ctaText: 'Get started', href: '', featured: 0 },
+          { tierName: 'Plus', badge: 'Most popular', priceUsd: '$59', priceEur: '€55', priceGbp: '£47', period: '/ month', summary: 'Who this plan is for.', features: 'Everything in Starter\nAnother feature', ctaText: 'Get started', href: '', featured: 1 }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tr-accent': cvar('brand'), '--tr-on': brandActionForeground(), '--tr-surface': cvar('surface'),
+          '--tr-ink': cvar('ink'), '--tr-muted': cvar('muted'), '--tr-line': cvar('line'),
+          '--tr-feat-bg': cvar('ink'), '--tr-feat-ink': '#ffffff', '--tr-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'defaultCurrency', label: 'Default currency', opts: [['usd', 'USD'], ['eur', 'EUR'], ['gbp', 'GBP']] },
+        { t: 'text', k: 'usdLabel', label: 'USD button', ph: 'USD $' },
+        { t: 'text', k: 'eurLabel', label: 'EUR button', ph: 'EUR €' },
+        { t: 'text', k: 'gbpLabel', label: 'GBP button', ph: 'GBP £' },
+        {
+          t: 'qa', k: 'items', label: 'Tiers', addLabel: 'Add tier',
+          rowFields: [
+            { k: 'tierName', label: 'Tier name', ph: 'Advisory Retainer', def: 'New tier' },
+            { k: 'badge', label: 'Badge (optional)', ph: 'Most popular', def: '' },
+            { k: 'featured', label: 'Highlight this tier', toggle: 1 },
+            { k: 'priceUsd', label: 'USD price', ph: '$6,400', def: '$5,000' },
+            { k: 'priceEur', label: 'EUR price', ph: '€5,800', def: '€4,600' },
+            { k: 'priceGbp', label: 'GBP price', ph: '£4,950', def: '£3,900' },
+            { k: 'period', label: 'Billing period', ph: '/ month', def: '/ month' },
+            { k: 'ctaText', label: 'Button label', ph: 'Select tier', def: 'Get started' },
+            { k: 'href', label: 'Button link', ph: 'contact.html', def: '' },
+            { k: 'summary', label: 'Summary', ph: 'One-sentence tier scope', def: '', area: 1 },
+            { k: 'features', label: 'Features (one per line)', ph: 'Feature one\nFeature two', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tr-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-feat-bg', label: 'Featured fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tr-feat-ink', label: 'Featured text', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tr-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  qapills: {
+    label: 'Question pills', icon: 'qapills', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        pillAlign: 'center',
+        items: [
+          { q: 'First question?', a: 'Write a direct answer here.', note: '', href: '', linkLabel: '' },
+          { q: 'Second question?', a: 'Visitors pick a question to see its answer.', note: '', href: '', linkLabel: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--qp-accent': cvar('ink'), '--qp-on': cvar('bg'), '--qp-surface': cvar('surface'),
+          '--qp-ink': cvar('ink'), '--qp-muted': cvar('muted'), '--qp-line': cvar('line'),
+          '--qp-radius': '2px', '--qp-pill-radius': '999px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'pillAlign', label: 'Alignment', opts: [['start', 'Left'], ['center', 'Center']], text: 1 },
+        {
+          t: 'qa', k: 'items', label: 'Questions', addLabel: 'Add question',
+          rowFields: [
+            { k: 'q', label: 'Question pill', ph: 'Short question', def: 'New question?' },
+            { k: 'note', label: 'Note', ph: 'Optional note', def: '' },
+            { k: 'href', label: 'Action link', ph: 'contact.html', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Learn more', def: '' },
+            { k: 'a', label: 'Full answer', ph: 'Direct answer shown in panel', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--qp-accent', label: 'Active pill accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-surface', label: 'Panel surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-ink', label: 'Question colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-muted', label: 'Answer colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--qp-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--qp-radius', label: 'Panel radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--qp-pill-radius', label: 'Pill radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  dockbar: {
+    label: 'Docked intake bar', icon: 'dockbar', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        submitLabel: 'Continue', destHref: '', ariaLabel: 'Quick form',
+        items: [
+          { fieldLabel: 'Name', fieldType: 'text', ph: 'Your name', choices: '' },
+          { fieldLabel: 'Topic', fieldType: 'select', ph: '', choices: 'General, Booking, Support' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--db-accent': cvar('brand'), '--db-on': brandActionForeground(), '--db-surface': cvar('surface'),
+          '--db-ink': cvar('ink'), '--db-muted': cvar('muted'), '--db-line': cvar('line'),
+          '--db-radius': '2px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'submitLabel', label: 'Submit button', ph: 'Continue' },
+        { t: 'link', k: 'destHref', label: 'Destination page' },
+        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Quick form' },
+        {
+          t: 'qa', k: 'items', label: 'Fields', addLabel: 'Add field',
+          rowFields: [
+            { k: 'fieldLabel', label: 'Field label', ph: 'Name', def: 'Field' },
+            { k: 'fieldType', label: 'Type', def: 'text', opts: [['text', 'Text'], ['select', 'Dropdown']] },
+            { k: 'ph', label: 'Placeholder', ph: 'Enter value', def: '' },
+            { k: 'choices', label: 'Select options (comma-separated)', ph: 'Option A, Option B', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--db-accent', label: 'Button & focus accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-surface', label: 'Bar surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-muted', label: 'Placeholder colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--db-line', label: 'Divider line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--db-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  arches: {
+    label: 'Fanned arches', icon: 'arches', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        archSpread: 'fan',
+        items: [
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '' }
+        ]
+      },
+      css: {
+        d: { width: '100%', '--ar-frame': cvar('surface'), '--ar-bg': cvar('line') },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Arch frames (up to 5)', addLabel: 'Add arch', max: 5,
+          rowFields: [
+            { k: 'src', label: 'Image', ph: 'asset:arch-1', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: 'Arch frame' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ar-frame', label: 'Frame border', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ar-bg', label: 'Placeholder fill', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  chapters: {
+    label: 'Chapter frame', icon: 'chapters', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        frameRatio: '16 / 9', autoSeconds: '6',
+        chapters: [
+          { chapterTitle: 'First chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' },
+          { chapterTitle: 'Second chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' },
+          { chapterTitle: 'Third chapter', chapterSub: '', overlayText: 'One sentence over the image.', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ch-accent': cvar('brand'), '--ch-ink': cvar('ink'),
+          '--ch-muted': cvar('muted'), '--ch-line': cvar('line'), '--ch-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'frameRatio', label: 'Frame ratio', opts: [['16 / 9', '16:9'], ['21 / 9', '21:9'], ['3 / 2', '3:2']] },
+        { t: 'text', k: 'autoSeconds', label: 'Auto-advance (seconds, 0=off)', ph: '6' },
+        {
+          t: 'qa', k: 'chapters', label: 'Chapters', addLabel: 'Add chapter',
+          rowFields: [
+            { k: 'chapterTitle', label: 'Chapter title', ph: 'Chapter title', def: 'New chapter' },
+            { k: 'chapterSub', label: 'Subtitle', ph: 'Optional subtitle', def: '' },
+            { k: 'src', label: 'Frame image', ph: 'asset:chapter', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe chapter scene', def: '' },
+            { k: 'overlayText', label: 'Frame caption', ph: 'One sentence overlaid on the frame', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ch-accent', label: 'Progress accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-muted', label: 'Subtitle colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ch-line', label: 'Track & border', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ch-radius', label: 'Frame radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  slotpicker: {
+    label: 'Slot picker', icon: 'slotpicker', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        currencySymbol: '€',
+        timeSlots: '09:00, 12:00, 15:00',
+        passHeading: 'Choose a service', guestHeading: 'Guests', slotHeading: 'Preferred time',
+        summaryTitle: 'Your selection',
+        confirmLabel: 'Continue',
+        confirmHref: '',
+        phoneNote: '',
+        passes: [
+          { passName: 'First service', passMeta: '', unitPrice: '50', fixedTotal: 0 },
+          { passName: 'Second service', passMeta: '', unitPrice: '80', fixedTotal: 0 }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sp-accent': cvar('ink'), '--sp-on': cvar('bg'), '--sp-surface': cvar('surface'),
+          '--sp-ink': cvar('ink'), '--sp-muted': cvar('muted'), '--sp-line': cvar('line'),
+          '--sp-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
+        { t: 'text', k: 'timeSlots', label: 'Time slots (comma-separated)', ph: '09:00, 12:00, 16:00' },
+        { t: 'text', k: 'passHeading', label: 'Services heading', ph: 'Choose a service' },
+        { t: 'text', k: 'guestHeading', label: 'Guests heading', ph: 'Guests' },
+        { t: 'text', k: 'slotHeading', label: 'Times heading', ph: 'Preferred time' },
+        { t: 'text', k: 'summaryTitle', label: 'Summary heading', ph: 'Your selection' },
+        { t: 'text', k: 'confirmLabel', label: 'Confirm button', ph: 'Continue →' },
+        { t: 'link', k: 'confirmHref', label: 'Confirm link' },
+        { t: 'text', k: 'phoneNote', label: 'Policy note', ph: 'Free 24h rescheduling' },
+        {
+          t: 'qa', k: 'passes', label: 'Passes / services', addLabel: 'Add pass',
+          rowFields: [
+            { k: 'passName', label: 'Pass name', ph: '90-Min Circuit', def: 'New pass' },
+            { k: 'passMeta', label: 'Included note', ph: '90 min · robes included', def: '' },
+            { k: 'unitPrice', label: 'Numeric price', ph: '95', def: '95' },
+            { k: 'fixedTotal', label: 'One price for the whole party', toggle: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sp-accent', label: 'Selected accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -2008,6 +2770,21 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'countdown') return n.props.target ? 'Countdown · ' + String(n.props.target).slice(0, 10) : d.label;
   if (n.type === 'marquee') return `Marquee · ${n.children.length} item${n.children.length === 1 ? '' : 's'}`;
   if (n.type === 'filter') return `Tag filter · ${collectFilterTags(n).length} tag${collectFilterTags(n).length === 1 ? '' : 's'}`;
+  if (n.type === 'timeline') return `Timeline · ${((n.props.items as any[]) || []).length} step${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'progress') return `Progress · ${((n.props.items as any[]) || []).length} bar${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'hotspot') return `Hotspots · ${((n.props.items as any[]) || []).length} pin${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'strips') return `Strips · ${((n.props.items as any[]) || []).length} panel${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'switcher') return `Switcher · ${((n.props.items as any[]) || []).length} stage${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'exhibit') return `Exhibit · ${((n.props.items as any[]) || []).length} entr${((n.props.items as any[]) || []).length === 1 ? 'y' : 'ies'}`;
+  if (n.type === 'scrolly') return `Steps · ${((n.props.items as any[]) || []).length} step${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'clocks') return `Clocks · ${((n.props.items as any[]) || []).length} office${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'roster') return `Roster · ${((n.props.items as any[]) || []).length} member${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'tiers') return `Tiers · ${((n.props.items as any[]) || []).length} plan${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'qapills') return `Q&A pills · ${((n.props.items as any[]) || []).length} item${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'dockbar') return `Docked bar · ${((n.props.items as any[]) || []).length} field${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'slotpicker') return `Slot picker · ${((n.props.passes as any[]) || []).length} pass${((n.props.passes as any[]) || []).length === 1 ? '' : 'es'}`;
   return d.label;
 };
 
@@ -3529,7 +4306,7 @@ function classMove(id: string, dir: number) {
     strings rather than NaN, because the inspector shows this straight to the user. */
 function parseU(v: unknown): { n: string; u: string } {
   const s = String(v == null ? '' : v).trim();
-  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|dvh|svh|dvw|svw|ch|s|ms)?$/i);
   return m ? { n: m[1].replace(/^\+/, ''), u: (m[2] || '').toLowerCase() } : { n: '', u: '' };
 }
 
@@ -5134,7 +5911,23 @@ const TEXT_SLOTS = {
   form: [['fields', 'label', 'ph']],
   audio: ['title', 'subtitle'],
   countdown: ['done', 'lblDays', 'lblHours', 'lblMins', 'lblSecs'],
-  filter: ['all', 'tags']
+  filter: ['all', 'tags'],
+  compare: ['beforeAlt', 'afterAlt', 'beforeLabel', 'afterLabel'],
+  timeline: [['items', 'tag', 'title', 'detail']],
+  progress: [['items', 'label', 'unit']],
+  hotspot: ['alt', ['items', 'label', 'title', 'detail']],
+  strips: [['items', 'alt', 'tag', 'title', 'detail']],
+  switcher: [['items', 'label', 'meta', 'title', 'detail', 'alt']],
+  exhibit: [['items', 'title', 'location', 'scope', 'year', 'alt']],
+  scrolly: [['items', 'title', 'detail', 'fact', 'alt']],
+  clocks: ['openLabel', 'closedLabel', ['items', 'city', 'address', 'phone', 'linkLabel', 'alt']],
+  roster: [['items', 'name', 'role', 'seat', 'credential', 'quote', 'linkLabel', 'alt']],
+  tiers: ['usdLabel', 'eurLabel', 'gbpLabel', ['items', 'tierName', 'badge', 'priceUsd', 'priceEur', 'priceGbp', 'period', 'summary', 'features', 'ctaText']],
+  qapills: [['items', 'q', 'a', 'note', 'linkLabel']],
+  dockbar: ['submitLabel', 'ariaLabel', ['items', 'fieldLabel', 'ph', 'choices']],
+  arches: [['items', 'alt', 'caption']],
+  chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
+  slotpicker: ['currencySymbol', 'timeSlots', 'confirmLabel', 'summaryTitle', 'phoneNote', ['passes', 'passName', 'passMeta', 'unitPrice']]
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -5144,10 +5937,24 @@ const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['n
 const SLOT_LABEL = {
   text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
   q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution', panel: 'Panel',
-  body: 'Rows', title: 'File name', home: 'Front page name',
+  body: 'Rows', title: 'Title', home: 'Front page name',
   subtitle: 'Subtitle', done: 'Completed message', lblDays: 'Days label',
   lblHours: 'Hours label', lblMins: 'Minutes label', lblSecs: 'Seconds label',
-  all: 'Reset label', tags: 'Filter tags'
+  all: 'Reset label', tags: 'Filter tags',
+  beforeAlt: 'Before alt text', afterAlt: 'After alt text',
+  beforeLabel: 'Before badge', afterLabel: 'After badge',
+  tag: 'Phase tag', detail: 'Details', unit: 'Unit', meta: 'Meta',
+  location: 'Location', scope: 'Scope', year: 'Year', fact: 'Metric note',
+  city: 'City', address: 'Address', phone: 'Phone', linkLabel: 'Link label',
+  openLabel: 'Open label', closedLabel: 'Closed label',
+  name: 'Name', role: 'Role', seat: 'Office', credential: 'Credential', quote: 'Quote',
+  usdLabel: 'USD label', eurLabel: 'EUR label', gbpLabel: 'GBP label',
+  tierName: 'Tier name', badge: 'Badge', priceUsd: 'USD price', priceEur: 'EUR price', priceGbp: 'GBP price',
+  period: 'Period', summary: 'Summary', features: 'Features', ctaText: 'Button text', note: 'Note',
+  submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices',
+  chapterTitle: 'Chapter title', chapterSub: 'Chapter subtitle', overlayText: 'Overlay text',
+  currencySymbol: 'Currency', timeSlots: 'Time slots', confirmLabel: 'Confirm label', summaryTitle: 'Summary title',
+  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -5164,7 +5971,17 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   image: ['src'],
   video: ['src', 'poster'],
   audio: ['src', 'artwork'],
-  gallery: [['items', 'src']]
+  gallery: [['items', 'src']],
+  compare: ['beforeSrc', 'afterSrc'],
+  hotspot: ['src'],
+  strips: [['items', 'src']],
+  switcher: [['items', 'src']],
+  exhibit: [['items', 'src']],
+  scrolly: [['items', 'src']],
+  clocks: [['items', 'src']],
+  roster: [['items', 'src']],
+  arches: [['items', 'src']],
+  chapters: [['chapters', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -5986,6 +6803,7 @@ const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
    afterwards; a one-click action that renames two pages at once would be twice as bad. The
    three places a link can live are the three the review already walks — a `link` prop, a nav
    item's `href`, and an `href` inside rich text — so this rewrites exactly what that reads. */
+const OWN_LINK_PROP: Partial<Record<WidgetType, string>> = { dockbar: 'destHref', slotpicker: 'confirmHref' };
 function relink(from: string, to: string) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -6010,8 +6828,10 @@ function relink(from: string, to: string) {
     const vals = node.use ? node.vals : undefined;
     if (vals) linkKeys(findComponent(node.use)).forEach(k => { if (vals[k]) vals[k] = swap(vals[k]); });
     if (p.link !== undefined) p.link = swap(p.link);
+    const own = OWN_LINK_PROP[node.type];
+    if (own && (p as any)[own] !== undefined) (p as any)[own] = swap((p as any)[own]);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
-      (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });
+      (p.items as NavItem[]).forEach(it => { if (it.href !== undefined) it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
       p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
@@ -9147,6 +9967,11 @@ const PFX = 'pagecraft-';
 const widgetSlug = (type: string) => type === 'text' ? 'wysiwyg' : slugify((DEF[type] && DEF[type].label) || type);
 const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
 const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
+/** Ids a block writes for each of its items, so the public id allocator can reserve them. */
+const ITEM_ID_PARTS: Partial<Record<WidgetType, string[]>> = {
+  progress: ['p'], hotspot: ['hs'], switcher: ['sw-t', 'sw-p'], roster: ['panel', 'tab'],
+  qapills: ['pill', 'ans'], chapters: ['ch-p', 'ch-b']
+};
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
 const selOf = (n: PcNode) => '.' + nodeClass(n);
 
@@ -9577,22 +10402,60 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
-    if (node.type === 'audio') audio = true;
+    if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
+    else if (node.type === 'audio') audio = true;
     else if (node.type === 'countdown') countdown = true;
     else if (node.type === 'marquee') marquee = true;
     else if (node.type === 'filter') filter = true;
+    else if (node.type === 'compare') compare = true;
+    else if (node.type === 'timeline') timeline = true;
+    else if (node.type === 'progress') progress = true;
+    else if (node.type === 'hotspot') hotspot = true;
+    else if (node.type === 'strips') strips = true;
+    else if (node.type === 'switcher') switcher = true;
+    else if (node.type === 'exhibit') exhibit = true;
+    else if (node.type === 'scrolly') scrolly = true;
+    else if (node.type === 'clocks') clocks = true;
+    else if (node.type === 'roster') roster = true;
+    else if (node.type === 'tiers') tiers = true;
+    else if (node.type === 'qapills') qapills = true;
+    else if (node.type === 'dockbar') dockbar = true;
+    else if (node.type === 'arches') arches = true;
+    else if (node.type === 'chapters') chapters = true;
+    else if (node.type === 'slotpicker') slotpicker = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
 }
 
-function extraWidgetCss(used: { audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean }) {
-  return (used.audio ? `\n${AUDIO_CSS}` : '')
+function extraWidgetCss(used: {
+  audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean;
+}) {
+  return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
+    + (used.audio ? `\n${AUDIO_CSS}` : '')
     + (used.countdown ? `\n${COUNTDOWN_CSS}` : '')
     + (used.marquee ? `\n${MARQUEE_CSS}` : '')
     + (used.filter ? `\n${FILTER_CSS}` : '')
+    + (used.compare ? `\n${COMPARE_CSS}` : '')
+    + (used.timeline ? `\n${TIMELINE_CSS}` : '')
+    + (used.progress ? `\n${PROGRESS_CSS}` : '')
+    + (used.hotspot ? `\n${HOTSPOT_CSS}` : '')
+    + (used.strips ? `\n${STRIPS_CSS}` : '')
+    + (used.switcher ? `\n${SWITCHER_CSS}` : '')
+    + (used.exhibit ? `\n${EXHIBIT_CSS}` : '')
+    + (used.scrolly ? `\n${SCROLLY_CSS}` : '')
+    + (used.clocks ? `\n${CLOCKS_CSS}` : '')
+    + (used.roster ? `\n${ROSTER_CSS}` : '')
+    + (used.tiers ? `\n${TIERS_CSS}` : '')
+    + (used.qapills ? `\n${QAPILLS_CSS}` : '')
+    + (used.dockbar ? `\n${DOCKBAR_CSS}` : '')
+    + (used.arches ? `\n${ARCHES_CSS}` : '')
+    + (used.chapters ? `\n${CHAPTERS_CSS}` : '')
+    + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -9622,10 +10485,27 @@ function wordpressStylesFor(pg: Page) {
         date: pageControls.date && !globalControls.date,
       })
       + extraWidgetCss({
+        floating: pageExtra.floating && !globalExtra.floating,
         audio: pageExtra.audio && !globalExtra.audio,
         countdown: pageExtra.countdown && !globalExtra.countdown,
         marquee: pageExtra.marquee && !globalExtra.marquee,
         filter: pageExtra.filter && !globalExtra.filter,
+        compare: pageExtra.compare && !globalExtra.compare,
+        timeline: pageExtra.timeline && !globalExtra.timeline,
+        progress: pageExtra.progress && !globalExtra.progress,
+        hotspot: pageExtra.hotspot && !globalExtra.hotspot,
+        strips: pageExtra.strips && !globalExtra.strips,
+        switcher: pageExtra.switcher && !globalExtra.switcher,
+        exhibit: pageExtra.exhibit && !globalExtra.exhibit,
+        scrolly: pageExtra.scrolly && !globalExtra.scrolly,
+        clocks: pageExtra.clocks && !globalExtra.clocks,
+        roster: pageExtra.roster && !globalExtra.roster,
+        tiers: pageExtra.tiers && !globalExtra.tiers,
+        qapills: pageExtra.qapills && !globalExtra.qapills,
+        dockbar: pageExtra.dockbar && !globalExtra.dockbar,
+        arches: pageExtra.arches && !globalExtra.arches,
+        chapters: pageExtra.chapters && !globalExtra.chapters,
+        slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -10522,6 +11402,9 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
     } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
       family.push(root + '-caption');
+    } else if (ITEM_ID_PARTS[n.type]) {
+      const rows = n.type === 'chapters' ? (p as any).chapters : p.items;
+      if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type]!.forEach(part => family.push(`${root}-${part}-${i}`)));
     }
     return family;
   };
@@ -10597,7 +11480,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
     case 'section': {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : 'section';
       const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Row or component here</div>` : '');
-      return `<${tag} ${at()} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
+      const flt = p.floating ? ` data-floating="1"${o.edit ? ' data-floating-edit="1"' : ''}` : '';
+      return `<${tag} ${at()} ${cx('pagecraft-section')}${flt}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
     }
     case 'row':
       return `<div ${at()} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
@@ -11166,6 +12050,488 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-filter-grid">${inner}</div>`
         + `<p class="pagecraft-filter-empty" data-filter-empty role="status" hidden>No matching items.</p>`
         + `</div>`;
+    }
+    case 'compare': {
+      const posNum = parseFloat(String(p.position ?? '50'));
+      const pos = Number.isFinite(posNum) ? Math.max(0, Math.min(100, posNum)) : 50;
+      const ratio = cssRatio(p.ratio) || '16 / 9';
+      const beforeSrc = esc(String(p.beforeSrc || PH));
+      const afterSrc = esc(String(p.afterSrc || PH));
+      const beforeAlt = esc(String(p.beforeAlt ?? 'Before comparison view'));
+      const afterAlt = esc(String(p.afterAlt ?? 'After comparison view'));
+      const beforeLabel = String(p.beforeLabel ?? '').trim();
+      const afterLabel = String(p.afterLabel ?? '').trim();
+      const lz = !o.edit ? ' loading="lazy" decoding="async"' : '';
+      const knobSvg = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>';
+      return `<div ${at()} ${cx('pagecraft-compare')} data-compare${o.edit ? ' data-compare-edit' : ''} style="--cmp-pos:${pos}%;--cmp-ratio:${esc(ratio)}">`
+        + `<img class="pagecraft-compare-img pagecraft-compare-after" src="${afterSrc}" alt="${afterAlt}"${lz}>`
+        + `<img class="pagecraft-compare-img pagecraft-compare-before" src="${beforeSrc}" alt="${beforeAlt}"${lz}>`
+        + (beforeLabel ? `<span class="pagecraft-compare-tag" data-side="before">${esc(beforeLabel)}</span>` : '')
+        + (afterLabel ? `<span class="pagecraft-compare-tag" data-side="after">${esc(afterLabel)}</span>` : '')
+        + `<div class="pagecraft-compare-handle" aria-hidden="true"><span class="pagecraft-compare-knob">${knobSvg}</span></div>`
+        + `<input type="range" class="pagecraft-compare-range" data-compare-range min="0" max="100" value="${pos}" aria-label="Comparison split percentage" aria-valuetext="${Math.round(pos)}%">`
+        + `</div>`;
+    }
+    case 'timeline': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      if (!items.length) return o.edit
+        ? `<div ${at()} ${cx('pagecraft-timeline')}><div class="s-empty">${svg('plus', 12)} Add milestones in the panel</div></div>` : '';
+      const orient = p.orientation === 'horizontal' ? 'horizontal' : 'vertical';
+      const marker = p.marker === 'dots' ? 'dots' : 'numbers';
+      const rows = items.map(it => {
+        const tag = String(it.tag || '').trim();
+        const title = String(it.title || '').trim();
+        const detail = String(it.detail || '').trim();
+        return `<li class="pagecraft-timeline-item">`
+          + `<span class="pagecraft-timeline-mark" aria-hidden="true"></span>`
+          + `<div class="pagecraft-timeline-card">`
+          + (tag ? `<span class="pagecraft-timeline-tag">${esc(tag)}</span>` : '')
+          + (title ? `<h3 class="pagecraft-timeline-title">${esc(title)}</h3>` : '')
+          + (detail ? `<p class="pagecraft-timeline-detail">${esc(detail)}</p>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<ol ${at()} ${cx('pagecraft-timeline')} data-orientation="${orient}" data-marker="${marker}">${rows}</ol>`;
+    }
+    case 'progress': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      if (!items.length) return o.edit
+        ? `<div ${at()} ${cx('pagecraft-progress')}><div class="s-empty">${svg('plus', 12)} Add progress metrics in the panel</div></div>` : '';
+      const showVal = p.showValue !== 0;
+      const rounded = p.rounded === 0 ? '0' : '1';
+      const baseId = domId();
+      const bars = items.map((it, i) => {
+        const rawVal = parseFloat(String(it.value ?? '0'));
+        const val = Number.isFinite(rawVal) ? Math.max(0, Math.min(100, rawVal)) : 0;
+        const unit = String(it.unit ?? '%');
+        const lbl = String(it.label || `Metric ${i + 1}`);
+        const pid = `${baseId}-p-${i}`;
+        return `<div class="pagecraft-progress-item">`
+          + `<div class="pagecraft-progress-head"><label class="pagecraft-progress-label" for="${pid}">${esc(lbl)}</label>`
+          + (showVal ? `<span class="pagecraft-progress-val">${esc(String(val))}${esc(unit)}</span>` : '')
+          + `</div>`
+          + `<progress id="${pid}" class="pagecraft-progress-bar" value="${val}" max="100"></progress>`
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-progress')} data-rounded="${rounded}">${bars}</div>`;
+    }
+    case 'hotspot': {
+      const src = esc(String(p.src || PH));
+      const alt = esc(String(p.alt || 'Interactive diagram'));
+      const ratio = cssRatio(p.ratio);
+      const lz = !o.edit ? ' loading="lazy" decoding="async"' : '';
+      const dim = (p.w && p.h) ? ` width="${parseInt(String(p.w), 10)}" height="${parseInt(String(p.h), 10)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const pins = items.map((it, i) => {
+        const xNum = parseFloat(String(it.x ?? '50'));
+        const yNum = parseFloat(String(it.y ?? '50'));
+        const x = Number.isFinite(xNum) ? Math.max(0, Math.min(100, xNum)) : 50;
+        const y = Number.isFinite(yNum) ? Math.max(0, Math.min(100, yNum)) : 50;
+        const badge = String(it.label || String(i + 1));
+        const title = String(it.title || `Detail ${i + 1}`);
+        const detail = String(it.detail || '');
+        const hid = `${baseId}-hs-${i}`;
+        return `<button type="button" class="pagecraft-hotspot-pin" style="left:${x}%;top:${y}%" popovertarget="${hid}" popovertargetaction="toggle" aria-controls="${hid}" aria-expanded="false" aria-label="${esc(title)}"><span>${esc(badge)}</span></button>`
+          + `<div id="${hid}" class="pagecraft-hotspot-card" popover="auto">`
+          + `<div class="pagecraft-hotspot-card-head"><strong>${esc(title)}</strong>`
+          + `<button type="button" class="pagecraft-hotspot-close" popovertarget="${hid}" popovertargetaction="hide" aria-label="Close">×</button></div>`
+          + (detail ? `<p class="pagecraft-hotspot-card-body">${esc(detail)}</p>` : '')
+          + `</div>`;
+      }).join('');
+      const stageAttr = ratio ? ` data-fixed-ratio="1" style="aspect-ratio:${esc(ratio)}"` : '';
+      return `<div ${at()} ${cx('pagecraft-hotspot')} data-hotspot${o.edit ? ' data-hotspot-edit' : ''}>`
+        + `<div class="pagecraft-hotspot-stage"${stageAttr}>`
+        + `<img class="pagecraft-hotspot-img" src="${src}" alt="${alt}"${dim}${lz}>`
+        + pins + `</div></div>`;
+    }
+    case 'strips': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const strips = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Panel ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const title = String(it.title || `Panel ${i + 1}`);
+        const detail = String(it.detail || '');
+        const tag = String(it.tag || '');
+        return `<button type="button" class="pagecraft-strip" aria-expanded="${i === 0 ? 'true' : 'false'}">`
+          + `<img class="pagecraft-strip-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<span class="pagecraft-strip-scrim" aria-hidden="true"></span>`
+          + `<span class="pagecraft-strip-body">`
+          + `<span class="pagecraft-strip-title">${esc(title)}</span>`
+          + (detail ? `<span class="pagecraft-strip-detail">${esc(detail)}</span>` : '')
+          + (tag ? `<span class="pagecraft-strip-tag">${esc(tag)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-strips')} data-strips${o.edit ? ' data-strips-edit' : ''}>${strips}</div>`;
+    }
+    case 'switcher': {
+      const layout = p.stageLayout === 'tabs' ? 'tabs' : 'rail';
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--sw-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const tabButtons = items.map((it, i) => {
+        const label = String(it.label || it.title || `Stage ${i + 1}`);
+        const meta = String(it.meta || '');
+        const detail = String(it.detail || '');
+        const tid = `${baseId}-sw-t-${i}`;
+        const pid = `${baseId}-sw-p-${i}`;
+        return `<button type="button" role="tab" class="pagecraft-switcher-tab" id="${tid}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" aria-controls="${pid}">`
+          + `<span class="pagecraft-switcher-tab-title">${esc(label)}</span>`
+          + (meta ? `<span class="pagecraft-switcher-tab-meta">${esc(meta)}</span>` : '')
+          + (detail ? `<span class="pagecraft-switcher-tab-detail">${esc(detail)}</span>` : '')
+          + `</button>`;
+      }).join('');
+      const panels = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || it.label || `Stage ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const pos = typeof it.pos === 'string' && /^[a-zA-Z0-9.% -]{1,32}$/.test(it.pos.trim()) ? it.pos.trim() : '';
+        const posStyle = pos ? ` style="object-position:${esc(pos)}"` : '';
+        const title = String(it.title || it.label || `Stage ${i + 1}`);
+        const detail = String(it.detail || '');
+        const tid = `${baseId}-sw-t-${i}`;
+        const pid = `${baseId}-sw-p-${i}`;
+        return `<figure role="tabpanel" class="pagecraft-switcher-panel" id="${pid}" aria-labelledby="${tid}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-switcher-img" src="${src}" alt="${alt}"${dim}${posStyle} decoding="async">`
+          + `<figcaption class="pagecraft-switcher-cap">`
+          + `<span class="pagecraft-switcher-cap-title">${esc(title)}</span>`
+          + (detail ? `<p class="pagecraft-switcher-cap-text">${esc(detail)}</p>` : '')
+          + `</figcaption></figure>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-switcher')} data-switcher data-layout="${esc(layout)}"${o.edit ? ' data-switcher-edit' : ''}${ratioStyle}>`
+        + `<div class="pagecraft-switcher-list" role="tablist">${tabButtons}</div>`
+        + `<div class="pagecraft-switcher-stage">${panels}</div>`
+        + `</div>`;
+    }
+    case 'exhibit': {
+      const ratio = cssRatio(p.previewRatio);
+      const ratioStyle = ratio ? ` style="--ex-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const arrowSvg = '<svg class="pagecraft-exhibit-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const listRows = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Entry ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const title = String(it.title || `Entry ${i + 1}`);
+        const loc = String(it.location || '');
+        const scope = String(it.scope || '');
+        const year = String(it.year || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const inner = `<span class="pagecraft-exhibit-thumb"><img class="pagecraft-exhibit-thumb-img" src="${src}" alt="${alt}"${dim} decoding="async"></span>`
+          + `<span class="pagecraft-exhibit-main"><span class="pagecraft-exhibit-title">${esc(title)}</span>`
+          + (loc ? `<span class="pagecraft-exhibit-loc">${esc(loc)}</span>` : '')
+          + `</span>`
+          + (scope ? `<span class="pagecraft-exhibit-scope">${esc(scope)}</span>` : '<span></span>')
+          + (year ? `<span class="pagecraft-exhibit-year">${esc(year)}</span>` : '<span></span>')
+          + arrowSvg;
+        const rowEl = href
+          ? `<a class="pagecraft-exhibit-row" href="${esc(href)}" data-exhibit-idx="${i}">${inner}</a>`
+          : `<div class="pagecraft-exhibit-row" data-exhibit-idx="${i}">${inner}</div>`;
+        return `<li class="pagecraft-exhibit-item">${rowEl}</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-exhibit')} data-exhibit${o.edit ? ' data-exhibit-edit' : ''}${ratioStyle}>`
+        + `<ol class="pagecraft-exhibit-list">${listRows}</ol>`
+        + `<div class="pagecraft-exhibit-float" data-open="0" aria-hidden="true"></div>`
+        + `</div>`;
+    }
+    case 'scrolly': {
+      const ratio = cssRatio(p.stickyRatio);
+      const ratioStyle = ratio ? ` style="--sc-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const steps = items.map((it, i) => {
+        const title = String(it.title || `Step ${i + 1}`);
+        const detail = String(it.detail || '');
+        const fact = String(it.fact || '');
+        return `<li class="pagecraft-scrolly-step" data-scrolly-step="${i}" data-active="${i === 0 ? '1' : '0'}" tabindex="0">`
+          + `<div class="pagecraft-scrolly-card">`
+          + `<h3 class="pagecraft-scrolly-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-scrolly-detail">${esc(detail)}</p>` : '')
+          + (fact ? `<span class="pagecraft-scrolly-fact">${esc(fact)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      const plates = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Step ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const fact = String(it.fact || it.title || '');
+        return `<figure class="pagecraft-scrolly-plate" data-scrolly-plate="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-scrolly-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + (fact ? `<figcaption class="pagecraft-scrolly-cap">${esc(fact)}</figcaption>` : '')
+          + `</figure>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-scrolly')} data-scrolly${o.edit ? ' data-scrolly-edit' : ''}${ratioStyle}>`
+        + `<ol class="pagecraft-scrolly-steps">${steps}</ol>`
+        + `<div class="pagecraft-scrolly-stage"><div class="pagecraft-scrolly-frame">${plates}</div></div>`
+        + `</div>`;
+    }
+    case 'clocks': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const h12 = Number(p.hour12) === 1;
+      const num = (v: unknown, d: number) => { const n = parseFloat(String(v ?? '')); return Number.isFinite(n) ? Math.min(24, Math.max(0, n)) : d; };
+      const opens = num(p.opens, 9), closes = num(p.closes, 18);
+      const openLabel = String(p.openLabel || 'Office open'), closedLabel = String(p.closedLabel || 'After hours');
+      const cards = items.map((it, i) => {
+        const city = String(it.city || `Office ${i + 1}`);
+        const tz = String(it.tz || 'UTC');
+        /* The runtime fills the time in. Writing it here would make every build of an unchanged page differ. */
+        const addr = String(it.address || '');
+        const phone = String(it.phone || '');
+        const tel = phone.replace(/[^+\d]/g, '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Directions');
+        const rawSrc = String(it.src || '').trim();
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const media = rawSrc ? `<div class="pagecraft-clocks-media"><img class="pagecraft-clocks-img" src="${esc(rawSrc)}" alt="${esc(String(it.alt || city))}"${dim} decoding="async"></div>` : '';
+        const telEl = phone && !o.edit ? `<a class="pagecraft-clocks-link" href="tel:${esc(tel)}">${esc(phone)}</a>` : (phone ? `<span class="pagecraft-clocks-link">${esc(phone)}</span>` : '');
+        const links = telEl
+          + (link ? `<a class="pagecraft-clocks-link" href="${esc(link)}"${/^https?:/i.test(link) ? ' target="_blank" rel="noopener"' : ''}>${esc(linkLabel)}</a>` : '');
+        return `<li class="pagecraft-clocks-card" data-tz="${esc(tz)}">`
+          + media
+          + `<div class="pagecraft-clocks-top"><span class="pagecraft-clocks-city">${esc(city)}</span>`
+          + `<time class="pagecraft-clocks-time" data-clocks-time>--:--</time></div>`
+          + `<span class="pagecraft-clocks-state" data-clocks-state data-open="0" hidden>${esc(closedLabel)}</span>`
+          + (addr ? `<address class="pagecraft-clocks-addr">${esc(addr).replace(/\n/g, '<br>')}</address>` : '')
+          + (links ? `<div class="pagecraft-clocks-links">${links}</div>` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-clocks')} data-clocks data-hour12="${h12 ? '1' : '0'}" data-opens="${opens}" data-closes="${closes}" data-open-label="${esc(openLabel)}" data-closed-label="${esc(closedLabel)}">`
+        + `<ul class="pagecraft-clocks-list">${cards}</ul>`
+        + `</div>`;
+    }
+    case 'roster': {
+      const ratio = cssRatio(p.portraitRatio);
+      const ratioStyle = ratio ? ` style="--rs-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const label = (value: unknown, legacy: string) => { const text = value === undefined ? legacy : String(value || '').trim(); return text ? `<strong>${esc(text)}:</strong> ` : ''; };
+      const initialsOf = (nm: string) => nm.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || 'P';
+      const panels = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const role = String(it.role || '');
+        const seat = String(it.seat || '');
+        const cred = String(it.credential || '');
+        const quote = String(it.quote || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || name));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Schedule consultation');
+        const metaRow = (seat || cred)
+          ? `<div class="pagecraft-roster-meta">${seat ? `<span>${label(p.seatLabel, 'Chambers')}${esc(seat)}</span>` : ''}${cred ? `<span>${label(p.credLabel, 'Bar')}${esc(cred)}</span>` : ''}</div>`
+          : '';
+        return `<article class="pagecraft-roster-panel" id="${baseId}-panel-${i}" role="tabpanel" aria-labelledby="${baseId}-tab-${i}" data-roster-panel="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<div class="pagecraft-roster-media"><img class="pagecraft-roster-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-roster-body"><div class="pagecraft-roster-head"><h3 class="pagecraft-roster-name">${esc(name)}</h3>`
+          + (role ? `<p class="pagecraft-roster-role">${esc(role)}</p>` : '')
+          + metaRow + `</div>`
+          + (quote ? `<blockquote class="pagecraft-roster-quote">${esc(quote)}</blockquote>` : '')
+          + (link ? `<a class="pagecraft-roster-cta" href="${esc(link)}">${esc(linkLabel)} →</a>` : '')
+          + `</div></article>`;
+      }).join('');
+      const tabs = items.map((it, i) => {
+        const name = String(it.name || `Partner ${i + 1}`);
+        const seat = String(it.seat || it.credential || '');
+        return `<button type="button" class="pagecraft-roster-tab" id="${baseId}-tab-${i}" role="tab" aria-controls="${baseId}-panel-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-roster-tab="${i}">`
+          + `<span class="pagecraft-roster-avatar" aria-hidden="true">${esc(initialsOf(name))}</span>`
+          + `<span class="pagecraft-roster-tmeta"><span class="pagecraft-roster-tname">${esc(name)}</span>`
+          + (seat ? `<span class="pagecraft-roster-tseat">${esc(seat)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-roster')} data-roster${ratioStyle}>`
+        + `<div class="pagecraft-roster-stage">${panels}</div>`
+        + `<div class="pagecraft-roster-strip" role="tablist" aria-label="Team spotlight">${tabs}</div>`
+        + `</div>`;
+    }
+    case 'tiers': {
+      const defCur = ['usd', 'eur', 'gbp'].includes(String(p.defaultCurrency)) ? String(p.defaultCurrency) : 'usd';
+      /* A currency is offered only when every tier has a price in it; otherwise its button
+         would leave another currency's number on the card. */
+      const tierRows = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const offered = ([
+        ['usd', String(p.usdLabel || 'USD $'), 'priceUsd'],
+        ['eur', String(p.eurLabel || 'EUR €'), 'priceEur'],
+        ['gbp', String(p.gbpLabel || 'GBP £'), 'priceGbp']
+      ] as const).filter(([code, , key]) => code === defCur || (tierRows.length > 0 && tierRows.every(row => String(row[key] || '').trim())));
+      const curBtns = offered.map(([code, lbl]) =>
+        `<button type="button" class="pagecraft-tiers-cur" data-tiers-cur="${code}" aria-pressed="${code === defCur ? 'true' : 'false'}">${esc(lbl)}</button>`
+      ).join('');
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const tName = String(it.tierName || `Tier ${i + 1}`);
+        const badge = String(it.badge || '').trim();
+        const usd = String(it.priceUsd || '$0');
+        const eur = String(it.priceEur || '');
+        const gbp = String(it.priceGbp || '');
+        const initPrice = (defCur === 'eur' ? eur : defCur === 'gbp' ? gbp : usd) || usd;
+        const period = String(it.period || '');
+        const summary = String(it.summary || '');
+        const feats = String(it.features || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const featHtml = feats.length
+          ? `<ul class="pagecraft-tiers-feats">${feats.map(f => `<li class="pagecraft-tiers-feat"><span class="pagecraft-tiers-check" aria-hidden="true">✓</span><span>${esc(f)}</span></li>`).join('')}</ul>`
+          : '';
+        const ctaText = String(it.ctaText || 'Select tier');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const featured = Number(it.featured) === 1 ? '1' : '0';
+        return `<article class="pagecraft-tiers-card" data-featured="${featured}">`
+          + `<div class="pagecraft-tiers-top"><h3 class="pagecraft-tiers-name">${esc(tName)}</h3>`
+          + (badge ? `<span class="pagecraft-tiers-badge">${esc(badge)}</span>` : '')
+          + `</div>`
+          + (summary ? `<p class="pagecraft-tiers-sum">${esc(summary)}</p>` : '')
+          + `<div class="pagecraft-tiers-price-row"><span class="pagecraft-tiers-price" data-usd="${esc(usd)}" data-eur="${esc(eur)}" data-gbp="${esc(gbp)}">${esc(initPrice)}</span>`
+          + (period ? `<span class="pagecraft-tiers-period">${esc(period)}</span>` : '')
+          + `</div>`
+          + featHtml
+          + (link ? `<a class="pagecraft-tiers-btn" href="${esc(link)}">${esc(ctaText)}</a>` : o.edit ? `<span class="pagecraft-tiers-btn">${esc(ctaText)}</span>` : '')
+          + `</article>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-tiers')} data-tiers data-active-cur="${esc(defCur)}">`
+        + (offered.length > 1 ? `<div class="pagecraft-tiers-bar" role="group" aria-label="Billing currency"><span class="pagecraft-tiers-cur-lbl">Currency</span>${curBtns}</div>` : '')
+        + `<div class="pagecraft-tiers-grid">${cards}</div>`
+        + `</div>`;
+    }
+    case 'qapills': {
+      const left = String(p.pillAlign) === 'start';
+      const alignStyle = left ? ' style="--qp-align:flex-start;--qp-panel-align:flex-start;--qp-text-align:left"' : '';
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const pills = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        return `<button type="button" class="pagecraft-qapills-pill" id="${baseId}-pill-${i}" role="tab" aria-controls="${baseId}-ans-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-qa-idx="${i}">${esc(q)}</button>`;
+      }).join('');
+      const panels = items.map((it, i) => {
+        const q = String(it.q || `Question ${i + 1}`);
+        const a = String(it.a || '');
+        const note = String(it.note || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const linkLabel = String(it.linkLabel || 'Learn more');
+        return `<div class="pagecraft-qapills-panel" id="${baseId}-ans-${i}" role="tabpanel" aria-labelledby="${baseId}-pill-${i}" data-qa-panel="${i}"${i === 0 ? '' : ' hidden'}>`
+          + `<h3 class="pagecraft-qapills-q">${esc(q)}</h3>`
+          + (a ? `<p class="pagecraft-qapills-a">${esc(a)}</p>` : '')
+          + (note ? `<span class="pagecraft-qapills-note">${esc(note)}</span>` : '')
+          + (link ? `<a class="pagecraft-qapills-link" href="${esc(link)}">${esc(linkLabel)} →</a>` : '')
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-qapills')} data-qapills${alignStyle}>`
+        + `<div class="pagecraft-qapills-bar" role="tablist" aria-label="Questions">${pills}</div>`
+        + `<div class="pagecraft-qapills-stage">${panels}</div>`
+        + `</div>`;
+    }
+    case 'dockbar': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const aria = String(p.ariaLabel || 'Quick intake');
+      const subLbl = String(p.submitLabel || 'Continue →');
+      const rawHref = safeUrl(String(p.destHref || '').trim());
+      const dest = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const fields = items.map((it, i) => {
+        const lbl = String(it.fieldLabel || `Field ${i + 1}`);
+        const fType = String(it.fieldType || 'text').toLowerCase();
+        const ph = String(it.ph || '');
+        const opts = String(it.choices || '').split(',').map(x => x.trim()).filter(Boolean);
+        const control = (fType === 'select' && opts.length)
+          ? `<select class="pagecraft-dockbar-select" name="f_${i}">${opts.map(op => `<option value="${esc(op)}">${esc(op)}</option>`).join('')}</select>`
+          : `<input class="pagecraft-dockbar-input" type="text" name="f_${i}" placeholder="${esc(ph)}" autocomplete="off">`;
+        return `<label class="pagecraft-dockbar-field"><span class="pagecraft-dockbar-lbl">${esc(lbl)}</span>${control}</label>`;
+      }).join('');
+      const btn = dest
+        ? `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`
+        : `<button type="submit" class="pagecraft-dockbar-submit">${esc(subLbl)}</button>`;
+      return `<div ${at()} ${cx('pagecraft-dockbar')} data-dockbar>`
+        + `<form class="pagecraft-dockbar-form" role="search" aria-label="${esc(aria)}" data-dest="${esc(dest)}">${fields}${btn}</form>`
+        + `</div>`;
+    }
+    case 'arches': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean).slice(0, 5);
+      const frames = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || `Arch ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<li class="pagecraft-arches-item"><img class="pagecraft-arches-img" src="${src}" alt="${alt}"${dim} decoding="async"></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-arches')} data-arches><ul class="pagecraft-arches-list">${frames}</ul></div>`;
+    }
+    case 'chapters': {
+      const ratio = cssRatio(p.frameRatio);
+      const ratioStyle = ratio ? ` style="--ch-ratio:${esc(ratio)}"` : '';
+      const autoSec = parseFloat(String(p.autoSeconds ?? '6'));
+      const autoAttr = Number.isFinite(autoSec) && autoSec > 0 ? String(autoSec) : '0';
+      const items = (Array.isArray(p.chapters) ? p.chapters as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const slides = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.chapterTitle || `Chapter ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const ov = String(it.overlayText || '');
+        return `<figure class="pagecraft-chapters-slide" id="${baseId}-ch-p-${i}" role="tabpanel" aria-labelledby="${baseId}-ch-b-${i}" data-ch-slide="${i}" data-active="${i === 0 ? '1' : '0'}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-chapters-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + (ov ? `<figcaption class="pagecraft-chapters-scrim"><p class="pagecraft-chapters-overlay">${esc(ov)}</p></figcaption>` : '')
+          + `</figure>`;
+      }).join('');
+      const btns = items.map((it, i) => {
+        const t = String(it.chapterTitle || `Chapter ${i + 1}`);
+        const sub = String(it.chapterSub || '');
+        return `<button type="button" class="pagecraft-chapters-btn" id="${baseId}-ch-b-${i}" role="tab" aria-controls="${baseId}-ch-p-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}" data-ch-btn="${i}">`
+          + `<span class="pagecraft-chapters-bar" aria-hidden="true"><span class="pagecraft-chapters-fill"></span></span>`
+          + `<span class="pagecraft-chapters-title">${esc(t)}</span>`
+          + (sub ? `<span class="pagecraft-chapters-sub">${esc(sub)}</span>` : '')
+          + `</button>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-chapters')} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}>`
+        + `<div class="pagecraft-chapters-stage">${slides}${autoAttr !== '0' && items.length > 1 && !o.edit ? '<button type="button" class="pagecraft-chapters-pause" data-ch-pause aria-pressed="false" hidden>Pause</button>' : ''}</div>`
+        + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
+        + `</div>`;
+    }
+    case 'slotpicker': {
+      const money = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2);
+      const sym = String(p.currencySymbol || '€');
+      const slots = String(p.timeSlots || '09:00, 12:00, 16:00').split(',').map(x => x.trim()).filter(Boolean);
+      const sumTitle = String(p.summaryTitle || 'Your reservation');
+      const confLbl = String(p.confirmLabel || 'Confirm window →');
+      const rawHref = safeUrl(String(p.confirmHref || '').trim());
+      const confHref = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const note = String(p.phoneNote || '');
+      const items = (Array.isArray(p.passes) ? p.passes as any[] : []).filter(Boolean);
+      const first = items[0] || { passName: 'Session', unitPrice: '95', fixedTotal: 0 };
+      const passBtns = items.map((it, i) => {
+        const nm = String(it.passName || `Pass ${i + 1}`);
+        const mt = String(it.passMeta || '');
+        const pr = parseFloat(String(it.unitPrice || '0')) || 0;
+        const fx = Number(it.fixedTotal) === 1 ? '1' : '0';
+        return `<button type="button" class="pagecraft-sp-pass" data-sp-pass="${i}" data-name="${esc(nm)}" data-price="${pr}" data-fixed="${fx}" aria-pressed="${i === 0 ? 'true' : 'false'}">`
+          + `<span class="pagecraft-sp-pass-name">${esc(nm)}</span>`
+          + (mt ? `<span class="pagecraft-sp-pass-meta">${esc(mt)}</span>` : '')
+          + `<span class="pagecraft-sp-pass-price">${esc(sym)}${money(pr)}${fx === '1' ? ' flat' : ' / guest'}</span>`
+          + `</button>`;
+      }).join('');
+      const guestBtns = [1, 2].map(g =>
+        `<button type="button" class="pagecraft-sp-pill" data-sp-guests="${g}" aria-pressed="${g === 1 ? 'true' : 'false'}">${g} ${g === 1 ? 'Guest' : 'Guests'}</button>`
+      ).join('');
+      const slotBtns = slots.map((sl, i) =>
+        `<button type="button" class="pagecraft-sp-pill" data-sp-slot="${esc(sl)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(sl)}</button>`
+      ).join('');
+      const initPrice = money(parseFloat(String(first.unitPrice || '0')) || 0);
+      return `<div ${at()} ${cx('pagecraft-slotpicker')} data-slotpicker data-sym="${esc(sym)}">`
+        + `<div class="pagecraft-sp-steps">`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.passHeading ?? 'Choose immersion pass'))}</p><div class="pagecraft-sp-passes">${passBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.guestHeading ?? 'Guests in party'))}</p><div class="pagecraft-sp-pills">${guestBtns}</div></div>`
+        + `<div class="pagecraft-sp-group"><p class="pagecraft-sp-step-h">${esc(String(p.slotHeading ?? 'Preferred arrival window'))}</p><div class="pagecraft-sp-pills">${slotBtns}</div></div>`
+        + `</div>`
+        + `<aside class="pagecraft-sp-summary" aria-label="${esc(sumTitle)}">`
+        + `<h3 class="pagecraft-sp-sum-title">${esc(sumTitle)}</h3>`
+        + `<div class="pagecraft-sp-rows">`
+        + `<div class="pagecraft-sp-row"><span>Pass</span><strong data-sp-pass-out>${esc(String(first.passName || 'Session'))}</strong></div>`
+        + `<div class="pagecraft-sp-row"><span>Party</span><strong data-sp-guest-out>1 Guest</strong></div>`
+        + `<div class="pagecraft-sp-row"><span>Arrival</span><strong data-sp-slot-out>${esc(slots[0] || '')}</strong></div>`
+        + `</div>`
+        + `<div class="pagecraft-sp-total-row"><span>Estimated total</span><span class="pagecraft-sp-total" data-sp-total>${esc(sym)}${initPrice}</span></div>`
+        + (confHref ? `<a class="pagecraft-sp-confirm" href="${esc(confHref)}">${esc(confLbl)}</a>` : o.edit ? `<span class="pagecraft-sp-confirm">${esc(confLbl)}</span>` : '')
+        + (note ? `<p class="pagecraft-sp-note">${esc(note)}</p>` : '')
+        + `</aside></div>`;
     }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
@@ -11788,7 +13154,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-dockbar/.test(body) ? DOCKBAR_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -12297,7 +13663,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, DOCKBAR_JS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

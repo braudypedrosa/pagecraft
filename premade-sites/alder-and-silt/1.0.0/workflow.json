@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "alder-and-silt",
+  "version": "1.0.0",
+  "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+  "packageSha256": "53d58bbfbf540b701c78a3a76a88c91446f7db8dce8ebe035a5d8a680326d0ed",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}
