@@ -164,12 +164,12 @@ export function smtpFounderSupportSender(cfg: MailConfig, customerOrigin: string
   };
 }
 
-export type NoticeSender = (to: string, subject: string, text: string) => Promise<void> | void;
+export type NoticeSender = (to: string, subject: string, text: string, replyTo?: string) => Promise<void> | void;
 
 export function smtpNoticeSender(cfg: MailConfig, transport?: Transporter): NoticeSender {
   const tx = mailTransport(cfg, transport);
-  return async (to, subject, text) => {
-    await tx.sendMail({ from: cfg.from, to, subject, text });
+  return async (to, subject, text, replyTo) => {
+    await tx.sendMail({ from: cfg.from, to, subject, text, ...(replyTo ? { replyTo } : {}) });
   };
 }
 

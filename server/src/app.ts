@@ -23,6 +23,7 @@ import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js';
 import { submissionRoutes } from './submissions-routes.ts';
+import { FormAlerts } from './form-alerts.ts';
 import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
 import { assistantMcpResponse } from './assistant-mcp.ts';
 import { templateAuthoringRoutes, type TemplateAuthoringOptions } from './template-authoring-routes.ts';
@@ -2886,7 +2887,15 @@ export function createApp(o: Options) {
     return c.html(notificationsPage(user, notices));
   });
 
-  submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource, analytics: o.analytics });
+  submissionRoutes(app, {
+    store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource, analytics: o.analytics,
+    alerts: o.submissions && o.editorOrigin ? new FormAlerts({
+      submissions: o.submissions, send: o.sendNotice,
+      // Someone invited who has not joined yet has not confirmed the address, so is not emailed.
+      members: async siteId => (await o.auth.members(siteId)).filter(member => member.authUserId || !o.accountAuth),
+      inboxUrl: (siteId, formId) => new URL(`/sites/${encodeURIComponent(siteId)}/submissions?form=${encodeURIComponent(formId)}`, o.editorOrigin).href,
+    }) : undefined,
+  });
   /* Phase 7: assistants propose over MCP, owners review in the editor. */
   const assistantDeps: AssistantDeps = {
     store: o.store, auth: o.auth, assets: o.assets, assistants: o.assistants, reviews, editorOrigin: o.editorOrigin, allowed,
