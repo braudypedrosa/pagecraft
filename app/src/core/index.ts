@@ -37,7 +37,8 @@ import {
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
-  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
+  TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2205,6 +2206,221 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--sp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  typemask: {
+    label: 'Masked wordmark', icon: 'typemask', level: 4,
+    caps: ['spacing', 'typography', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        wordmark: 'STUDIO',
+        maskSrc: '',
+        maskAlt: 'Display wordmark'
+      },
+      css: { d: { width: '100%' }, t: {}, m: {} }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'wordmark', label: 'Display wordmark', ph: 'STUDIO' },
+        { t: 'img', k: 'maskSrc', label: 'Fill image' },
+        { t: 'text', k: 'maskAlt', label: 'Accessible label', ph: 'Display wordmark' }
+      ],
+      style: []
+    }
+  },
+  fullmenu: {
+    label: 'Fullscreen menu', icon: 'fullmenu', level: 4,
+    caps: ['spacing', 'typography', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        triggerLabel: 'Menu',
+        closeLabel: 'Close',
+        menuNote: '',
+        menuItems: [
+          { label: 'Home', href: 'index.html', meta: '', src: '', alt: '' },
+          { label: 'Products', href: '#products', meta: '', src: '', alt: '' },
+          { label: 'About', href: '#about', meta: '', src: '', alt: '' },
+          { label: 'Contact', href: '#contact', meta: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          '--fm-bg': '#0A0E0C', '--fm-ink': '#F4F7F5', '--fm-muted': '#A6B5AE',
+          '--fm-accent': '#C9F24B', '--fm-btn-bg': 'rgba(244,247,245,0.08)',
+          '--fm-btn-fg': '#F4F7F5', '--fm-btn-border': 'rgba(244,247,245,0.26)'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'triggerLabel', label: 'Button label', ph: 'Menu' },
+        { t: 'text', k: 'closeLabel', label: 'Close label', ph: 'Close' },
+        { t: 'text', k: 'menuNote', label: 'Drawer header note', ph: 'Optional note' },
+        {
+          t: 'qa', k: 'menuItems', label: 'Navigation items', addLabel: 'Add link',
+          rowFields: [
+            { k: 'label', label: 'Link label', ph: 'Page name', def: 'New page' },
+            { k: 'href', label: 'Destination URL', ph: 'about.html', def: '#' },
+            { k: 'meta', label: 'Descriptor', ph: 'Optional subtitle', def: '' },
+            { k: 'src', label: 'Hover preview image', ph: 'asset:preview', def: '', img: 1 },
+            { k: 'alt', label: 'Preview alt text', ph: 'Describe image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--fm-bg', label: 'Drawer background', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-ink', label: 'Drawer text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-muted', label: 'Muted text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-accent', label: 'Hover accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-btn-bg', label: 'Trigger fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-btn-fg', label: 'Trigger text', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+  swatchshop: {
+    label: 'Product swatches', icon: 'swatchshop', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        gridCols: '4',
+        products: [
+          { prodName: 'First product', prodPrice: '$120', prodSpec: '', href: '', ctaLabel: 'View details', c1Name: 'Charcoal', c1Hex: '#1F2421', c1Src: '', c2Name: 'Forest', c2Hex: '#145C3E', c2Src: '', alt: '' },
+          { prodName: 'Second product', prodPrice: '$160', prodSpec: '', href: '', ctaLabel: 'View details', c1Name: 'Forest', c1Hex: '#145C3E', c1Src: '', c2Name: 'Rust', c2Hex: '#9E3D22', c2Src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--swp-surface': cvar('surface'), '--swp-media-bg': '#E7ECE9',
+          '--swp-ink': cvar('ink'), '--swp-muted': cvar('muted'), '--swp-line': cvar('line'),
+          '--swp-accent': cvar('brand'), '--swp-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'gridCols', label: 'Desktop columns', opts: [['2', '2 columns'], ['3', '3 columns'], ['4', '4 columns']] },
+        {
+          t: 'qa', k: 'products', label: 'Products', addLabel: 'Add product',
+          rowFields: [
+            { k: 'prodName', label: 'Product name', ph: 'Product name', def: 'New product' },
+            { k: 'prodPrice', label: 'Price', ph: '$120', def: '$120' },
+            { k: 'prodSpec', label: 'Subtitle / spec', ph: 'Optional detail', def: '' },
+            { k: 'href', label: 'Product link', ph: 'products.html', def: '' },
+            { k: 'ctaLabel', label: 'Link label', ph: 'View details', def: 'View details' },
+            { k: 'c1Name', label: 'Swatch 1 name', ph: 'Charcoal', def: 'Charcoal' },
+            { k: 'c1Hex', label: 'Swatch 1 hex', ph: '#1F2421', def: '#1F2421' },
+            { k: 'c1Src', label: 'Swatch 1 image', ph: 'asset:item-1', def: '', img: 1 },
+            { k: 'c2Name', label: 'Swatch 2 name', ph: 'Forest', def: '' },
+            { k: 'c2Hex', label: 'Swatch 2 hex', ph: '#145C3E', def: '#145C3E' },
+            { k: 'c2Src', label: 'Swatch 2 image', ph: 'asset:item-2', def: '', img: 1 },
+            { k: 'c3Name', label: 'Swatch 3 name', ph: 'Rust', def: '' },
+            { k: 'c3Hex', label: 'Swatch 3 hex', ph: '#9E3D22', def: '#9E3D22' },
+            { k: 'c3Src', label: 'Swatch 3 image', ph: 'asset:item-3', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe product', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--swp-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-media-bg', label: 'Image backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-accent', label: 'Link accent', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--swp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  snaprail: {
+    label: 'Snap card rail', icon: 'snaprail', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        prevLabel: 'Previous card',
+        nextLabel: 'Next card',
+        railCards: [
+          { cardTag: '', title: 'First highlight', detail: 'Add a short point that stands on its own.', stat: 'Key figure', bgHex: '#14261F', fgHex: '#F2F6F3' },
+          { cardTag: '', title: 'Second highlight', detail: 'Visitors scroll or use the arrows to read across.', stat: 'Key figure', bgHex: '#1E272E', fgHex: '#F2F5F7' },
+          { cardTag: '', title: 'Third highlight', detail: 'Each card can carry its own background and text colour.', stat: 'Key figure', bgHex: '#E6ECE8', fgHex: '#0E1512' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sr-card-w': '340px', '--sr-card-h': '400px', '--sr-radius': '14px',
+          '--sr-btn-bg': cvar('surface'), '--sr-btn-ink': cvar('ink'), '--sr-btn-line': cvar('line')
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'prevLabel', label: 'Previous button label', ph: 'Previous card' },
+        { t: 'text', k: 'nextLabel', label: 'Next button label', ph: 'Next card' },
+        {
+          t: 'qa', k: 'railCards', label: 'Rail cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'title', label: 'Card heading', ph: 'Card heading', def: 'New card' },
+            { k: 'detail', label: 'Body copy', ph: 'Short description', def: '', area: 1 },
+            { k: 'stat', label: 'Bottom metric', ph: 'Optional figure', def: '' },
+            { k: 'bgHex', label: 'Card fill hex', ph: '#14261F', def: '#14261F' },
+            { k: 'fgHex', label: 'Card text hex', ph: '#F2F6F3', def: '#F2F6F3' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--sr-card-w', label: 'Card width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--sr-card-h', label: 'Card min height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--sr-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--sr-btn-bg', label: 'Arrow background', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sr-btn-ink', label: 'Arrow icon colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sr-btn-line', label: 'Arrow border', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+  scrollsteps: {
+    label: 'Scroll steps', icon: 'scrollsteps', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        steps: [
+          { title: 'First step', badge: '', detail: 'Explain what happens first.', src: '', alt: '' },
+          { title: 'Second step', badge: '', detail: 'The line beside the steps fills as visitors scroll.', src: '', alt: '' },
+          { title: 'Third step', badge: '', detail: 'Add an optional image to any step.', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ss-accent': cvar('brand'), '--ss-on': brandActionForeground(), '--ss-ink': cvar('ink'),
+          '--ss-muted': cvar('muted'), '--ss-line': cvar('line'),
+          '--ss-surface': cvar('surface'), '--ss-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'steps', label: 'Process steps', addLabel: 'Add step',
+          rowFields: [
+            { k: 'title', label: 'Step heading', ph: 'Step heading', def: 'New step' },
+            { k: 'badge', label: 'Badge (optional)', ph: 'Optional note', def: '' },
+            { k: 'detail', label: 'Description', ph: 'Step details', def: '', area: 1 },
+            { k: 'src', label: 'Step image', ph: 'asset:step', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ss-accent', label: 'Step line accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-on', label: 'Checkmark on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-surface', label: 'Step surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-line', label: 'Rule & spine colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ss-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -2801,6 +3017,11 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'dockbar' || n.type === 'slotpicker') { const count = formFieldsOf(n.type, n.props as PropBag).length; return `${n.type === 'dockbar' ? 'Docked bar' : 'Booking request'} · ${count} field${count === 1 ? '' : 's'}`; }
   if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'typemask') return `Wordmark · ${n.props.wordmark || 'Cutout'}`;
+  if (n.type === 'fullmenu') return `Fullscreen menu · ${((n.props.menuItems as any[]) || []).length} link${((n.props.menuItems as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'swatchshop') return `Product swatches · ${((n.props.products as any[]) || []).length} item${((n.props.products as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'snaprail') return `Snap rail · ${((n.props.railCards as any[]) || []).length} card${((n.props.railCards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'scrollsteps') return `Scroll steps · ${((n.props.steps as any[]) || []).length} step${((n.props.steps as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -6021,6 +6242,11 @@ const TEXT_SLOTS = {
   arches: [['items', 'alt', 'caption']],
   chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
   slotpicker: ['currencySymbol', 'submit', 'aria', 'success', 'note', 'summaryTitle', 'passHeading', 'guestHeading', 'slotHeading', 'contactHeading', 'serviceLabel', 'guestLabel', 'timeLabel', 'totalLabel', 'perGuestLabel', 'fixedLabel', ['passes', 'passName', 'passMeta', 'unitPrice'], ['slots', 'time'], ['fields', 'label', 'ph']],
+  typemask: ['wordmark', 'maskAlt'],
+  fullmenu: ['triggerLabel', 'closeLabel', 'menuNote', ['menuItems', 'label', 'meta', 'alt']],
+  swatchshop: [['products', 'prodName', 'prodPrice', 'prodSpec', 'ctaLabel', 'c1Name', 'c2Name', 'c3Name', 'alt']],
+  snaprail: ['prevLabel', 'nextLabel', ['railCards', 'cardTag', 'title', 'detail', 'stat']],
+  scrollsteps: [['steps', 'title', 'badge', 'detail', 'alt']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -6047,7 +6273,11 @@ const SLOT_LABEL = {
   submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices',
   chapterTitle: 'Chapter title', chapterSub: 'Chapter subtitle', overlayText: 'Overlay text',
   currencySymbol: 'Currency', timeSlots: 'Time slots', confirmLabel: 'Confirm label', summaryTitle: 'Summary title',
-  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price'
+  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price',
+  wordmark: 'Wordmark', maskAlt: 'Accessible label', triggerLabel: 'Trigger label', closeLabel: 'Close label',
+  menuNote: 'Drawer note', prodName: 'Product name', prodPrice: 'Price', prodSpec: 'Specification',
+  ctaLabel: 'Link label', c1Name: 'Swatch 1', c2Name: 'Swatch 2', c3Name: 'Swatch 3',
+  prevLabel: 'Previous button', nextLabel: 'Next button', cardTag: 'Card tag', stat: 'Metric'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -6074,7 +6304,11 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   clocks: [['items', 'src']],
   roster: [['items', 'src']],
   arches: [['items', 'src']],
-  chapters: [['chapters', 'src']]
+  chapters: [['chapters', 'src']],
+  typemask: ['maskSrc'],
+  fullmenu: [['menuItems', 'src']],
+  swatchshop: [['products', 'c1Src', 'c2Src', 'c3Src']],
+  scrollsteps: [['steps', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -6922,6 +7156,12 @@ function relink(from: string, to: string) {
     if (p.link !== undefined) p.link = swap(p.link);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { if (it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'fullmenu' && Array.isArray(p.menuItems)) {
+      (p.menuItems as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'swatchshop' && Array.isArray(p.products)) {
+      (p.products as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
       p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
@@ -10494,7 +10734,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10518,14 +10758,19 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'arches') arches = true;
     else if (node.type === 'chapters') chapters = true;
     else if (node.type === 'slotpicker') slotpicker = true;
+    else if (node.type === 'typemask') typemask = true;
+    else if (node.type === 'fullmenu') fullmenu = true;
+    else if (node.type === 'swatchshop') swatchshop = true;
+    else if (node.type === 'snaprail') snaprail = true;
+    else if (node.type === 'scrollsteps') scrollsteps = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10548,6 +10793,11 @@ function extraWidgetCss(used: {
     + (used.arches ? `\n${ARCHES_CSS}` : '')
     + (used.chapters ? `\n${CHAPTERS_CSS}` : '')
     + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
+    + (used.typemask ? `\n${TYPEMASK_CSS}` : '')
+    + (used.fullmenu ? `\n${FULLMENU_CSS}` : '')
+    + (used.swatchshop ? `\n${SWATCHSHOP_CSS}` : '')
+    + (used.snaprail ? `\n${SNAPRAIL_CSS}` : '')
+    + (used.scrollsteps ? `\n${SCROLLSTEPS_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10598,6 +10848,11 @@ function wordpressStylesFor(pg: Page) {
         arches: pageExtra.arches && !globalExtra.arches,
         chapters: pageExtra.chapters && !globalExtra.chapters,
         slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
+        typemask: pageExtra.typemask && !globalExtra.typemask,
+        fullmenu: pageExtra.fullmenu && !globalExtra.fullmenu,
+        swatchshop: pageExtra.swatchshop && !globalExtra.swatchshop,
+        snaprail: pageExtra.snaprail && !globalExtra.snaprail,
+        scrollsteps: pageExtra.scrollsteps && !globalExtra.scrollsteps,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -11494,6 +11749,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
     } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
       family.push(root + '-caption');
+    } else if (n.type === 'typemask') {
+      family.push(root + '-clip');
     } else if (ITEM_ID_PARTS[n.type]) {
       const rows = n.type === 'chapters' ? (p as any).chapters : p.items;
       if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type]!.forEach(part => family.push(`${root}-${part}-${i}`)));
@@ -12593,6 +12850,137 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
         + `</div>`;
     }
+    case 'typemask': {
+      const word = String(p.wordmark || 'STUDIO').trim().toUpperCase() || 'STUDIO';
+      const src = esc(String(p.maskSrc || PH));
+      const alt = esc(String(p.maskAlt || word));
+      const clipId = `${domId()}-clip`;
+      return `<div ${at()} ${cx('pagecraft-typemask')} data-typemask>`
+        + `<svg class="pagecraft-typemask-svg" viewBox="0 0 1200 216" role="img" aria-label="${alt}">`
+        + `<title>${alt}</title>`
+        + `<defs><clipPath id="${clipId}"><text x="600" y="182" text-anchor="middle" textLength="1176" lengthAdjust="spacingAndGlyphs" class="pagecraft-typemask-txt">${esc(word)}</text></clipPath></defs>`
+        + `<rect width="1200" height="216" fill="#2A3630" clip-path="url(#${clipId})"/>`
+        + `<image href="${src}" width="1200" height="216" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
+        + `</svg></div>`;
+    }
+    case 'fullmenu': {
+      const trig = String(p.triggerLabel || 'Menu');
+      const clsLbl = String(p.closeLabel || 'Close');
+      const note = String(p.menuNote || '');
+      const items = (Array.isArray(p.menuItems) ? p.menuItems as any[] : []).filter(Boolean);
+      const firstIdx = items.findIndex(it => it.src);
+      const firstSrc = firstIdx >= 0 ? items[firstIdx].src : '';
+      const stageStyle = firstSrc ? ` style="background-image:url(&quot;${esc(String(firstSrc))}&quot;)"` : '';
+      const listHtml = items.map((it, i) => {
+        const lbl = String(it.label || `Page ${i + 1}`);
+        const mt = String(it.meta || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+        const pv = String(it.src || '');
+        const pvAttr = pv ? ` data-preview-src="${esc(pv)}" data-preview-idx="${i}"` : '';
+        return `<li style="--fm-i:${i}"><a class="pagecraft-fullmenu-link" href="${esc(href)}"${pvAttr}>`
+          + `<span class="pagecraft-fullmenu-lbl">${esc(lbl)}</span>`
+          + (mt ? `<span class="pagecraft-fullmenu-meta">${esc(mt)}</span>` : '')
+          + `</a></li>`;
+      }).join('');
+      const platesHtml = items.map((it, i) => {
+        const pv = String(it.src || '').trim();
+        if (!pv) return '';
+        const active = (firstIdx >= 0 ? i === firstIdx : i === 0) ? '1' : '0';
+        return `<div class="pagecraft-fullmenu-plate" data-fm-plate="${i}" data-active="${active}" style="background-image:url(&quot;${esc(pv)}&quot;)"></div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-fullmenu')} data-fullmenu>`
+        + `<button type="button" class="pagecraft-fullmenu-btn" aria-haspopup="dialog" aria-expanded="false"><span>${esc(trig)}</span><span class="pagecraft-fullmenu-bars" aria-hidden="true"><i></i><i></i></span></button>`
+        + `<dialog class="pagecraft-fullmenu-dlg" aria-label="Site navigation">`
+        + `<div class="pagecraft-fullmenu-inner">`
+        + `<div class="pagecraft-fullmenu-top"><div class="pagecraft-fullmenu-bar"><span class="pagecraft-fullmenu-note">${esc(note)}</span><button type="button" class="pagecraft-fullmenu-close">${esc(clsLbl)} ✕</button></div></div>`
+        + `<div class="pagecraft-fullmenu-body"><div class="pagecraft-fullmenu-grid"><ul class="pagecraft-fullmenu-list">${listHtml}</ul><div class="pagecraft-fullmenu-stage"${stageStyle} aria-hidden="true">${platesHtml}</div></div></div>`
+        + `</div></dialog></div>`;
+    }
+    case 'swatchshop': {
+      const cols = ['2', '3', '4'].includes(String(p.gridCols)) ? String(p.gridCols) : '4';
+      const items = (Array.isArray(p.products) ? p.products as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const nm = String(it.prodName || `Product ${i + 1}`);
+        const pr = String(it.prodPrice || '');
+        const sp = String(it.prodSpec || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const cta = String(it.ctaLabel || 'View details');
+        const swatches = [
+          { name: String(it.c1Name || 'Default'), hex: String(it.c1Hex || '#1F2421'), src: String(it.c1Src || PH) },
+          ...(it.c2Name ? [{ name: String(it.c2Name), hex: String(it.c2Hex || '#145C3E'), src: String(it.c2Src || it.c1Src || PH) }] : []),
+          ...(it.c3Name ? [{ name: String(it.c3Name), hex: String(it.c3Hex || '#9E3D22'), src: String(it.c3Src || it.c1Src || PH) }] : []),
+        ];
+        const first = swatches[0];
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const dots = swatches.map((sw, sIdx) => {
+          const safeHex = /^#[0-9a-fA-F]{3,8}$/.test(sw.hex.trim()) ? sw.hex.trim() : '#1F2421';
+          return `<button type="button" class="pagecraft-swatch-dot" style="background-color:${esc(safeHex)}" data-swp-name="${esc(sw.name)}" data-swp-src="${esc(sw.src)}" aria-label="${esc(nm + ' in ' + sw.name)}" aria-pressed="${sIdx === 0 ? 'true' : 'false'}"></button>`;
+        }).join('');
+        const activeTxt = first.name + (sp ? ` · ${sp}` : '');
+        return `<li class="pagecraft-swatch-card" data-spec="${esc(sp)}">`
+          + `<div class="pagecraft-swatch-media"><img class="pagecraft-swatch-img" src="${esc(first.src)}" alt="${esc(String(it.alt || nm))}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-swatch-head"><h3 class="pagecraft-swatch-name">${esc(nm)}</h3>`
+          + (pr ? `<span class="pagecraft-swatch-price">${esc(pr)}</span>` : '')
+          + `</div>`
+          + `<p class="pagecraft-swatch-active" data-swp-active>${esc(activeTxt)}</p>`
+          + `<div class="pagecraft-swatch-foot"><div class="pagecraft-swatch-dots" role="group" aria-label="${esc(nm + ' colourways')}">${dots}</div>`
+          + (link ? `<a class="pagecraft-swatch-link" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-swatch-link">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-swatchshop')} data-swatchshop style="--swp-cols:${esc(cols)}"><ul class="pagecraft-swatch-grid">${cards}</ul></div>`;
+    }
+    case 'snaprail': {
+      const prevLbl = String(p.prevLabel || 'Previous card');
+      const nextLbl = String(p.nextLabel || 'Next card');
+      const items = (Array.isArray(p.railCards) ? p.railCards as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const bg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.bgHex || '').trim()) ? String(it.bgHex).trim() : '#14261F';
+        const fg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.fgHex || '').trim()) ? String(it.fgHex).trim() : '#F2F6F3';
+        const tag = String(it.cardTag || '');
+        const title = String(it.title || `Feature ${i + 1}`);
+        const detail = String(it.detail || '');
+        const stat = String(it.stat || '');
+        return `<li class="pagecraft-snaprail-card" style="background-color:${esc(bg)};color:${esc(fg)}">`
+          + `<div class="pagecraft-snaprail-top">`
+          + (tag ? `<span class="pagecraft-snaprail-tag">${esc(tag)}</span>` : '')
+          + `<h3 class="pagecraft-snaprail-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-snaprail-detail">${esc(detail)}</p>` : '')
+          + `</div>`
+          + (stat ? `<p class="pagecraft-snaprail-stat">${esc(stat)}</p>` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-snaprail')} data-snaprail>`
+        + `<div class="pagecraft-snaprail-controls"><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="-1" aria-label="${esc(prevLbl)}">←</button><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="1" aria-label="${esc(nextLbl)}">→</button></div>`
+        + `<ul class="pagecraft-snaprail-track" tabindex="0" aria-label="Feature cards">${cards}</ul></div>`;
+    }
+    case 'scrollsteps': {
+      const items = (Array.isArray(p.steps) ? p.steps as any[] : []).filter(Boolean);
+      const checkSvg = `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3.5 8.5 6.8 11.5 12.8 4.8"/></svg>`;
+      const rows = items.map((it, i) => {
+        const title = String(it.title || `Step ${i + 1}`);
+        const badge = String(it.badge || '');
+        const detail = String(it.detail || '');
+        const rawSrc = String(it.src || '').trim();
+        const hasImg = !!rawSrc;
+        const src = esc(rawSrc);
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const noImgAttr = hasImg ? '' : ' data-no-img="1"';
+        return `<li class="pagecraft-scrollsteps-item" data-active="${i === 0 ? '1' : '0'}"${noImgAttr} tabindex="0">`
+          + `<span class="pagecraft-scrollsteps-dot" aria-hidden="true">${checkSvg}</span>`
+          + `<div class="pagecraft-scrollsteps-copy"><h3 class="pagecraft-scrollsteps-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-scrollsteps-detail">${esc(detail)}</p>` : '')
+          + (badge ? `<div><span class="pagecraft-scrollsteps-badge">${esc(badge)}</span></div>` : '')
+          + `</div>`
+          + (hasImg ? `<img class="pagecraft-scrollsteps-img" src="${src}" alt="${alt}"${dim} decoding="async">` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-scrollsteps')} data-scrollsteps>`
+        + `<div class="pagecraft-scrollsteps-spine" aria-hidden="true"><div class="pagecraft-scrollsteps-fill"></div></div>`
+        + `<ol class="pagecraft-scrollsteps-list">${rows}</ol></div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -13214,7 +13602,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -13724,7 +14112,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

@@ -797,7 +797,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(overnight('2026-11-30T03:00:00Z')).toEqual([false, 'Closed']);    // Sunday's shift, Monday 3 am
     expect(overnight('2026-11-25T12:00:00Z')).toEqual([false, 'Closed']);
 
-    for (const type of ['roster', 'qapills', 'chapters'] as const) {
+    for (const type of ['roster', 'qapills', 'chapters', 'typemask'] as const) {
       const node = C.N(type);
       node.adv = { ...(node.adv || {}), htmlId: 'team' } as any;
       const html = C.renderNode(node, { edit: false });
@@ -844,5 +844,59 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     button.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     expect(active()).toBe(2);
     w.close();
+  });
+
+  test('typemask, fullmenu, swatchshop, snaprail and scrollsteps render neutral defaults and run interactively', () => {
+    for (const type of ['typemask', 'fullmenu', 'swatchshop', 'snaprail', 'scrollsteps'] as const) {
+      const starter = C.renderNode(C.N(type), { edit: false });
+      expect(starter).not.toMatch(/SKARVEN|Tromsø|Lyngen|Røst/);
+    }
+
+    const swpHtml = C.renderNode(C.N('swatchshop', {
+      products: [{
+        prodName: 'Storm Shell', prodPrice: '$420', prodSpec: '310 g',
+        c1Name: 'Obsidian', c1Hex: '#1D2421', c1Src: 'https://example.test/s1.webp',
+        c2Name: 'Spruce', c2Hex: '#145C3E', c2Src: 'https://example.test/s2.webp',
+        href: ''
+      }]
+    }), { edit: false });
+    expect(swpHtml).not.toContain('href="#"');
+    const swpDom = domFor(swpHtml);
+    const swpWin = swpDom.window as any;
+    let swpDispose: (() => void) | null = null;
+    swpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { swpDispose = fn; };
+    swpWin.eval(scriptBody(C.SWATCHSHOP_JS));
+    const dots = swpWin.document.querySelectorAll('.pagecraft-swatch-dot');
+    (dots[1] as HTMLElement).click();
+    expect(swpWin.document.querySelector('.pagecraft-swatch-img')?.getAttribute('src')).toBe('https://example.test/s2.webp');
+    expect(swpWin.document.querySelector('[data-swp-active]')?.textContent).toBe('Spruce · 310 g');
+    swpDispose!();
+    swpDom.window.close();
+
+    const fmDom = domFor(C.renderNode(C.N('fullmenu', {
+      menuItems: [
+        { label: 'Overview', href: 'index.html', src: 'https://example.test/m1.webp' },
+        { label: 'Catalog', href: 'shells.html', src: 'https://example.test/m2.webp' }
+      ]
+    }), { edit: false }));
+    const fmWin = fmDom.window as any;
+    let fmDispose: (() => void) | null = null;
+    fmWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { fmDispose = fn; };
+    fmWin.eval(scriptBody(C.FULLMENU_JS));
+    (fmWin.document.querySelector('.pagecraft-fullmenu-btn') as HTMLElement).click();
+    expect(fmWin.document.querySelector('.pagecraft-fullmenu-dlg')?.getAttribute('data-open')).toBe('1');
+    expect(fmWin.document.documentElement.style.overflow).toBe('');
+    fmWin.document.querySelectorAll('.pagecraft-fullmenu-link')[1].dispatchEvent(new fmWin.Event('mouseenter'));
+    expect(fmWin.document.querySelector('[data-fm-plate="1"]')?.getAttribute('data-active')).toBe('1');
+    fmDispose!();
+    fmDom.window.close();
+
+    const ssDom = domFor(C.renderNode(C.N('scrollsteps'), { edit: false }));
+    const ssWin = ssDom.window as any;
+    ssWin.eval(scriptBody(C.SCROLLSTEPS_JS));
+    const stepItems = ssWin.document.querySelectorAll('.pagecraft-scrollsteps-item');
+    stepItems[2].dispatchEvent(new ssWin.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(stepItems[2].getAttribute('data-active')).toBe('1');
+    ssDom.window.close();
   });
 });

@@ -183,7 +183,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 44 module renderers emit their representative authored value', () => {
+test('all 49 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -235,6 +235,11 @@ test('all 44 module renderers emit their representative authored value', () => {
     arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
     chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
     slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
+    typemask: { expected: /data-typemask.*QA-MASK/, configure: n => { n.props.wordmark = 'QA-MASK'; n.props.maskSrc = 'https://example.com/mask.jpg'; } },
+    fullmenu: { expected: /data-fullmenu.*QA drawer link/, configure: n => { n.props.menuItems = [{ label: 'QA drawer link', href: 'https://example.com/p', src: 'https://example.com/p.jpg' }]; } },
+    swatchshop: { expected: /data-swatchshop.*QA Jacket/, configure: n => { n.props.products = [{ prodName: 'QA Jacket', prodPrice: '$290', c1Name: 'Pine', c1Hex: '#145C3E', c1Src: 'https://example.com/j1.jpg' }]; } },
+    snaprail: { expected: /data-snaprail.*QA Rail Card/, configure: n => { n.props.railCards = [{ title: 'QA Rail Card', detail: 'Detail', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }]; } },
+    scrollsteps: { expected: /data-scrollsteps.*QA Seam Step/, configure: n => { n.props.steps = [{ title: 'QA Seam Step', badge: '48h', detail: 'Detail', src: 'https://example.com/st.jpg' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -299,7 +304,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(176);
+  expect(declarations).toHaveLength(185);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -347,7 +352,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(276);
+  expect(declarations).toHaveLength(302);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

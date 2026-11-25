@@ -2537,7 +2537,12 @@ var IC = {
   dockbar: '<rect x="3" y="7" width="18" height="10" rx="2.5"/><path d="M9 7v10M15 7v10"/>',
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
-  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
+  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>',
+  typemask: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M8 8.5h8M12 8.5v7"/>',
+  fullmenu: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M6.5 9h5M6.5 12h5M6.5 15h4"/><rect x="13.5" y="8.5" width="4" height="7" rx="1"/>',
+  swatchshop: '<rect x="4" y="4" width="16" height="10.5" rx="2"/><circle cx="7" cy="18.5" r="1.5"/><circle cx="12" cy="18.5" r="1.5"/><circle cx="17" cy="18.5" r="1.5"/>',
+  snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
+  scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>'
 };
 var IC_VIEW = "1 1 22 22";
 var icStroke = (size) => size < 16 ? 2 : 1.75;
@@ -4168,6 +4173,11 @@ var KIND = {
   arches: "fanned arches",
   chapters: "chapter frame",
   slotpicker: "booking request",
+  typemask: "masked wordmark",
+  fullmenu: "fullscreen menu",
+  swatchshop: "product swatches",
+  snaprail: "snap card rail",
+  scrollsteps: "scroll steps",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -5674,6 +5684,391 @@ var SLOTPICKER_JS = `<script>
 })();
 <\/script>
 `;
+var TYPEMASK_CSS = `
+.pagecraft-typemask{display:block;width:100%;line-height:0;user-select:none}
+.pagecraft-typemask-svg{display:block;width:100%;height:auto;overflow:visible}
+.pagecraft-typemask-txt{font-family:inherit;font-weight:900;font-size:196px;letter-spacing:-0.02em;text-transform:uppercase}
+`;
+var FULLMENU_CSS = `
+.pagecraft-fullmenu{display:inline-flex;align-items:center}
+.pagecraft-fullmenu-btn{appearance:none;display:inline-flex;align-items:center;gap:10px;min-height:42px;padding:9px 18px;border-radius:999px;border:1px solid var(--fm-btn-border,rgba(244,247,245,.26));background:var(--fm-btn-bg,rgba(244,247,245,.08));color:var(--fm-btn-fg,#F4F7F5);font:inherit;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background-color .22s ease,border-color .22s ease,transform .22s ease}
+.pagecraft-fullmenu-btn:hover{background:rgba(244,247,245,.16);border-color:rgba(244,247,245,.45)}
+.pagecraft-fullmenu-btn:focus-visible,.pagecraft-fullmenu-close:focus-visible,.pagecraft-fullmenu-link:focus-visible{outline:2px solid var(--fm-accent,#C9F24B);outline-offset:3px}
+.pagecraft-fullmenu-bars{display:inline-flex;flex-direction:column;gap:5px;width:16px}
+.pagecraft-fullmenu-bars i{display:block;width:16px;height:1.5px;background:currentColor;border-radius:1px;transition:transform .28s cubic-bezier(.16,1,.3,1)}
+.pagecraft-fullmenu-btn:hover .pagecraft-fullmenu-bars i:first-child{transform:translateX(2px)}
+.pagecraft-fullmenu-btn:hover .pagecraft-fullmenu-bars i:last-child{transform:translateX(-2px)}
+.pagecraft-fullmenu-dlg{box-sizing:border-box;display:none;position:fixed;inset:0;z-index:999;width:100%;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border:0;background:var(--fm-bg,#0A0E0C);color:var(--fm-ink,#F4F7F5);overflow:hidden;overscroll-behavior:contain;will-change:clip-path,opacity}
+.pagecraft-fullmenu-dlg[open],.pagecraft-fullmenu-dlg[data-open="1"]{display:block}
+.pagecraft-fullmenu-dlg::backdrop{background:rgba(6,9,8,.78);animation:pc-fm-backdrop .42s ease both}
+.pagecraft-fullmenu-dlg[data-closing="1"]::backdrop{animation:pc-fm-backdrop-out .34s ease forwards}
+.pagecraft-fullmenu-inner{box-sizing:border-box;width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between}
+.pagecraft-fullmenu-top{box-sizing:border-box;width:100%;padding:14px 40px;border-bottom:1px solid rgba(244,247,245,.12)}
+.pagecraft-fullmenu-bar{width:100%;max-width:var(--maxw,1240px);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.pagecraft-fullmenu-note{font-size:13px;color:var(--fm-muted,#A6B5AE);letter-spacing:.03em}
+.pagecraft-fullmenu-close{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,247,245,.26);background:rgba(244,247,245,.08);color:var(--fm-ink,#F4F7F5);font:inherit;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease}
+.pagecraft-fullmenu-close:hover{border-color:var(--fm-accent,#C9F24B);color:var(--fm-accent,#C9F24B);background:rgba(201,242,75,.08)}
+.pagecraft-fullmenu-body{flex:1;min-height:0;box-sizing:border-box;width:100%;padding:24px 40px 36px;display:flex;align-items:center}
+.pagecraft-fullmenu-grid{width:100%;max-width:var(--maxw,1240px);margin:0 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(28px,5vw,64px);align-items:center}
+.pagecraft-fullmenu-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pagecraft-fullmenu-list li{border-bottom:1px solid rgba(244,247,245,.12)}
+.pagecraft-fullmenu-link{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:clamp(14px,2vh,20px) 4px;color:var(--fm-ink,#F4F7F5);text-decoration:none;transition:color .24s ease,transform .38s cubic-bezier(.16,1,.3,1)}
+.pagecraft-fullmenu-link:hover,.pagecraft-fullmenu-link:focus-visible{color:var(--fm-accent,#C9F24B);transform:translateX(14px)}
+.pagecraft-fullmenu-lbl{font-size:clamp(26px,3.5vw,44px);font-weight:700;line-height:1.08;letter-spacing:-0.02em}
+.pagecraft-fullmenu-meta{font-size:13px;color:var(--fm-muted,#A6B5AE);letter-spacing:.03em;text-align:left;transition:color .24s ease}
+.pagecraft-fullmenu-link:hover .pagecraft-fullmenu-meta,.pagecraft-fullmenu-link:focus-visible .pagecraft-fullmenu-meta{color:var(--fm-ink,#F4F7F5)}
+.pagecraft-fullmenu-stage{position:relative;overflow:hidden;width:100%;aspect-ratio:4 / 5;max-height:62dvh;border-radius:12px;background-color:#151D19;background-size:cover;background-position:center;border:1px solid rgba(244,247,245,.12)}
+.pagecraft-fullmenu-plate{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.05);transition:opacity .48s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1);will-change:opacity,transform}
+.pagecraft-fullmenu-plate[data-active="1"]{opacity:1;transform:scale(1)}
+@keyframes pc-fm-wipe-in{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes pc-fm-wipe-out{from{clip-path:inset(0 0 0 0);opacity:1}to{clip-path:inset(0 0 100% 0);opacity:.96}}
+@keyframes pc-fm-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pc-fm-stage{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes pc-fm-backdrop{from{opacity:0}to{opacity:1}}
+@keyframes pc-fm-backdrop-out{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:no-preference){
+  .pagecraft-fullmenu-dlg[open]:not([data-closing="1"]),.pagecraft-fullmenu-dlg[data-open="1"]:not([data-closing="1"]){animation:pc-fm-wipe-in .5s cubic-bezier(.76,0,.24,1) both}
+  .pagecraft-fullmenu-dlg[data-closing="1"]{animation:pc-fm-wipe-out .36s cubic-bezier(.76,0,.24,1) forwards;pointer-events:none}
+  .pagecraft-fullmenu-dlg[open]:not([data-closing="1"]) .pagecraft-fullmenu-list li,.pagecraft-fullmenu-dlg[data-open="1"]:not([data-closing="1"]) .pagecraft-fullmenu-list li{animation:pc-fm-rise .58s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.14s + var(--fm-i,0) * 55ms)}
+  .pagecraft-fullmenu-dlg[open]:not([data-closing="1"]) .pagecraft-fullmenu-stage,.pagecraft-fullmenu-dlg[data-open="1"]:not([data-closing="1"]) .pagecraft-fullmenu-stage{animation:pc-fm-stage .64s cubic-bezier(.16,1,.3,1) .16s both}
+}
+@media(prefers-reduced-motion:reduce){
+  .pagecraft-fullmenu-btn,.pagecraft-fullmenu-bars i,.pagecraft-fullmenu-close,.pagecraft-fullmenu-link,.pagecraft-fullmenu-meta,.pagecraft-fullmenu-plate{transition:none}
+  .pagecraft-fullmenu-dlg::backdrop,.pagecraft-fullmenu-dlg[data-closing="1"]::backdrop{animation:none}
+}
+@media(max-width:1024px){
+  .pagecraft-fullmenu-top{padding:13px 28px}
+  .pagecraft-fullmenu-body{padding:22px 28px 30px}
+}
+@media(max-width:767px){
+  .pagecraft-fullmenu-top{padding:12px 20px}
+  .pagecraft-fullmenu-body{padding:20px 20px 26px}
+  .pagecraft-fullmenu-grid{grid-template-columns:1fr;align-content:center}
+  .pagecraft-fullmenu-stage{display:none}
+  .pagecraft-fullmenu-link{flex-direction:column;align-items:flex-start;gap:4px}
+  .pagecraft-fullmenu-meta{text-align:left}
+}
+`;
+var FULLMENU_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-fullmenu]').forEach(function(root){
+    if(root.hasAttribute('data-pc-fm-ready'))return;
+    root.setAttribute('data-pc-fm-ready','1');
+    var btn=root.querySelector('.pagecraft-fullmenu-btn');
+    var dlg=root.querySelector('.pagecraft-fullmenu-dlg');
+    var closeBtn=root.querySelector('.pagecraft-fullmenu-close');
+    var stage=root.querySelector('.pagecraft-fullmenu-stage');
+    var plates=[].slice.call(root.querySelectorAll('.pagecraft-fullmenu-plate'));
+    var links=[].slice.call(root.querySelectorAll('.pagecraft-fullmenu-link'));
+    if(!btn||!dlg)return;
+    var isOpen=false;
+    var closeTimer=0;
+    function preventBgScroll(e){
+      if(!isOpen)return;
+      e.preventDefault();
+    }
+    function finishClose(){
+      if(closeTimer){clearTimeout(closeTimer);closeTimer=0;}
+      dlg.removeAttribute('data-closing');
+      dlg.removeAttribute('data-open');
+      if(typeof dlg.close==='function'&&dlg.open){try{dlg.close();}catch(_e){dlg.removeAttribute('open');}}
+      else{dlg.removeAttribute('open');}
+    }
+    function openMenu(){
+      if(closeTimer){clearTimeout(closeTimer);closeTimer=0;}
+      dlg.removeAttribute('data-closing');
+      if(isOpen)return;
+      isOpen=true;
+      btn.setAttribute('aria-expanded','true');
+      dlg.setAttribute('data-open','1');
+      if(typeof dlg.showModal==='function'){try{if(!dlg.open)dlg.showModal();}catch(_e){dlg.setAttribute('open','');}}
+      else{dlg.setAttribute('open','');}
+    }
+    function closeMenu(immediate){
+      if(!isOpen&&!closeTimer)return;
+      isOpen=false;
+      btn.setAttribute('aria-expanded','false');
+      var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(immediate===true||reduced){
+        finishClose();
+        return;
+      }
+      dlg.setAttribute('data-closing','1');
+      if(closeTimer)clearTimeout(closeTimer);
+      closeTimer=setTimeout(finishClose,360);
+    }
+    function onNativeClose(){
+      if(closeTimer){clearTimeout(closeTimer);closeTimer=0;}
+      dlg.removeAttribute('data-closing');
+      dlg.removeAttribute('data-open');
+      isOpen=false;
+      btn.setAttribute('aria-expanded','false');
+    }
+    function onCancel(e){
+      e.preventDefault();
+      closeMenu(false);
+    }
+    function onBackdrop(e){if(e.target===dlg)closeMenu(false);}
+    function onKey(e){
+      if(!isOpen)return;
+      if(e.key==='Escape'){e.preventDefault();closeMenu(false);return;}
+      if(e.key==='PageDown'||e.key==='PageUp'||e.key==='Home'||e.key==='End'||(e.key===' '&&e.target===dlg)){
+        e.preventDefault();
+      }
+    }
+    var offs=[];
+    window.addEventListener('wheel',preventBgScroll,{passive:false});
+    window.addEventListener('touchmove',preventBgScroll,{passive:false});
+    offs.push(function(){
+      window.removeEventListener('wheel',preventBgScroll);
+      window.removeEventListener('touchmove',preventBgScroll);
+    });
+    btn.addEventListener('click',openMenu);
+    offs.push(function(){btn.removeEventListener('click',openMenu);});
+    if(closeBtn){
+      function onCloseClick(){closeMenu(false);}
+      closeBtn.addEventListener('click',onCloseClick);
+      offs.push(function(){closeBtn.removeEventListener('click',onCloseClick);});
+    }
+    dlg.addEventListener('cancel',onCancel);
+    dlg.addEventListener('close',onNativeClose);
+    dlg.addEventListener('click',onBackdrop);
+    document.addEventListener('keydown',onKey);
+    offs.push(function(){
+      dlg.removeEventListener('cancel',onCancel);
+      dlg.removeEventListener('close',onNativeClose);
+      dlg.removeEventListener('click',onBackdrop);
+      document.removeEventListener('keydown',onKey);
+    });
+    links.forEach(function(lk){
+      function onPreview(){
+        var src=lk.getAttribute('data-preview-src');
+        var idx=lk.getAttribute('data-preview-idx');
+        if(src&&stage)stage.style.backgroundImage='url("'+src.replace(/"/g,'\\"')+'")';
+        if(idx!==null&&plates.length){
+          plates.forEach(function(pl){pl.setAttribute('data-active',pl.getAttribute('data-fm-plate')===idx?'1':'0');});
+        }
+      }
+      function onNavClick(){closeMenu(true);}
+      lk.addEventListener('mouseenter',onPreview);
+      lk.addEventListener('focus',onPreview);
+      lk.addEventListener('click',onNavClick);
+      offs.push(function(){
+        lk.removeEventListener('mouseenter',onPreview);
+        lk.removeEventListener('focus',onPreview);
+        lk.removeEventListener('click',onNavClick);
+      });
+    });
+    disposers.push(function(){
+      closeMenu(true);
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-fm-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var SWATCHSHOP_CSS = `
+.pagecraft-swatchshop{display:block;width:100%}
+.pagecraft-swatch-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--swp-cols,4),minmax(0,1fr));gap:22px}
+.pagecraft-swatch-card{box-sizing:border-box;display:flex;flex-direction:column;padding:16px;background:var(--swp-surface,#FFFFFF);border:1px solid var(--swp-line,#D4DCD7);border-radius:var(--swp-radius,10px);color:var(--swp-ink,#0E1512)}
+.pagecraft-swatch-media{width:100%;aspect-ratio:4 / 5;border-radius:calc(var(--swp-radius,10px) - 3px);overflow:hidden;background:var(--swp-media-bg,#E7ECE9);margin-bottom:16px}
+.pagecraft-swatch-img{display:block;width:100%;height:100%;object-fit:cover}
+.pagecraft-swatch-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.pagecraft-swatch-name{margin:0;font-size:18px;font-weight:700;line-height:1.25;color:var(--swp-ink,#0E1512)}
+.pagecraft-swatch-price{font-size:15px;font-weight:600;color:var(--swp-ink,#0E1512);white-space:nowrap}
+.pagecraft-swatch-active{margin:0 0 16px;font-size:13px;line-height:1.45;color:var(--swp-muted,#4A5952)}
+.pagecraft-swatch-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--swp-line,#D4DCD7);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pagecraft-swatch-dots{display:inline-flex;align-items:center;gap:9px}
+.pagecraft-swatch-dot{appearance:none;width:24px;height:24px;min-width:24px;min-height:24px;padding:0;border-radius:999px;border:2px solid rgba(14,21,18,.2);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}
+.pagecraft-swatch-dot[aria-pressed="true"]{box-shadow:0 0 0 2px var(--swp-surface,#FFFFFF),0 0 0 4px var(--swp-ink,#0E1512);transform:scale(1.06)}
+.pagecraft-swatch-dot:focus-visible,.pagecraft-swatch-link:focus-visible{outline:2px solid var(--swp-accent,#145C3E);outline-offset:3px}
+.pagecraft-swatch-link{font-size:13px;font-weight:600;color:var(--swp-accent,#145C3E);text-decoration:none;white-space:nowrap}
+.pagecraft-swatch-link:hover{text-decoration:underline}
+@media(prefers-reduced-motion:reduce){.pagecraft-swatch-dot{transition:none}}
+@media(max-width:1024px){.pagecraft-swatch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.pagecraft-swatch-grid{grid-template-columns:1fr}}
+`;
+var SWATCHSHOP_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-swatchshop]').forEach(function(root){
+    if(root.hasAttribute('data-pc-swp-ready'))return;
+    root.setAttribute('data-pc-swp-ready','1');
+    var offs=[];
+    root.querySelectorAll('.pagecraft-swatch-card').forEach(function(card){
+      var img=card.querySelector('.pagecraft-swatch-img');
+      var activeOut=card.querySelector('[data-swp-active]');
+      var spec=card.getAttribute('data-spec')||'';
+      var dots=[].slice.call(card.querySelectorAll('.pagecraft-swatch-dot'));
+      dots.forEach(function(dot){
+        function onPick(){
+          dots.forEach(function(d){d.setAttribute('aria-pressed',d===dot?'true':'false');});
+          var src=dot.getAttribute('data-swp-src')||'';
+          var nm=dot.getAttribute('data-swp-name')||'';
+          if(img&&src)img.setAttribute('src',src);
+          if(activeOut)activeOut.textContent=nm+(spec?' \xB7 '+spec:'');
+        }
+        dot.addEventListener('click',onPick);
+        offs.push(function(){dot.removeEventListener('click',onPick);});
+      });
+    });
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-swp-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var SNAPRAIL_CSS = `
+.pagecraft-snaprail{display:block;width:100%}
+.pagecraft-snaprail-controls{display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px}
+.pagecraft-snaprail-arrow{appearance:none;width:42px;height:42px;border-radius:999px;border:1px solid var(--sr-btn-line,#D4DCD7);background:var(--sr-btn-bg,#FFFFFF);color:var(--sr-btn-ink,#0E1512);font:inherit;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.pagecraft-snaprail-arrow:hover{transform:translateY(-1px);border-color:var(--sr-btn-ink,#0E1512)}
+.pagecraft-snaprail-arrow:focus-visible,.pagecraft-snaprail-track:focus-visible{outline:2px solid var(--sr-btn-ink,#0E1512);outline-offset:3px}
+.pagecraft-snaprail-track{list-style:none;margin:0;padding:2px 0 12px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,var(--sr-card-w,340px));gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:thin}
+.pagecraft-snaprail-card{box-sizing:border-box;scroll-snap-align:start;min-height:var(--sr-card-h,400px);padding:28px;border-radius:var(--sr-radius,14px);display:flex;flex-direction:column;justify-content:space-between;gap:28px}
+.pagecraft-snaprail-top{display:flex;flex-direction:column;gap:12px}
+.pagecraft-snaprail-tag{font-size:13px;font-weight:600;letter-spacing:.04em;color:inherit}
+.pagecraft-snaprail-title{margin:0;font-size:clamp(22px,2.4vw,28px);font-weight:700;line-height:1.15;letter-spacing:-0.01em;color:inherit}
+.pagecraft-snaprail-detail{margin:0;font-size:15px;line-height:1.6;color:inherit}
+.pagecraft-snaprail-stat{margin:0;padding-top:16px;border-top:1px solid currentColor;font-size:14px;font-weight:700;letter-spacing:.03em;color:inherit}
+@media(prefers-reduced-motion:reduce){
+  .pagecraft-snaprail-track{scroll-behavior:auto}
+  .pagecraft-snaprail-arrow{transition:none}
+}
+@media(max-width:767px){
+  .pagecraft-snaprail-track{grid-auto-columns:85%}
+  .pagecraft-snaprail-card{min-height:340px;padding:22px}
+}
+`;
+var SNAPRAIL_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-snaprail]').forEach(function(root){
+    if(root.hasAttribute('data-pc-sr-ready'))return;
+    root.setAttribute('data-pc-sr-ready','1');
+    var track=root.querySelector('.pagecraft-snaprail-track');
+    var btns=[].slice.call(root.querySelectorAll('[data-sr-dir]'));
+    if(!track)return;
+    var offs=[];
+    btns.forEach(function(btn){
+      function onStep(){
+        var dir=parseInt(btn.getAttribute('data-sr-dir')||'1',10);
+        var card=track.querySelector('.pagecraft-snaprail-card');
+        var step=(card?card.getBoundingClientRect().width:320)+20;
+        var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(typeof track.scrollBy==='function')track.scrollBy({left:dir*step,behavior:reduced?'auto':'smooth'});
+        else track.scrollLeft+=dir*step;
+      }
+      btn.addEventListener('click',onStep);
+      offs.push(function(){btn.removeEventListener('click',onStep);});
+    });
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-sr-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
+var SCROLLSTEPS_CSS = `
+.pagecraft-scrollsteps{position:relative;display:block;width:100%;box-sizing:border-box;padding-left:62px}
+.pagecraft-scrollsteps-spine{position:absolute;left:18px;top:20px;bottom:24px;width:2px;background:var(--ss-line,#BDCBC3);overflow:hidden;border-radius:2px}
+.pagecraft-scrollsteps-fill{width:100%;height:100%;background:var(--ss-accent,#145C3E);transform-origin:top center;transform:scaleY(var(--ss-progress,.28));transition:transform .24s ease-out}
+.pagecraft-scrollsteps-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.pagecraft-scrollsteps-item{position:relative;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:24px;align-items:center;padding:24px 0;border-bottom:1px solid var(--ss-line,#BDCBC3);color:var(--ss-ink,#0E1512);cursor:pointer}
+.pagecraft-scrollsteps-item:first-child{padding-top:2px}
+.pagecraft-scrollsteps-item:last-child{border-bottom:0;padding-bottom:4px}
+.pagecraft-scrollsteps-item[data-no-img="1"]{grid-template-columns:1fr}
+.pagecraft-scrollsteps-item:focus-visible{outline:2px solid var(--ss-accent,#145C3E);outline-offset:4px;border-radius:6px}
+.pagecraft-scrollsteps-dot{position:absolute;left:-62px;top:22px;width:38px;height:38px;box-sizing:border-box;border-radius:999px;background:var(--ss-surface,#FFFFFF);border:2px solid var(--ss-line,#BDCBC3);color:var(--ss-muted,#4A5952);display:inline-flex;align-items:center;justify-content:center;transition:background-color .2s ease,border-color .2s ease,color .2s ease}
+.pagecraft-scrollsteps-item:first-child .pagecraft-scrollsteps-dot{top:0}
+.pagecraft-scrollsteps-item[data-active="1"] .pagecraft-scrollsteps-dot{background:var(--ss-accent,#145C3E);border-color:var(--ss-accent,#145C3E);color:var(--ss-on,#FFFFFF)}
+.pagecraft-scrollsteps-copy{display:flex;flex-direction:column;gap:8px}
+.pagecraft-scrollsteps-title{margin:0;font-size:clamp(19px,2vw,23px);font-weight:700;line-height:1.22;color:var(--ss-ink,#0E1512)}
+.pagecraft-scrollsteps-detail{margin:0;font-size:15px;line-height:1.62;color:var(--ss-muted,#4A5952);max-width:54ch}
+.pagecraft-scrollsteps-badge{display:inline-flex;align-items:center;margin-top:2px;padding:4px 11px;border-radius:999px;background:var(--ss-surface,#FFFFFF);border:1px solid var(--ss-line,#BDCBC3);font-size:12px;font-weight:600;color:var(--ss-ink,#0E1512);white-space:nowrap}
+.pagecraft-scrollsteps-img{display:block;width:220px;max-width:100%;height:auto;aspect-ratio:16 / 10;object-fit:cover;border-radius:var(--ss-radius,8px)}
+@media(prefers-reduced-motion:reduce){
+  .pagecraft-scrollsteps-fill,.pagecraft-scrollsteps-dot{transition:none}
+}
+@media(max-width:767px){
+  .pagecraft-scrollsteps{padding-left:48px}
+  .pagecraft-scrollsteps-spine{left:15px}
+  .pagecraft-scrollsteps-dot{left:-48px;width:32px;height:32px}
+  .pagecraft-scrollsteps-item{grid-template-columns:1fr;gap:14px;padding:20px 0}
+  .pagecraft-scrollsteps-img{width:100%;order:-1}
+}
+`;
+var SCROLLSTEPS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-scrollsteps]').forEach(function(root){
+    if(root.hasAttribute('data-pc-ss-ready'))return;
+    root.setAttribute('data-pc-ss-ready','1');
+    var items=[].slice.call(root.querySelectorAll('.pagecraft-scrollsteps-item'));
+    if(!items.length)return;
+    var activeIdx=0;
+    function setActive(idx){
+      activeIdx=Math.max(0,Math.min(items.length-1,idx));
+      items.forEach(function(el,i){el.setAttribute('data-active',i<=activeIdx?'1':'0');});
+      var frac=(activeIdx+1)/items.length;
+      root.style.setProperty('--ss-progress',frac.toFixed(3));
+    }
+    var offs=[];
+    items.forEach(function(el,i){
+      function onPick(){setActive(i);}
+      function onKey(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setActive(i);}}
+      el.addEventListener('click',onPick);
+      el.addEventListener('keydown',onKey);
+      offs.push(function(){
+        el.removeEventListener('click',onPick);
+        el.removeEventListener('keydown',onKey);
+      });
+    });
+    function onScroll(){
+      var vh=window.innerHeight||800;
+      var best=activeIdx;
+      for(var i=0;i<items.length;i++){
+        var r=items[i].getBoundingClientRect();
+        if(r.top<=vh*0.62)best=i;
+      }
+      if(best!==activeIdx)setActive(best);
+    }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    offs.push(function(){window.removeEventListener('scroll',onScroll);});
+    setActive(0);
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-ss-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -5702,10 +6097,15 @@ function mediaReferences(document) {
     const base = [...path, i];
     const where = { ...context, nodeId: node.id };
     const props = node.props;
-    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : [];
+    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : node.type === "typemask" ? ["maskSrc"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
     if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
     if (node.type === "chapters" && Array.isArray(props.chapters)) props.chapters.forEach((item, j) => scan(item?.src, [...base, "props", "chapters", j, "src"], where));
+    if (node.type === "fullmenu" && Array.isArray(props.menuItems)) props.menuItems.forEach((item, j) => scan(item?.src, [...base, "props", "menuItems", j, "src"], where));
+    if (node.type === "swatchshop" && Array.isArray(props.products)) props.products.forEach((item, j) => {
+      for (const k of ["c1Src", "c2Src", "c3Src"]) scan(item?.[k], [...base, "props", "products", j, k], where);
+    });
+    if (node.type === "scrollsteps" && Array.isArray(props.steps)) props.steps.forEach((item, j) => scan(item?.src, [...base, "props", "steps", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -8381,6 +8781,266 @@ var DEF = {
         { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  typemask: {
+    label: "Masked wordmark",
+    icon: "typemask",
+    level: 4,
+    caps: ["spacing", "typography", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        wordmark: "STUDIO",
+        maskSrc: "",
+        maskAlt: "Display wordmark"
+      },
+      css: { d: { width: "100%" }, t: {}, m: {} }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "wordmark", label: "Display wordmark", ph: "STUDIO" },
+        { t: "img", k: "maskSrc", label: "Fill image" },
+        { t: "text", k: "maskAlt", label: "Accessible label", ph: "Display wordmark" }
+      ],
+      style: []
+    }
+  },
+  fullmenu: {
+    label: "Fullscreen menu",
+    icon: "fullmenu",
+    level: 4,
+    caps: ["spacing", "typography", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        triggerLabel: "Menu",
+        closeLabel: "Close",
+        menuNote: "",
+        menuItems: [
+          { label: "Home", href: "index.html", meta: "", src: "", alt: "" },
+          { label: "Products", href: "#products", meta: "", src: "", alt: "" },
+          { label: "About", href: "#about", meta: "", src: "", alt: "" },
+          { label: "Contact", href: "#contact", meta: "", src: "", alt: "" }
+        ]
+      },
+      css: {
+        d: {
+          "--fm-bg": "#0A0E0C",
+          "--fm-ink": "#F4F7F5",
+          "--fm-muted": "#A6B5AE",
+          "--fm-accent": "#C9F24B",
+          "--fm-btn-bg": "rgba(244,247,245,0.08)",
+          "--fm-btn-fg": "#F4F7F5",
+          "--fm-btn-border": "rgba(244,247,245,0.26)"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "triggerLabel", label: "Button label", ph: "Menu" },
+        { t: "text", k: "closeLabel", label: "Close label", ph: "Close" },
+        { t: "text", k: "menuNote", label: "Drawer header note", ph: "Optional note" },
+        {
+          t: "qa",
+          k: "menuItems",
+          label: "Navigation items",
+          addLabel: "Add link",
+          rowFields: [
+            { k: "label", label: "Link label", ph: "Page name", def: "New page" },
+            { k: "href", label: "Destination URL", ph: "about.html", def: "#" },
+            { k: "meta", label: "Descriptor", ph: "Optional subtitle", def: "" },
+            { k: "src", label: "Hover preview image", ph: "asset:preview", def: "", img: 1 },
+            { k: "alt", label: "Preview alt text", ph: "Describe image", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--fm-bg", label: "Drawer background", r: 1, layout: "inline" },
+        { t: "color", c: "--fm-ink", label: "Drawer text", r: 1, layout: "inline" },
+        { t: "color", c: "--fm-muted", label: "Muted text", r: 1, layout: "inline" },
+        { t: "color", c: "--fm-accent", label: "Hover accent", r: 1, layout: "inline" },
+        { t: "color", c: "--fm-btn-bg", label: "Trigger fill", r: 1, layout: "inline" },
+        { t: "color", c: "--fm-btn-fg", label: "Trigger text", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  swatchshop: {
+    label: "Product swatches",
+    icon: "swatchshop",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        gridCols: "4",
+        products: [
+          { prodName: "First product", prodPrice: "$120", prodSpec: "", href: "", ctaLabel: "View details", c1Name: "Charcoal", c1Hex: "#1F2421", c1Src: "", c2Name: "Forest", c2Hex: "#145C3E", c2Src: "", alt: "" },
+          { prodName: "Second product", prodPrice: "$160", prodSpec: "", href: "", ctaLabel: "View details", c1Name: "Forest", c1Hex: "#145C3E", c1Src: "", c2Name: "Rust", c2Hex: "#9E3D22", c2Src: "", alt: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--swp-surface": cvar("surface"),
+          "--swp-media-bg": "#E7ECE9",
+          "--swp-ink": cvar("ink"),
+          "--swp-muted": cvar("muted"),
+          "--swp-line": cvar("line"),
+          "--swp-accent": cvar("brand"),
+          "--swp-radius": "10px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "gridCols", label: "Desktop columns", opts: [["2", "2 columns"], ["3", "3 columns"], ["4", "4 columns"]] },
+        {
+          t: "qa",
+          k: "products",
+          label: "Products",
+          addLabel: "Add product",
+          rowFields: [
+            { k: "prodName", label: "Product name", ph: "Product name", def: "New product" },
+            { k: "prodPrice", label: "Price", ph: "$120", def: "$120" },
+            { k: "prodSpec", label: "Subtitle / spec", ph: "Optional detail", def: "" },
+            { k: "href", label: "Product link", ph: "products.html", def: "" },
+            { k: "ctaLabel", label: "Link label", ph: "View details", def: "View details" },
+            { k: "c1Name", label: "Swatch 1 name", ph: "Charcoal", def: "Charcoal" },
+            { k: "c1Hex", label: "Swatch 1 hex", ph: "#1F2421", def: "#1F2421" },
+            { k: "c1Src", label: "Swatch 1 image", ph: "asset:item-1", def: "", img: 1 },
+            { k: "c2Name", label: "Swatch 2 name", ph: "Forest", def: "" },
+            { k: "c2Hex", label: "Swatch 2 hex", ph: "#145C3E", def: "#145C3E" },
+            { k: "c2Src", label: "Swatch 2 image", ph: "asset:item-2", def: "", img: 1 },
+            { k: "c3Name", label: "Swatch 3 name", ph: "Rust", def: "" },
+            { k: "c3Hex", label: "Swatch 3 hex", ph: "#9E3D22", def: "#9E3D22" },
+            { k: "c3Src", label: "Swatch 3 image", ph: "asset:item-3", def: "", img: 1 },
+            { k: "alt", label: "Image alt text", ph: "Describe product", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--swp-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--swp-media-bg", label: "Image backdrop", r: 1, layout: "inline" },
+        { t: "color", c: "--swp-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--swp-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--swp-line", label: "Border colour", r: 1, layout: "inline" },
+        { t: "color", c: "--swp-accent", label: "Link accent", r: 1, layout: "inline" },
+        { t: "unit", c: "--swp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  snaprail: {
+    label: "Snap card rail",
+    icon: "snaprail",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        prevLabel: "Previous card",
+        nextLabel: "Next card",
+        railCards: [
+          { cardTag: "", title: "First highlight", detail: "Add a short point that stands on its own.", stat: "Key figure", bgHex: "#14261F", fgHex: "#F2F6F3" },
+          { cardTag: "", title: "Second highlight", detail: "Visitors scroll or use the arrows to read across.", stat: "Key figure", bgHex: "#1E272E", fgHex: "#F2F5F7" },
+          { cardTag: "", title: "Third highlight", detail: "Each card can carry its own background and text colour.", stat: "Key figure", bgHex: "#E6ECE8", fgHex: "#0E1512" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sr-card-w": "340px",
+          "--sr-card-h": "400px",
+          "--sr-radius": "14px",
+          "--sr-btn-bg": cvar("surface"),
+          "--sr-btn-ink": cvar("ink"),
+          "--sr-btn-line": cvar("line")
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "prevLabel", label: "Previous button label", ph: "Previous card" },
+        { t: "text", k: "nextLabel", label: "Next button label", ph: "Next card" },
+        {
+          t: "qa",
+          k: "railCards",
+          label: "Rail cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "title", label: "Card heading", ph: "Card heading", def: "New card" },
+            { k: "detail", label: "Body copy", ph: "Short description", def: "", area: 1 },
+            { k: "stat", label: "Bottom metric", ph: "Optional figure", def: "" },
+            { k: "bgHex", label: "Card fill hex", ph: "#14261F", def: "#14261F" },
+            { k: "fgHex", label: "Card text hex", ph: "#F2F6F3", def: "#F2F6F3" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--sr-card-w", label: "Card width", layout: "inline", r: 1, units: U.size },
+        { t: "unit", c: "--sr-card-h", label: "Card min height", layout: "inline", r: 1, units: U.size },
+        { t: "unit", c: "--sr-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--sr-btn-bg", label: "Arrow background", r: 1, layout: "inline" },
+        { t: "color", c: "--sr-btn-ink", label: "Arrow icon colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sr-btn-line", label: "Arrow border", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  scrollsteps: {
+    label: "Scroll steps",
+    icon: "scrollsteps",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        steps: [
+          { title: "First step", badge: "", detail: "Explain what happens first.", src: "", alt: "" },
+          { title: "Second step", badge: "", detail: "The line beside the steps fills as visitors scroll.", src: "", alt: "" },
+          { title: "Third step", badge: "", detail: "Add an optional image to any step.", src: "", alt: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--ss-accent": cvar("brand"),
+          "--ss-on": brandActionForeground(),
+          "--ss-ink": cvar("ink"),
+          "--ss-muted": cvar("muted"),
+          "--ss-line": cvar("line"),
+          "--ss-surface": cvar("surface"),
+          "--ss-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "qa",
+          k: "steps",
+          label: "Process steps",
+          addLabel: "Add step",
+          rowFields: [
+            { k: "title", label: "Step heading", ph: "Step heading", def: "New step" },
+            { k: "badge", label: "Badge (optional)", ph: "Optional note", def: "" },
+            { k: "detail", label: "Description", ph: "Step details", def: "", area: 1 },
+            { k: "src", label: "Step image", ph: "asset:step", def: "", img: 1 },
+            { k: "alt", label: "Image alt text", ph: "Describe image", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--ss-accent", label: "Step line accent", r: 1, layout: "inline" },
+        { t: "color", c: "--ss-on", label: "Checkmark on accent", r: 1, layout: "inline" },
+        { t: "color", c: "--ss-surface", label: "Step surface", r: 1, layout: "inline" },
+        { t: "color", c: "--ss-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ss-muted", label: "Body colour", r: 1, layout: "inline" },
+        { t: "color", c: "--ss-line", label: "Rule & spine colour", r: 1, layout: "inline" },
+        { t: "unit", c: "--ss-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -8881,6 +9541,11 @@ var nameOf = (n) => {
   }
   if (n.type === "arches") return `Arches \xB7 ${(n.props.items || []).length} frame${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "chapters") return `Chapters \xB7 ${(n.props.chapters || []).length} scene${(n.props.chapters || []).length === 1 ? "" : "s"}`;
+  if (n.type === "typemask") return `Wordmark \xB7 ${n.props.wordmark || "Cutout"}`;
+  if (n.type === "fullmenu") return `Fullscreen menu \xB7 ${(n.props.menuItems || []).length} link${(n.props.menuItems || []).length === 1 ? "" : "s"}`;
+  if (n.type === "swatchshop") return `Product swatches \xB7 ${(n.props.products || []).length} item${(n.props.products || []).length === 1 ? "" : "s"}`;
+  if (n.type === "snaprail") return `Snap rail \xB7 ${(n.props.railCards || []).length} card${(n.props.railCards || []).length === 1 ? "" : "s"}`;
+  if (n.type === "scrollsteps") return `Scroll steps \xB7 ${(n.props.steps || []).length} step${(n.props.steps || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -11562,7 +12227,12 @@ var TEXT_SLOTS = {
   dockbar: ["submit", "aria", "success", ["fields", "label", "ph"]],
   arches: [["items", "alt", "caption"]],
   chapters: [["chapters", "chapterTitle", "chapterSub", "overlayText", "alt"]],
-  slotpicker: ["currencySymbol", "submit", "aria", "success", "note", "summaryTitle", "passHeading", "guestHeading", "slotHeading", "contactHeading", "serviceLabel", "guestLabel", "timeLabel", "totalLabel", "perGuestLabel", "fixedLabel", ["passes", "passName", "passMeta", "unitPrice"], ["slots", "time"], ["fields", "label", "ph"]]
+  slotpicker: ["currencySymbol", "submit", "aria", "success", "note", "summaryTitle", "passHeading", "guestHeading", "slotHeading", "contactHeading", "serviceLabel", "guestLabel", "timeLabel", "totalLabel", "perGuestLabel", "fixedLabel", ["passes", "passName", "passMeta", "unitPrice"], ["slots", "time"], ["fields", "label", "ph"]],
+  typemask: ["wordmark", "maskAlt"],
+  fullmenu: ["triggerLabel", "closeLabel", "menuNote", ["menuItems", "label", "meta", "alt"]],
+  swatchshop: [["products", "prodName", "prodPrice", "prodSpec", "ctaLabel", "c1Name", "c2Name", "c3Name", "alt"]],
+  snaprail: ["prevLabel", "nextLabel", ["railCards", "cardTag", "title", "detail", "stat"]],
+  scrollsteps: [["steps", "title", "badge", "detail", "alt"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -11638,7 +12308,23 @@ var SLOT_LABEL = {
   phoneNote: "Note",
   passName: "Pass name",
   passMeta: "Pass details",
-  unitPrice: "Price"
+  unitPrice: "Price",
+  wordmark: "Wordmark",
+  maskAlt: "Accessible label",
+  triggerLabel: "Trigger label",
+  closeLabel: "Close label",
+  menuNote: "Drawer note",
+  prodName: "Product name",
+  prodPrice: "Price",
+  prodSpec: "Specification",
+  ctaLabel: "Link label",
+  c1Name: "Swatch 1",
+  c2Name: "Swatch 2",
+  c3Name: "Swatch 3",
+  prevLabel: "Previous button",
+  nextLabel: "Next button",
+  cardTag: "Card tag",
+  stat: "Metric"
 };
 var ASSET_SLOTS = {
   image: ["src"],
@@ -11654,7 +12340,11 @@ var ASSET_SLOTS = {
   clocks: [["items", "src"]],
   roster: [["items", "src"]],
   arches: [["items", "src"]],
-  chapters: [["chapters", "src"]]
+  chapters: [["chapters", "src"]],
+  typemask: ["maskSrc"],
+  fullmenu: [["menuItems", "src"]],
+  swatchshop: [["products", "c1Src", "c2Src", "c3Src"]],
+  scrollsteps: [["steps", "src"]]
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
@@ -12347,6 +13037,16 @@ function relink(from, to) {
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       p.items.forEach((it) => {
         if (it.href !== void 0) it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "fullmenu" && Array.isArray(p.menuItems)) {
+      p.menuItems.forEach((it) => {
+        if (it && it.href !== void 0) it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "swatchshop" && Array.isArray(p.products)) {
+      p.products.forEach((it) => {
+        if (it && it.href !== void 0) it.href = swap2(it.href);
       });
     }
     if (node.type === "text" && typeof p.html === "string") {
@@ -15575,7 +16275,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -15599,9 +16299,14 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "arches") arches = true;
     else if (node.type === "chapters") chapters = true;
     else if (node.type === "slotpicker") slotpicker = true;
+    else if (node.type === "typemask") typemask = true;
+    else if (node.type === "fullmenu") fullmenu = true;
+    else if (node.type === "swatchshop") swatchshop = true;
+    else if (node.type === "snaprail") snaprail = true;
+    else if (node.type === "scrollsteps") scrollsteps = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -15625,7 +16330,12 @@ ${QAPILLS_CSS}` : "") + (used.dockbar ? `
 ${DOCKBAR_CSS}` : "") + (used.arches ? `
 ${ARCHES_CSS}` : "") + (used.chapters ? `
 ${CHAPTERS_CSS}` : "") + (used.slotpicker ? `
-${SLOTPICKER_CSS}` : "") + (used.videoLightbox ? `
+${SLOTPICKER_CSS}` : "") + (used.typemask ? `
+${TYPEMASK_CSS}` : "") + (used.fullmenu ? `
+${FULLMENU_CSS}` : "") + (used.swatchshop ? `
+${SWATCHSHOP_CSS}` : "") + (used.snaprail ? `
+${SNAPRAIL_CSS}` : "") + (used.scrollsteps ? `
+${SCROLLSTEPS_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -15671,6 +16381,11 @@ ${ANIM_CALM}` : "")),
       arches: pageExtra.arches && !globalExtra.arches,
       chapters: pageExtra.chapters && !globalExtra.chapters,
       slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
+      typemask: pageExtra.typemask && !globalExtra.typemask,
+      fullmenu: pageExtra.fullmenu && !globalExtra.fullmenu,
+      swatchshop: pageExtra.swatchshop && !globalExtra.swatchshop,
+      snaprail: pageExtra.snaprail && !globalExtra.snaprail,
+      scrollsteps: pageExtra.scrollsteps && !globalExtra.scrollsteps,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -16452,6 +17167,8 @@ function renderNode(n, o) {
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "")).action) family.push(root + "-status");
     } else if (n.type === "image" && captionNamesImageLink(p, o)) {
       family.push(root + "-caption");
+    } else if (n.type === "typemask") {
+      family.push(root + "-clip");
     } else if (ITEM_ID_PARTS[n.type]) {
       const rows = n.type === "chapters" ? p.chapters : p.items;
       if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type].forEach((part) => family.push(`${root}-${part}-${i}`)));
@@ -17190,6 +17907,96 @@ function renderNode(n, o) {
       }).join("");
       return `<div ${at()} ${cx("pagecraft-chapters")} data-chapters data-auto="${esc(autoAttr)}"${ratioStyle}><div class="pagecraft-chapters-stage">${slides}${autoAttr !== "0" && items.length > 1 && !o.edit ? '<button type="button" class="pagecraft-chapters-pause" data-ch-pause aria-pressed="false" hidden>Pause</button>' : ""}</div><div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div></div>`;
     }
+    case "typemask": {
+      const word = String(p.wordmark || "STUDIO").trim().toUpperCase() || "STUDIO";
+      const src = esc(String(p.maskSrc || PH));
+      const alt = esc(String(p.maskAlt || word));
+      const clipId = `${domId()}-clip`;
+      return `<div ${at()} ${cx("pagecraft-typemask")} data-typemask><svg class="pagecraft-typemask-svg" viewBox="0 0 1200 216" role="img" aria-label="${alt}"><title>${alt}</title><defs><clipPath id="${clipId}"><text x="600" y="182" text-anchor="middle" textLength="1176" lengthAdjust="spacingAndGlyphs" class="pagecraft-typemask-txt">${esc(word)}</text></clipPath></defs><rect width="1200" height="216" fill="#2A3630" clip-path="url(#${clipId})"/><image href="${src}" width="1200" height="216" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/></svg></div>`;
+    }
+    case "fullmenu": {
+      const trig = String(p.triggerLabel || "Menu");
+      const clsLbl = String(p.closeLabel || "Close");
+      const note = String(p.menuNote || "");
+      const items = (Array.isArray(p.menuItems) ? p.menuItems : []).filter(Boolean);
+      const firstIdx = items.findIndex((it) => it.src);
+      const firstSrc = firstIdx >= 0 ? items[firstIdx].src : "";
+      const stageStyle = firstSrc ? ` style="background-image:url(&quot;${esc(String(firstSrc))}&quot;)"` : "";
+      const listHtml = items.map((it, i) => {
+        const lbl = String(it.label || `Page ${i + 1}`);
+        const mt = String(it.meta || "");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : "#";
+        const pv = String(it.src || "");
+        const pvAttr = pv ? ` data-preview-src="${esc(pv)}" data-preview-idx="${i}"` : "";
+        return `<li style="--fm-i:${i}"><a class="pagecraft-fullmenu-link" href="${esc(href)}"${pvAttr}><span class="pagecraft-fullmenu-lbl">${esc(lbl)}</span>` + (mt ? `<span class="pagecraft-fullmenu-meta">${esc(mt)}</span>` : "") + `</a></li>`;
+      }).join("");
+      const platesHtml = items.map((it, i) => {
+        const pv = String(it.src || "").trim();
+        if (!pv) return "";
+        const active = (firstIdx >= 0 ? i === firstIdx : i === 0) ? "1" : "0";
+        return `<div class="pagecraft-fullmenu-plate" data-fm-plate="${i}" data-active="${active}" style="background-image:url(&quot;${esc(pv)}&quot;)"></div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-fullmenu")} data-fullmenu><button type="button" class="pagecraft-fullmenu-btn" aria-haspopup="dialog" aria-expanded="false"><span>${esc(trig)}</span><span class="pagecraft-fullmenu-bars" aria-hidden="true"><i></i><i></i></span></button><dialog class="pagecraft-fullmenu-dlg" aria-label="Site navigation"><div class="pagecraft-fullmenu-inner"><div class="pagecraft-fullmenu-top"><div class="pagecraft-fullmenu-bar"><span class="pagecraft-fullmenu-note">${esc(note)}</span><button type="button" class="pagecraft-fullmenu-close">${esc(clsLbl)} \u2715</button></div></div><div class="pagecraft-fullmenu-body"><div class="pagecraft-fullmenu-grid"><ul class="pagecraft-fullmenu-list">${listHtml}</ul><div class="pagecraft-fullmenu-stage"${stageStyle} aria-hidden="true">${platesHtml}</div></div></div></div></dialog></div>`;
+    }
+    case "swatchshop": {
+      const cols2 = ["2", "3", "4"].includes(String(p.gridCols)) ? String(p.gridCols) : "4";
+      const items = (Array.isArray(p.products) ? p.products : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const nm = String(it.prodName || `Product ${i + 1}`);
+        const pr = String(it.prodPrice || "");
+        const sp = String(it.prodSpec || "");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const cta = String(it.ctaLabel || "View details");
+        const swatches = [
+          { name: String(it.c1Name || "Default"), hex: String(it.c1Hex || "#1F2421"), src: String(it.c1Src || PH) },
+          ...it.c2Name ? [{ name: String(it.c2Name), hex: String(it.c2Hex || "#145C3E"), src: String(it.c2Src || it.c1Src || PH) }] : [],
+          ...it.c3Name ? [{ name: String(it.c3Name), hex: String(it.c3Hex || "#9E3D22"), src: String(it.c3Src || it.c1Src || PH) }] : []
+        ];
+        const first = swatches[0];
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const dots = swatches.map((sw, sIdx) => {
+          const safeHex = /^#[0-9a-fA-F]{3,8}$/.test(sw.hex.trim()) ? sw.hex.trim() : "#1F2421";
+          return `<button type="button" class="pagecraft-swatch-dot" style="background-color:${esc(safeHex)}" data-swp-name="${esc(sw.name)}" data-swp-src="${esc(sw.src)}" aria-label="${esc(nm + " in " + sw.name)}" aria-pressed="${sIdx === 0 ? "true" : "false"}"></button>`;
+        }).join("");
+        const activeTxt = first.name + (sp ? ` \xB7 ${sp}` : "");
+        return `<li class="pagecraft-swatch-card" data-spec="${esc(sp)}"><div class="pagecraft-swatch-media"><img class="pagecraft-swatch-img" src="${esc(first.src)}" alt="${esc(String(it.alt || nm))}"${dim} decoding="async"></div><div class="pagecraft-swatch-head"><h3 class="pagecraft-swatch-name">${esc(nm)}</h3>` + (pr ? `<span class="pagecraft-swatch-price">${esc(pr)}</span>` : "") + `</div><p class="pagecraft-swatch-active" data-swp-active>${esc(activeTxt)}</p><div class="pagecraft-swatch-foot"><div class="pagecraft-swatch-dots" role="group" aria-label="${esc(nm + " colourways")}">${dots}</div>` + (link ? `<a class="pagecraft-swatch-link" href="${esc(link)}">${esc(cta)}</a>` : rawHref && o.edit ? `<span class="pagecraft-swatch-link">${esc(cta)}</span>` : "") + `</div></li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-swatchshop")} data-swatchshop style="--swp-cols:${esc(cols2)}"><ul class="pagecraft-swatch-grid">${cards}</ul></div>`;
+    }
+    case "snaprail": {
+      const prevLbl = String(p.prevLabel || "Previous card");
+      const nextLbl = String(p.nextLabel || "Next card");
+      const items = (Array.isArray(p.railCards) ? p.railCards : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const bg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.bgHex || "").trim()) ? String(it.bgHex).trim() : "#14261F";
+        const fg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.fgHex || "").trim()) ? String(it.fgHex).trim() : "#F2F6F3";
+        const tag = String(it.cardTag || "");
+        const title = String(it.title || `Feature ${i + 1}`);
+        const detail = String(it.detail || "");
+        const stat = String(it.stat || "");
+        return `<li class="pagecraft-snaprail-card" style="background-color:${esc(bg)};color:${esc(fg)}"><div class="pagecraft-snaprail-top">` + (tag ? `<span class="pagecraft-snaprail-tag">${esc(tag)}</span>` : "") + `<h3 class="pagecraft-snaprail-title">${esc(title)}</h3>` + (detail ? `<p class="pagecraft-snaprail-detail">${esc(detail)}</p>` : "") + `</div>` + (stat ? `<p class="pagecraft-snaprail-stat">${esc(stat)}</p>` : "") + `</li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-snaprail")} data-snaprail><div class="pagecraft-snaprail-controls"><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="-1" aria-label="${esc(prevLbl)}">\u2190</button><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="1" aria-label="${esc(nextLbl)}">\u2192</button></div><ul class="pagecraft-snaprail-track" tabindex="0" aria-label="Feature cards">${cards}</ul></div>`;
+    }
+    case "scrollsteps": {
+      const items = (Array.isArray(p.steps) ? p.steps : []).filter(Boolean);
+      const checkSvg = `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3.5 8.5 6.8 11.5 12.8 4.8"/></svg>`;
+      const rows = items.map((it, i) => {
+        const title = String(it.title || `Step ${i + 1}`);
+        const badge = String(it.badge || "");
+        const detail = String(it.detail || "");
+        const rawSrc = String(it.src || "").trim();
+        const hasImg = !!rawSrc;
+        const src = esc(rawSrc);
+        const alt = esc(String(it.alt || title));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const noImgAttr = hasImg ? "" : ' data-no-img="1"';
+        return `<li class="pagecraft-scrollsteps-item" data-active="${i === 0 ? "1" : "0"}"${noImgAttr} tabindex="0"><span class="pagecraft-scrollsteps-dot" aria-hidden="true">${checkSvg}</span><div class="pagecraft-scrollsteps-copy"><h3 class="pagecraft-scrollsteps-title">${esc(title)}</h3>` + (detail ? `<p class="pagecraft-scrollsteps-detail">${esc(detail)}</p>` : "") + (badge ? `<div><span class="pagecraft-scrollsteps-badge">${esc(badge)}</span></div>` : "") + `</div>` + (hasImg ? `<img class="pagecraft-scrollsteps-img" src="${src}" alt="${alt}"${dim} decoding="async">` : "") + `</li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-scrollsteps")} data-scrollsteps><div class="pagecraft-scrollsteps-spine" aria-hidden="true"><div class="pagecraft-scrollsteps-fill"></div></div><ol class="pagecraft-scrollsteps-list">${rows}</ol></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -17704,7 +18511,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -18224,6 +19031,8 @@ var __CORE = {
   FONT_BASE,
   FONT_SUBSETS,
   FRONT,
+  FULLMENU_CSS,
+  FULLMENU_JS,
   GF,
   HOOKS,
   HOTSPOT_CSS,
@@ -18263,6 +19072,8 @@ var __CORE = {
   ROSTER_CSS,
   ROSTER_JS,
   SCHEMA,
+  SCROLLSTEPS_CSS,
+  SCROLLSTEPS_JS,
   SCROLLY_CSS,
   SCROLLY_JS,
   SEC_TAGS,
@@ -18274,12 +19085,16 @@ var __CORE = {
   SLOTPICKER_CSS,
   SLOTPICKER_JS,
   SLOT_LABEL,
+  SNAPRAIL_CSS,
+  SNAPRAIL_JS,
   SRCSET_W,
   STATES,
   STRIPS_CSS,
   STRIPS_JS,
   STYLE_CLIP_KEY,
   STYLE_CLIP_VERSION,
+  SWATCHSHOP_CSS,
+  SWATCHSHOP_JS,
   SWITCHER_CSS,
   SWITCHER_JS,
   TABS_JS,
@@ -18290,6 +19105,7 @@ var __CORE = {
   TIMELINE_CSS,
   TRANSITIONS,
   TS_TYPES,
+  TYPEMASK_CSS,
   TYPO_KEYS,
   U,
   VAL,
@@ -24662,7 +25478,12 @@ var PC_UI = (() => {
         ["scrolly", "Sticky steps"],
         ["chapters", "Chapter frame"],
         ["exhibit", "Exhibit index"],
-        ["arches", "Fanned arches"]
+        ["arches", "Fanned arches"],
+        ["typemask", "Masked wordmark"],
+        ["fullmenu", "Fullscreen menu"],
+        ["swatchshop", "Product swatches"],
+        ["snaprail", "Snap card rail"],
+        ["scrollsteps", "Scroll steps"]
       ]
     },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
@@ -24680,7 +25501,12 @@ var PC_UI = (() => {
     scrolly: "An image that stays in view and changes as visitors read.",
     chapters: "A large image sequence that plays by itself, with titles.",
     exhibit: "A project list that previews an image on hover.",
-    arches: "Up to five photos in a decorative fan of arches."
+    arches: "Up to five photos in a decorative fan of arches.",
+    typemask: "Large display letters filled with an image.",
+    fullmenu: "A menu button that opens a full-screen link list with preview images.",
+    swatchshop: "Product cards with colour dots that swap the image.",
+    snaprail: "Colour cards in a horizontal row with next and back buttons.",
+    scrollsteps: "Steps along a vertical line that fills as visitors scroll."
   };
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
   var QUICK_ADD_LIMIT = 7;
@@ -24728,6 +25554,11 @@ var PC_UI = (() => {
     arches: "fanned arc collage arch showcase triptych wellness hero",
     chapters: "cinematic frame chapters story progress showcase",
     slotpicker: "booking appointment reservation session time slot form request",
+    typemask: "cutout wordmark masked display typography poster hero",
+    fullmenu: "overlay drawer fullscreen navigation index preview links",
+    swatchshop: "product cards colourways swatches store gear shop",
+    snaprail: "horizontal colour cards snap rail features",
+    scrollsteps: "vertical line scroll steps process sequence",
     list: "collection cms dynamic"
   };
   var TABS = [
@@ -34920,6 +35751,266 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
+    },
+    typemask: {
+      label: "Masked wordmark",
+      icon: "typemask",
+      level: 4,
+      caps: ["spacing", "typography", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          wordmark: "STUDIO",
+          maskSrc: "",
+          maskAlt: "Display wordmark"
+        },
+        css: { d: { width: "100%" }, t: {}, m: {} }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "wordmark", label: "Display wordmark", ph: "STUDIO" },
+          { t: "img", k: "maskSrc", label: "Fill image" },
+          { t: "text", k: "maskAlt", label: "Accessible label", ph: "Display wordmark" }
+        ],
+        style: []
+      }
+    },
+    fullmenu: {
+      label: "Fullscreen menu",
+      icon: "fullmenu",
+      level: 4,
+      caps: ["spacing", "typography", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          triggerLabel: "Menu",
+          closeLabel: "Close",
+          menuNote: "",
+          menuItems: [
+            { label: "Home", href: "index.html", meta: "", src: "", alt: "" },
+            { label: "Products", href: "#products", meta: "", src: "", alt: "" },
+            { label: "About", href: "#about", meta: "", src: "", alt: "" },
+            { label: "Contact", href: "#contact", meta: "", src: "", alt: "" }
+          ]
+        },
+        css: {
+          d: {
+            "--fm-bg": "#0A0E0C",
+            "--fm-ink": "#F4F7F5",
+            "--fm-muted": "#A6B5AE",
+            "--fm-accent": "#C9F24B",
+            "--fm-btn-bg": "rgba(244,247,245,0.08)",
+            "--fm-btn-fg": "#F4F7F5",
+            "--fm-btn-border": "rgba(244,247,245,0.26)"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "triggerLabel", label: "Button label", ph: "Menu" },
+          { t: "text", k: "closeLabel", label: "Close label", ph: "Close" },
+          { t: "text", k: "menuNote", label: "Drawer header note", ph: "Optional note" },
+          {
+            t: "qa",
+            k: "menuItems",
+            label: "Navigation items",
+            addLabel: "Add link",
+            rowFields: [
+              { k: "label", label: "Link label", ph: "Page name", def: "New page" },
+              { k: "href", label: "Destination URL", ph: "about.html", def: "#" },
+              { k: "meta", label: "Descriptor", ph: "Optional subtitle", def: "" },
+              { k: "src", label: "Hover preview image", ph: "asset:preview", def: "", img: 1 },
+              { k: "alt", label: "Preview alt text", ph: "Describe image", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--fm-bg", label: "Drawer background", r: 1, layout: "inline" },
+          { t: "color", c: "--fm-ink", label: "Drawer text", r: 1, layout: "inline" },
+          { t: "color", c: "--fm-muted", label: "Muted text", r: 1, layout: "inline" },
+          { t: "color", c: "--fm-accent", label: "Hover accent", r: 1, layout: "inline" },
+          { t: "color", c: "--fm-btn-bg", label: "Trigger fill", r: 1, layout: "inline" },
+          { t: "color", c: "--fm-btn-fg", label: "Trigger text", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    swatchshop: {
+      label: "Product swatches",
+      icon: "swatchshop",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          gridCols: "4",
+          products: [
+            { prodName: "First product", prodPrice: "$120", prodSpec: "", href: "", ctaLabel: "View details", c1Name: "Charcoal", c1Hex: "#1F2421", c1Src: "", c2Name: "Forest", c2Hex: "#145C3E", c2Src: "", alt: "" },
+            { prodName: "Second product", prodPrice: "$160", prodSpec: "", href: "", ctaLabel: "View details", c1Name: "Forest", c1Hex: "#145C3E", c1Src: "", c2Name: "Rust", c2Hex: "#9E3D22", c2Src: "", alt: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--swp-surface": cvar("surface"),
+            "--swp-media-bg": "#E7ECE9",
+            "--swp-ink": cvar("ink"),
+            "--swp-muted": cvar("muted"),
+            "--swp-line": cvar("line"),
+            "--swp-accent": cvar("brand"),
+            "--swp-radius": "10px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "gridCols", label: "Desktop columns", opts: [["2", "2 columns"], ["3", "3 columns"], ["4", "4 columns"]] },
+          {
+            t: "qa",
+            k: "products",
+            label: "Products",
+            addLabel: "Add product",
+            rowFields: [
+              { k: "prodName", label: "Product name", ph: "Product name", def: "New product" },
+              { k: "prodPrice", label: "Price", ph: "$120", def: "$120" },
+              { k: "prodSpec", label: "Subtitle / spec", ph: "Optional detail", def: "" },
+              { k: "href", label: "Product link", ph: "products.html", def: "" },
+              { k: "ctaLabel", label: "Link label", ph: "View details", def: "View details" },
+              { k: "c1Name", label: "Swatch 1 name", ph: "Charcoal", def: "Charcoal" },
+              { k: "c1Hex", label: "Swatch 1 hex", ph: "#1F2421", def: "#1F2421" },
+              { k: "c1Src", label: "Swatch 1 image", ph: "asset:item-1", def: "", img: 1 },
+              { k: "c2Name", label: "Swatch 2 name", ph: "Forest", def: "" },
+              { k: "c2Hex", label: "Swatch 2 hex", ph: "#145C3E", def: "#145C3E" },
+              { k: "c2Src", label: "Swatch 2 image", ph: "asset:item-2", def: "", img: 1 },
+              { k: "c3Name", label: "Swatch 3 name", ph: "Rust", def: "" },
+              { k: "c3Hex", label: "Swatch 3 hex", ph: "#9E3D22", def: "#9E3D22" },
+              { k: "c3Src", label: "Swatch 3 image", ph: "asset:item-3", def: "", img: 1 },
+              { k: "alt", label: "Image alt text", ph: "Describe product", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--swp-surface", label: "Card surface", r: 1, layout: "inline" },
+          { t: "color", c: "--swp-media-bg", label: "Image backdrop", r: 1, layout: "inline" },
+          { t: "color", c: "--swp-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--swp-muted", label: "Muted colour", r: 1, layout: "inline" },
+          { t: "color", c: "--swp-line", label: "Border colour", r: 1, layout: "inline" },
+          { t: "color", c: "--swp-accent", label: "Link accent", r: 1, layout: "inline" },
+          { t: "unit", c: "--swp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
+    },
+    snaprail: {
+      label: "Snap card rail",
+      icon: "snaprail",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          prevLabel: "Previous card",
+          nextLabel: "Next card",
+          railCards: [
+            { cardTag: "", title: "First highlight", detail: "Add a short point that stands on its own.", stat: "Key figure", bgHex: "#14261F", fgHex: "#F2F6F3" },
+            { cardTag: "", title: "Second highlight", detail: "Visitors scroll or use the arrows to read across.", stat: "Key figure", bgHex: "#1E272E", fgHex: "#F2F5F7" },
+            { cardTag: "", title: "Third highlight", detail: "Each card can carry its own background and text colour.", stat: "Key figure", bgHex: "#E6ECE8", fgHex: "#0E1512" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--sr-card-w": "340px",
+            "--sr-card-h": "400px",
+            "--sr-radius": "14px",
+            "--sr-btn-bg": cvar("surface"),
+            "--sr-btn-ink": cvar("ink"),
+            "--sr-btn-line": cvar("line")
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "prevLabel", label: "Previous button label", ph: "Previous card" },
+          { t: "text", k: "nextLabel", label: "Next button label", ph: "Next card" },
+          {
+            t: "qa",
+            k: "railCards",
+            label: "Rail cards",
+            addLabel: "Add card",
+            rowFields: [
+              { k: "title", label: "Card heading", ph: "Card heading", def: "New card" },
+              { k: "detail", label: "Body copy", ph: "Short description", def: "", area: 1 },
+              { k: "stat", label: "Bottom metric", ph: "Optional figure", def: "" },
+              { k: "bgHex", label: "Card fill hex", ph: "#14261F", def: "#14261F" },
+              { k: "fgHex", label: "Card text hex", ph: "#F2F6F3", def: "#F2F6F3" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--sr-card-w", label: "Card width", layout: "inline", r: 1, units: U.size },
+          { t: "unit", c: "--sr-card-h", label: "Card min height", layout: "inline", r: 1, units: U.size },
+          { t: "unit", c: "--sr-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--sr-btn-bg", label: "Arrow background", r: 1, layout: "inline" },
+          { t: "color", c: "--sr-btn-ink", label: "Arrow icon colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sr-btn-line", label: "Arrow border", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    scrollsteps: {
+      label: "Scroll steps",
+      icon: "scrollsteps",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          steps: [
+            { title: "First step", badge: "", detail: "Explain what happens first.", src: "", alt: "" },
+            { title: "Second step", badge: "", detail: "The line beside the steps fills as visitors scroll.", src: "", alt: "" },
+            { title: "Third step", badge: "", detail: "Add an optional image to any step.", src: "", alt: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ss-accent": cvar("brand"),
+            "--ss-on": brandActionForeground(),
+            "--ss-ink": cvar("ink"),
+            "--ss-muted": cvar("muted"),
+            "--ss-line": cvar("line"),
+            "--ss-surface": cvar("surface"),
+            "--ss-radius": "12px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "qa",
+            k: "steps",
+            label: "Process steps",
+            addLabel: "Add step",
+            rowFields: [
+              { k: "title", label: "Step heading", ph: "Step heading", def: "New step" },
+              { k: "badge", label: "Badge (optional)", ph: "Optional note", def: "" },
+              { k: "detail", label: "Description", ph: "Step details", def: "", area: 1 },
+              { k: "src", label: "Step image", ph: "asset:step", def: "", img: 1 },
+              { k: "alt", label: "Image alt text", ph: "Describe image", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "color", c: "--ss-accent", label: "Step line accent", r: 1, layout: "inline" },
+          { t: "color", c: "--ss-on", label: "Checkmark on accent", r: 1, layout: "inline" },
+          { t: "color", c: "--ss-surface", label: "Step surface", r: 1, layout: "inline" },
+          { t: "color", c: "--ss-ink", label: "Heading colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ss-muted", label: "Body colour", r: 1, layout: "inline" },
+          { t: "color", c: "--ss-line", label: "Rule & spine colour", r: 1, layout: "inline" },
+          { t: "unit", c: "--ss-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+        ]
+      }
     }
   };
   var CODE_LANGS = {
@@ -38708,6 +39799,10 @@ function runPreviewRuntime(html, editing = false) {
     [/data-qapills/.test(html), QAPILLS_JS],
     [/data-chapters/.test(html), CHAPTERS_JS],
     [/data-slotpicker/.test(html), SLOTPICKER_JS],
+    [/data-fullmenu/.test(html), FULLMENU_JS],
+    [/data-swatchshop/.test(html), SWATCHSHOP_JS],
+    [/data-snaprail/.test(html), SNAPRAIL_JS],
+    [/data-scrollsteps/.test(html), SCROLLSTEPS_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

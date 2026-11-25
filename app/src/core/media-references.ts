@@ -46,12 +46,20 @@ export function mediaReferences(document: Doc): MediaReference[] {
       : node.type === 'audio' ? ['src', 'artwork']
       : node.type === 'compare' ? ['beforeSrc', 'afterSrc']
       : node.type === 'hotspot' ? ['src']
+      : node.type === 'typemask' ? ['maskSrc']
       : [];
     fields.forEach(key => scan(props[key], [...base, 'props', key], where));
     if ((node.type === 'gallery' || node.type === 'strips' || node.type === 'switcher' || node.type === 'exhibit' || node.type === 'scrolly' || node.type === 'clocks' || node.type === 'roster' || node.type === 'arches') && Array.isArray(props.items)) props.items.forEach((item, j) =>
       scan(item.src, [...base, 'props', 'items', j, 'src'], where));
     if (node.type === 'chapters' && Array.isArray(props.chapters)) props.chapters.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'chapters', j, 'src'], where));
+    if (node.type === 'fullmenu' && Array.isArray(props.menuItems)) props.menuItems.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'menuItems', j, 'src'], where));
+    if (node.type === 'swatchshop' && Array.isArray(props.products)) props.products.forEach((item: any, j: number) => {
+      for (const k of ['c1Src', 'c2Src', 'c3Src']) scan(item?.[k], [...base, 'props', 'products', j, k], where);
+    });
+    if (node.type === 'scrollsteps' && Array.isArray(props.steps)) props.steps.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'steps', j, 'src'], where));
     const definition = document.meta.components?.find(def => def.id === node.use);
     definition?.props.filter(prop => prop.t === 'img').forEach(prop =>
       scan(node.vals?.[prop.k], [...base, 'vals', prop.k], where));

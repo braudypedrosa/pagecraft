@@ -103,7 +103,12 @@ const IC: Record<string, string> = {
   dockbar: '<rect x="3" y="7" width="18" height="10" rx="2.5"/><path d="M9 7v10M15 7v10"/>',
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
-  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
+  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>',
+  typemask: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M8 8.5h8M12 8.5v7"/>',
+  fullmenu: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M6.5 9h5M6.5 12h5M6.5 15h4"/><rect x="13.5" y="8.5" width="4" height="7" rx="1"/>',
+  swatchshop: '<rect x="4" y="4" width="16" height="10.5" rx="2"/><circle cx="7" cy="18.5" r="1.5"/><circle cx="12" cy="18.5" r="1.5"/><circle cx="17" cy="18.5" r="1.5"/>',
+  snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
+  scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>'
 };
 /* The grid's outer unit is spare, so it is cropped: 12px chrome icons stay legible. */
 const IC_VIEW = '1 1 22 22';

@@ -61,7 +61,9 @@ const PAL: { g: string; items: [string, string][] }[] = [
     g: 'Special blocks', items: [
       ['slotpicker', 'Booking request'], ['dockbar', 'Docked bar'], ['tiers', 'Pricing table'], ['qapills', 'Question pills'],
       ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
-      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches']
+      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'],
+      ['arches', 'Fanned arches'], ['typemask', 'Masked wordmark'], ['fullmenu', 'Fullscreen menu'],
+      ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -81,7 +83,12 @@ export const PURPOSE: Record<string, string> = {
   scrolly: 'An image that stays in view and changes as visitors read.',
   chapters: 'A large image sequence that plays by itself, with titles.',
   exhibit: 'A project list that previews an image on hover.',
-  arches: 'Up to five photos in a decorative fan of arches.'
+  arches: 'Up to five photos in a decorative fan of arches.',
+  typemask: 'Large display letters filled with an image.',
+  fullmenu: 'A menu button that opens a full-screen link list with preview images.',
+  swatchshop: 'Product cards with colour dots that swap the image.',
+  snaprail: 'Colour cards in a horizontal row with next and back buttons.',
+  scrollsteps: 'Steps along a vertical line that fills as visitors scroll.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -139,6 +146,11 @@ const ALIASES: Record<string, string> = {
   arches: 'fanned arc collage arch showcase triptych wellness hero',
   chapters: 'cinematic frame chapters story progress showcase',
   slotpicker: 'booking appointment reservation session time slot form request',
+  typemask: 'cutout wordmark masked display typography poster hero',
+  fullmenu: 'overlay drawer fullscreen navigation index preview links',
+  swatchshop: 'product cards colourways swatches store gear shop',
+  snaprail: 'horizontal colour cards snap rail features',
+  scrollsteps: 'vertical line scroll steps process sequence',
   list: 'collection cms dynamic',
 };
 

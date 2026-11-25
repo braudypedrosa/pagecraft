@@ -211,6 +211,11 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('arches', { items: [{ src: 'https://example.test/a1.webp', alt: 'Arch 1' }] }),
     C.N('chapters', { frameRatio: '16 / 9', autoSeconds: '0', chapters: [{ chapterTitle: 'Caldarium', chapterSub: '40C', overlayText: 'Warm spring.', src: 'https://example.test/ch1.webp', alt: 'Caldarium' }] }),
     C.N('slotpicker', { action: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }], slots: [{ time: '06:30' }], fields: [{ type: 'email', label: 'Email', name: 'email', required: 1 }] }),
+    C.N('typemask', { wordmark: 'ROUNDTRIP', maskSrc: 'https://example.test/mask.webp', maskAlt: 'Roundtrip cutout' }),
+    C.N('fullmenu', { triggerLabel: 'Menu', closeLabel: 'Close', menuNote: 'Note', menuItems: [{ label: 'Overview', href: 'https://example.test/overview', meta: 'Main', src: 'https://example.test/m1.webp', alt: 'Overview' }] }),
+    C.N('swatchshop', { gridCols: '2', products: [{ prodName: 'Storm Jacket', prodPrice: '$480', prodSpec: '310 g', href: 'https://example.test/jacket', ctaLabel: 'Inspect', c1Name: 'Spruce', c1Hex: '#145C3E', c1Src: 'https://example.test/j1.webp', alt: 'Jacket' }] }),
+    C.N('snaprail', { prevLabel: 'Previous', nextLabel: 'Next', railCards: [{ cardTag: '01', title: 'Seam Weld', detail: 'Ultrasonic micro-tape.', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }] }),
+    C.N('scrollsteps', { steps: [{ title: 'Batch Tag', badge: '48h', detail: 'Laser serial.', src: 'https://example.test/st1.webp', alt: 'Batch tag' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -244,14 +249,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 47 Add choices map to stable persisted module shapes', () => {
+  test('all 52 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(47);
-    expect(new Set(choices)).toHaveLength(47);
+    expect(choices).toHaveLength(52);
+    expect(new Set(choices)).toHaveLength(52);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

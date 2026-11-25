@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "skarven-alpine",
+  "version": "1.0.0",
+  "sampleName": "SKARVEN — Technical Alpine Shells & Packs",
+  "packageSha256": "d2f762b97b21dff79bec30c3f47382e877460cd6f97d44ccbae9ee0effd53096",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}
