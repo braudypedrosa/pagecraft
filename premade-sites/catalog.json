@@ -1598,6 +1598,46 @@
     },
     {
       "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.10",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
       "id": "masuda-optical",
       "version": "1.0.0",
       "name": "MASUDA / 04",

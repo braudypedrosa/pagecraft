@@ -26,13 +26,13 @@ test('curated site catalog exposes each immutable package', async () => {
   const templates = await store.list();
   a.deepEqual(
     templates.filter(template => template.id === 'independent-studio').map(template => template.version),
-    ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8', '2.0.9'],
+    ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8', '2.0.9', '2.0.10'],
   );
   const latest = latestSiteTemplates(templates);
   const template = latest.find(candidate => candidate.id === 'independent-studio');
   const coastal = latest.find(candidate => candidate.id === 'coastal-rentals');
   a.ok(template && coastal);
-  a.equal(template.version, '2.0.9');
+  a.equal(template.version, '2.0.10');
   a.deepEqual(template.pages.map(page => page.slug), ['index', 'about', 'services', 'contact']);
   const bytes = new Uint8Array(await readFile(resolve(root, template.id, template.version, template.packageFile)));
   const validated = validatePortablePackage(bytes);
@@ -53,9 +53,9 @@ test('curated site catalog exposes each immutable package', async () => {
 test('each site installation receives independent asset identities and remains renderable', async () => {
   const store = new FileSiteTemplateStore(root);
   const first = await store.instantiate('independent-studio');
-  const second = await store.instantiate('independent-studio', '2.0.9');
+  const second = await store.instantiate('independent-studio', '2.0.10');
   a.ok(first && second);
-  a.equal(first.template.version, '2.0.9');
+  a.equal(first.template.version, '2.0.10');
   a.equal(first.document.pages.length, 4);
   a.equal(first.assets.length, 5);
   a.ok(first.assets.every(asset => asset.contentHash === sha256(asset.bytes)),
@@ -113,7 +113,7 @@ test('vacation-rental template installs as an editable nine-page Pagecraft site'
 
 test('template preview serves package HTML and its packaged media only', async () => {
   const store = new FileSiteTemplateStore(root);
-  const page = await store.preview('independent-studio', '2.0.9', 'index.html');
+  const page = await store.preview('independent-studio', '2.0.10', 'index.html');
   a.ok(page);
   a.equal(page.mediaType, 'text/html; charset=utf-8');
   const previewHtml = new TextDecoder().decode(page.bytes);
@@ -124,7 +124,7 @@ test('template preview serves package HTML and its packaged media only', async (
   a.match(previewHtml, /font-size:clamp\(44px,5vw,64px\)/);
   a.match(previewHtml, /nl-disciplines-intro/);
   a.doesNotMatch(previewHtml, /Three connected disciplines/);
-  a.match(previewHtml, /border-radius:12px/);
+  a.match(previewHtml, /border-radius:var\(--pc-card-radius,12px\)/);
   a.doesNotMatch(previewHtml, /class="[^"]*\bnl-loop-card\b/);
   a.match(previewHtml, new RegExp(PREMADE_DESIGN_CONTRACT_V1.cardShell));
   a.match(previewHtml, new RegExp(PREMADE_DESIGN_CONTRACT_V2.dividerList));
@@ -175,6 +175,7 @@ test('template preview serves package HTML and its packaged media only', async (
   a.equal(asset.mediaType, 'image/webp');
   a.ok(asset.bytes.byteLength > 20_000);
   a.equal(await store.preview(template.id, template.version, '../../catalog.json'), null);
+  a.ok(await store.preview('independent-studio', '2.0.9', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.7', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.8', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.6', 'index.html'));

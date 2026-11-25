@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-22T23:38:31.212Z",
+  "capturedAt": "2026-11-23T10:38:15.954Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -62,8 +62,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": true,
-        "dark": false
+        "light": false,
+        "dark": true
       }
     },
     "browserCommandLine": {
@@ -106,10 +106,10 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "376a0c29b4edfb7ad02032bfbea2ec1bb432ceea69acadcbd03a3d96b3e66491",
+    "builder.html": "cd5a964ae1048bce85c1fb1da283bcc0a73cf88f5dc40f9b27e7578aa3092ab6",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
-    "app/src/ui/Add.tsx": "e85d983209613a86bb05142b9591424922e30459659fd237170a96ecba4e0f68",
+    "app/src/ui/Add.tsx": "b119c14f8ba9c8f3dca69be031cbde2f8364331866646482b253b8ea176d6b80",
     "app/src/ui/Pages.tsx": "a011539003569a6eab777ab0adf54640a22fa385ad754ba63ea4a27068de5305",
     "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
@@ -117,14 +117,14 @@
     "app/src/ui/inspector/Controls.tsx": "a6925f5b1a9ef34f80d0d857e8624499df5e289a355f8f5b52cc49506427fbed",
     "app/src/ui/inspector/Inspector.tsx": "b73f6bbd2d2b7a8925e808555536876ed5bd187cf6af0bfdbcbedf5e68aded70",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
-    "app/src/ui/inspector/Lists.tsx": "7c544bbf0f266acf4659766d0219eee915beac047d4426b4902b47ae90fac287",
+    "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "d37db9ae9d5807e75e10b742c1932480d38ef04cd426d7f4a183efaa6d6362fa",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
-    "shared/workspace-styles.js": "01db6e07d38ced2d65c0dec96964f6264a87d4664de5c21c9c85ada4dd39b4ab",
+    "shared/workspace-styles.js": "9eb7eb46ed339d7e5503da1fc09ca25c483dfd664d46d41340e73871c2aaf753",
     "shared/dialog-styles.js": "6e83e6a6197d90f162f7d24c5ec9535dbdc447e8a5136105b62538b50edc79ce",
     "shared/custom-select.js": "d7c26c7734f32bcd41c752dd5bb229eadcbf07e39f58f6a833bf6d7a025ee3ba",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "5cf009f79fb5a23bdeb8b7396420c4e74cdac419fdd1ae83ad861af9cc1f7178",
+      "sha256": "e4b100400b6372c540f4b5471de9f0d0bb799312a0065c3fe7fd4d071a0f48f6",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

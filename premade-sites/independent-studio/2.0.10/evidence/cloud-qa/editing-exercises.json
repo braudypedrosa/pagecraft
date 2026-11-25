@@ -1,0 +1,332 @@
+{
+ "template": "independent-studio",
+ "site": "s1",
+ "startedAt": "2026-11-23T00:13:43.042Z",
+ "exercises": [
+  {
+   "check": "global-colors",
+   "pass": true,
+   "did": "Settings › Colours: Craft Green #1646d8 → #1f5f8b",
+   "observed": {
+    "elementsUsingToken": 6,
+    "elementsRepaintedOnCanvas": 6,
+    "savedInTokens": true
+   }
+  },
+  {
+   "check": "global-typography",
+   "pass": true,
+   "did": "Settings › Typography: Heading font Custom — Geist → Manrope; Body font Custom — Geist → DM Sans; \"Section title\" 38px → 47px",
+   "observed": {
+    "before": {
+     "heading": "Geist",
+     "h2": "Geist",
+     "body": "Geist"
+    },
+    "after": {
+     "heading": "Manrope",
+     "h2": "Manrope",
+     "body": "\"DM Sans\""
+    },
+    "headingFollowsHeadingFont": true,
+    "bodyFollowsBodyFont": true,
+    "sectionTitleSizes": {
+     "followed": [
+      47,
+      47,
+      47
+     ],
+     "ownSizeKept": [
+      [
+       "northline-v203-node-0004",
+       64,
+       64
+      ]
+     ]
+    },
+    "saved": {
+     "headFont": "'Manrope'",
+     "font": "'DM Sans'"
+    }
+   }
+  },
+  {
+   "check": "replace-images",
+   "pass": true,
+   "did": "Replaced northline-v2-node-0019 with closing-studio.webp from the Media library; replaced the photo of component instance (none on home)",
+   "observed": {
+    "before": "aeb14b488756d",
+    "after": {
+     "src": "http://127.0.0.1:4951/api/sites/s1/assets/a53cb65a82832",
+     "w": 1774,
+     "attrs": [
+      "1774",
+      "887"
+     ]
+    },
+    "instance": null,
+    "recordedSizeMatchesNewPhoto": true
+   }
+  },
+  {
+   "check": "long-headings",
+   "pass": true,
+   "did": "H1 lengthened to 124 characters, checked in Mobile, Tablet and Desktop canvas modes",
+   "observed": {
+    "Mobile": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 11
+    },
+    "Tablet": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 13
+    },
+    "Desktop": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 11
+    }
+   }
+  },
+  {
+   "check": "duplicate-reorder-delete",
+   "pass": true,
+   "did": "Selected section northline-v2-node-0047; ⌘D duplicate, ⇧↑ move up, ⌫ delete the copy",
+   "observed": {
+    "selected": [
+     "nijq2l1tq"
+    ],
+    "start": 5,
+    "afterDuplicate": 6,
+    "movedOrderChanged": true,
+    "afterDelete": 5,
+    "restoredOrder": true,
+    "savedSections": 5
+   }
+  },
+  {
+   "check": "shared-and-instance-styles",
+   "pass": true,
+   "did": "Section title northline-v2-node-0025: instance size 31px (This element), then \"Update typography\" to share it with northline-v2-node-0051",
+   "observed": {
+    "before": [
+     47,
+     47
+    ],
+    "instanceOnly": [
+     31,
+     47
+    ],
+    "afterShared": [
+     31,
+     31
+    ],
+    "confirm": "Update typography everywhere?"
+   }
+  },
+  {
+   "check": "responsive-inspector",
+   "pass": true,
+   "did": "Mobile mode: H1 size 29px; back to Desktop",
+   "observed": {
+    "mobileCanvas": 29,
+    "desktopCanvas": 81.84,
+    "savedMobileOverride": "29px",
+    "savedDesktop": "clamp(64px,6.2vw,84px)"
+   }
+  },
+  {
+   "check": "save-reopen",
+   "pass": true,
+   "did": "Reloaded the editor after autosave (saved version 13)",
+   "observed": {
+    "savedVersion": 13,
+    "reopened": {
+     "h1": 124,
+     "blue": true
+    },
+    "status": "Draft ready"
+   }
+  },
+  {
+   "check": "media-and-links",
+   "pass": true,
+   "did": "Button northline-v2-node-0015: link page About · /about → Services · /services; opened the Media library",
+   "observed": {
+    "hrefBefore": "about.html",
+    "hrefAfter": "services.html",
+    "library": {
+     "count": "5 of 5 images",
+     "usage": true,
+     "upload": true
+    }
+   }
+  },
+  {
+   "check": "global-navigation-footer",
+   "pass": true,
+   "did": "Edit header: menu item \"Home\" → \"Home & more\"; checked on 3 pages",
+   "observed": {
+    "savedInSharedHeader": true,
+    "pages": [
+     {
+      "page": "index",
+      "shows": true
+     },
+     {
+      "page": "about",
+      "shows": true
+     },
+     {
+      "page": "services",
+      "shows": true
+     }
+    ],
+    "footerRegion": true
+   }
+  },
+  {
+   "check": "stress-content",
+   "pass": true,
+   "did": "Row northline-v2-node-0028 (photo cards): 3 → 7 (checked in three modes) → 3 → 1; tripled the remaining card's description; removed its optional image",
+   "observed": {
+    "1": {
+     "n": 1,
+     "rendered": 1,
+     "overflow": false,
+     "minWidth": 1200,
+     "broken": 0
+    },
+    "3": {
+     "n": 3,
+     "rendered": 3,
+     "overflow": false,
+     "minWidth": 391,
+     "broken": 0
+    },
+    "start": 3,
+    "7-Desktop": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 159,
+     "broken": 0
+    },
+    "7-Tablet": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 99,
+     "broken": 0
+    },
+    "7-Mobile": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 374,
+     "broken": 0
+    },
+    "missingImage": {
+     "imgs": 1,
+     "broken": 0,
+     "height": 448,
+     "overflow": false
+    },
+    "longDescription": false,
+    "removedImage": true
+   }
+  },
+  {
+   "check": "publish-output",
+   "pass": true,
+   "did": "Publish › preview › Publish reviewed version (version 26)",
+   "observed": {
+    "publishState": "published",
+    "publishedVersion": 26,
+    "h1Length": 124,
+    "colourInCss": true,
+    "menuEditInHtml": true
+   }
+  },
+  {
+   "check": "form-behavior",
+   "pass": true,
+   "did": "Added a Form to contact from the Add panel and published; Published contact form filled with test data and submitted",
+   "observed": {
+    "added": {
+     "page": "contact",
+     "formSaved": true
+    },
+    "form": {
+     "action": "http://localhost:4951/forms/s1/nilr4a1qx",
+     "method": "post",
+     "fields": [
+      {
+       "name": "name",
+       "type": "text",
+       "required": true,
+       "label": "Name *"
+      },
+      {
+       "name": "email",
+       "type": "email",
+       "required": true,
+       "label": "Email *"
+      },
+      {
+       "name": "message",
+       "type": "textarea",
+       "required": false,
+       "label": "Message"
+      },
+      {
+       "name": "_pc_trap",
+       "type": "text",
+       "required": false,
+       "label": "Leave empty"
+      },
+      {
+       "name": "_pc_request",
+       "type": "hidden",
+       "required": false,
+       "label": null
+      }
+     ]
+    },
+    "landed": {
+     "url": "http://localhost:4951/forms/thanks",
+     "h1": "Thank you",
+     "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+     "invalid": []
+    },
+    "storedInSubmissions": true
+   }
+  }
+ ],
+ "targets": {
+  "h1": "northline-v2-node-0011",
+  "image": "northline-v2-node-0019",
+  "button": "northline-v2-node-0015",
+  "sections": [
+   "northline-v2-node-0007",
+   "northline-v2-node-0020",
+   "northline-v2-node-0047",
+   "northline-v203-node-0001",
+   "northline-v2-node-0087"
+  ],
+  "title": [
+   "northline-v2-node-0025",
+   "northline-v2-node-0051",
+   "northline-v203-node-0004"
+  ]
+ },
+ "publishedSlug": "northline-qa",
+ "finishedAt": "2026-11-23T00:16:00.860Z",
+ "chrome": "Chrome/156.0.8078.82",
+ "consoleErrors": []
+}

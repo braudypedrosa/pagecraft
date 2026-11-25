@@ -196,7 +196,7 @@ test("filter selection and site details survive Back without a hidden submission
   const visible = visibleCards(document);
   a.equal(visible.length, 1);
   const northline = visible[0].querySelector<HTMLInputElement>("input")!;
-  a.equal(northline.value, "independent-studio@2.0.9");
+  a.equal(northline.value, "independent-studio@2.0.10");
   a.equal(northline.checked, true);
   a.ok([...document.querySelectorAll<HTMLInputElement>('input[name="premadeTemplate"]')]
     .filter(radio => radio !== northline)
@@ -210,7 +210,7 @@ test("filter selection and site details survive Back without a hidden submission
   );
   a.equal(
     document.querySelector<HTMLInputElement>("[data-site-template]")?.value,
-    "independent-studio@2.0.9",
+    "independent-studio@2.0.10",
   );
   const name = document.querySelector<HTMLInputElement>('[name="name"]')!;
   const slug = document.querySelector<HTMLInputElement>('[name="slug"]')!;
