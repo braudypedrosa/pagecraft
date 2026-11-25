@@ -16,6 +16,8 @@ export interface Submission {
   error?: string;
   values: { label: string; value: string }[];
 }
+/** Who is emailed about new entries. No `recipients` means nobody has chosen: every owner. */
+export interface FormAlertSettings { recipients?: string[]; failedAt?: string }
 export const submissionOutcome = (entry: Submission) => entry.status === 'failed' ? 'failed' : 'success';
 export function sortSubmissions(entries: Submission[], order = 'desc') {
   const direction = order === 'asc' ? 1 : -1;
@@ -186,6 +188,23 @@ export class FileSubmissionStore {
       catch (e) { if (!missing(e)) throw e; }
     }
     return false;
+  }
+  async alerts(site: string): Promise<FormAlertSettings> {
+    let raw: string;
+    try { raw = await readFile(join(this.dir(site), 'alerts.json'), 'utf8'); }
+    catch (e) { if (missing(e)) return {}; throw e; }
+    const value = JSON.parse(raw);
+    return {
+      ...(Array.isArray(value?.recipients) ? { recipients: value.recipients.filter((id: unknown) => typeof id === 'string') } : {}),
+      ...(typeof value?.failedAt === 'string' ? { failedAt: value.failedAt } : {})
+    };
+  }
+  async setAlerts(site: string, settings: FormAlertSettings) {
+    const dir = this.dir(site);
+    await mkdir(dir, { recursive: true, mode: 0o700 });
+    const temp = join(dir, randomUUID() + '.tmp');
+    await writeFile(temp, JSON.stringify(settings), { flag: 'wx', mode: 0o600 });
+    await rename(temp, join(dir, 'alerts.json'));
   }
   async removeSite(site: string) { await rm(this.dir(site), { recursive: true, force: true }); }
 }

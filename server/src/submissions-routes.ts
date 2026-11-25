@@ -5,11 +5,12 @@ import { bodyLimit } from 'hono/body-limit';
 import type { Store } from './store.ts';
 import type { User, Role } from './auth.ts';
 import type { HostedPublicationStore } from './publications.ts';
-import { FileSubmissionStore, siteForms, submissionValues, submissionOutcome, submissionsCsv } from './submissions.ts';
+import { FileSubmissionStore, type Submission, siteForms, submissionValues, submissionOutcome, submissionsCsv } from './submissions.ts';
 import { siteSubmissionsPage } from './account-pages.ts';
 import { throttle } from './mail.ts';
 import { esc } from '../../app/src/core/index.ts';
 import type { AnalyticsRecorder } from './analytics.ts';
+import type { FormAlerts } from './form-alerts.ts';
 
 type Gate = { ok: true; user: User; role: Role } | { ok: false; status: 401 | 403 | 404 };
 export function submissionRoutes(app: Hono, o: {
@@ -18,6 +19,8 @@ export function submissionRoutes(app: Hono, o: {
   editorOrigin?: string; requestSource(c: Context): string;
   /** Phase 6: accepted submissions are counted where they are stored, while analytics is on. */
   analytics?: AnalyticsRecorder;
+  /** Email about new entries, to people on the site. */
+  alerts?: FormAlerts;
 }) {
   const base = '/sites/:id/submissions';
   const gate = (c: Context, verb: 'read' | 'write') => {
@@ -46,6 +49,8 @@ export function submissionRoutes(app: Hono, o: {
       const detail = form ? await o.submissions.page(c.req.param('id')!, entries, form, c.req.query('status') || '', Number(c.req.query('page')) || 1, c.req.query('order')) : undefined;
       if (!site) return c.notFound();
       const forms = siteForms(site.doc);
+      const alerts = access.role === 'owner' && o.alerts ? await o.alerts.view(site.id).catch(() => undefined) : undefined;
+      const notice = c.req.query('alerts') || '';
       const prepared: Record<string, string> = {};
       // Bound initial work independently of the total number of forms or entries.
       let entryBudget = 100, byteBudget = 512 * 1024;
@@ -54,7 +59,7 @@ export function submissionRoutes(app: Hono, o: {
         if (count > entryBudget) continue;
         entryBudget -= count;
         const first = await o.submissions.page(site.id, entries, id, '', 1);
-        const html = siteSubmissionsPage(access.user, site, access.role, forms, entries, id, '', 1, embedded, first.items, {}, true);
+        const html = siteSubmissionsPage(access.user, site, access.role, forms, entries, id, '', 1, embedded, first.items, {}, true, 'desc', alerts);
         const bytes = Buffer.byteLength(html);
         if (bytes > byteBudget) continue;
         byteBudget -= bytes;
@@ -62,7 +67,7 @@ export function submissionRoutes(app: Hono, o: {
         prepared['/sites/' + encodeURIComponent(site.id) + '/submissions?' + query] = html;
       }
       c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items, prepared, false, c.req.query('order')));
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items, prepared, false, c.req.query('order'), alerts, notice));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.get(base + '/export.csv', async c => {
@@ -89,6 +94,27 @@ export function submissionRoutes(app: Hono, o: {
         }
       });
     } catch { return c.text('Export failed. Try again.', 503); }
+  });
+  /* Choosing who is emailed, and sending yourself a test. Owners only: it decides who reads entries. */
+  app.post(base + '/alerts', bodyLimit({ maxSize: 16384 }), async c => {
+    const access = await gate(c, 'write');
+    if (!access.ok) return c.text('Access denied', access.status);
+    if (access.role !== 'owner') return c.text('Only an owner can change form emails.', 403);
+    if (c.req.header('origin') !== new URL(o.editorOrigin || c.req.url).origin) return c.text('Refresh this page and try again.', 403);
+    if (!o.alerts || !o.submissions) return c.text('Form emails are unavailable.', 503);
+    const id = c.req.param('id')!, data = new URLSearchParams(await c.req.text());
+    const query = new URLSearchParams();
+    for (const name of ['embedded', 'form']) if (data.get(name)) query.set(name, data.get(name)!);
+    try {
+      let result: string;
+      if (data.get('action') === 'test') {
+        const site = await o.store.byId(id);
+        if (!site) return c.notFound();
+        result = 'test-' + await o.alerts.test(id, site.name, access.user.email);
+      } else { await o.alerts.choose(id, data.getAll('person')); result = 'saved'; }
+      query.set('alerts', result);
+      return c.redirect('/sites/' + encodeURIComponent(id) + '/submissions?' + query, 303);
+    } catch { return c.text('Form emails were not changed. Try again.', 503); }
   });
   app.post(base + '/:entry/delete', bodyLimit({ maxSize: 1024 }), async c => {
     const access = await gate(c, 'write');
@@ -137,7 +163,10 @@ export function submissionRoutes(app: Hono, o: {
     }
     const request = data.get('_pc_request') || '';
     try {
-      const created = await o.submissions.add(id, { id: /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(request) ? request : randomUUID(), formId, formName: form.name, values, status: 'success', createdAt: new Date().toISOString() });
+      const entry: Submission = { id: /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(request) ? request : randomUUID(), formId, formName: form.name, values, status: 'success', createdAt: new Date().toISOString() };
+      const created = await o.submissions.add(id, entry);
+      // Not awaited: the entry is saved, and the visitor should not wait for a mail server.
+      if (created) void o.alerts?.entry(id, site.name, entry);
       if (created && o.analytics && await o.analytics.enabled(id).catch(() => false)) o.analytics.form(id, formId);
       return c.redirect(form.success ? `/forms/${encodeURIComponent(id)}/${encodeURIComponent(formId)}/thanks` : '/forms/thanks', 303);
     } catch { return c.text('We could not confirm your submission. Please try again shortly.', 503); }
