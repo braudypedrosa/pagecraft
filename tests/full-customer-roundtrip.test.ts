@@ -218,6 +218,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('scrollsteps', { steps: [{ title: 'Batch Tag', badge: '48h', detail: 'Laser serial.', src: 'https://example.test/st1.webp', alt: 'Batch tag' }] }),
     C.N('dragstrip', { cardRatio: '3 / 2', ariaLabel: 'Rooms', slides: [{ title: 'Caldera Suite', meta: 'Terrace', src: 'https://example.test/ds1.webp', alt: 'Suite' }] }),
     C.N('stayfilter', { currencySymbol: '€', defaultGuests: '2', maxGuests: '8', stays: [{ stayName: 'Cliff Villa', location: 'West Ridge', summary: 'Plunge pool.', sleeps: '4', tags: 'Sleeps 4, Plunge pool', lowRate: '480', midRate: '640', highRate: '820', src: 'https://example.test/sf1.webp', alt: 'Cliff Villa' }] }),
+    C.N('roicalc', { heading: 'Bunker model', slider1Value: '16', slider2Value: '260', baseFactor: '1400', savingsPct: '31', co2Factor: '4.1', currencySymbol: '€', href: 'https://example.test/audit' }),
+    C.N('stackcards', { stickyOffset: '88px', cards: [{ stepNum: '01', badge: 'Telemetry', title: 'Slot sync', detail: 'Quay ETA lock.', stat: '14 ports', src: 'https://example.test/sc1.webp', alt: 'Quay sync' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -257,8 +259,8 @@ describe('full customer document round trip', () => {
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(54);
-    expect(new Set(choices)).toHaveLength(54);
+    expect(choices).toHaveLength(56);
+    expect(new Set(choices)).toHaveLength(56);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

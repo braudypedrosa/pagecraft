@@ -39,7 +39,7 @@ import {
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
   TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
-  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS
+  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2546,6 +2546,131 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--sf-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  roicalc: {
+    label: 'ROI calculator', icon: 'roicalc', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        heading: 'Model annual bunker & idle savings',
+        summary: 'Adjust active fleet vessels and sea-days to estimate fuel and emission savings from dynamic speed-to-berth pacing.',
+        slider1Label: 'Active vessels',
+        slider1Min: '4', slider1Max: '60', slider1Step: '1', slider1Value: '18', slider1Unit: 'vessels',
+        slider2Label: 'Operating sea-days / yr',
+        slider2Min: '120', slider2Max: '340', slider2Step: '10', slider2Value: '280', slider2Unit: 'days',
+        baseFactor: '1450',
+        savingsPct: '31',
+        co2Factor: '4.2',
+        currencySymbol: '€',
+        baselineLabel: 'Manual queue & steaming burn',
+        optimizedLabel: 'With dynamic pacing (−31%)',
+        savingsLabel: 'Estimated annual fuel & port savings',
+        co2Label: 't CO₂e avoided annually',
+        ctaLabel: 'Request fleet ledger',
+        href: ''
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--rc-bg': cvar('surface'), '--rc-card-bg': '#0B1420', '--rc-on': '#FFFFFF',
+          '--rc-card-muted': '#DCE6F5', '--rc-ink': cvar('ink'), '--rc-muted': cvar('muted'),
+          '--rc-accent': '#E59A28', '--rc-cta-ink': '#0F1722', '--rc-bar': cvar('brand'),
+          '--rc-line': cvar('line'), '--rc-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'heading', label: 'Heading', ph: 'Model annual savings' },
+        { t: 'area', k: 'summary', label: 'Summary', ph: 'Adjust controls to estimate savings.' },
+        { t: 'text', k: 'slider1Label', label: 'Slider 1 label', ph: 'Active vessels' },
+        { t: 'unit', k: 'slider1Min', label: 'Slider 1 min', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Max', label: 'Slider 1 max', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Step', label: 'Slider 1 step', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Value', label: 'Slider 1 default', integer: 1, units: [''] },
+        { t: 'text', k: 'slider1Unit', label: 'Slider 1 unit', ph: 'vessels' },
+        { t: 'text', k: 'slider2Label', label: 'Slider 2 label', ph: 'Sea-days / yr' },
+        { t: 'unit', k: 'slider2Min', label: 'Slider 2 min', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Max', label: 'Slider 2 max', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Step', label: 'Slider 2 step', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Value', label: 'Slider 2 default', integer: 1, units: [''] },
+        { t: 'text', k: 'slider2Unit', label: 'Slider 2 unit', ph: 'days' },
+        { t: 'text', k: 'baseFactor', label: 'Daily baseline cost', ph: '1450' },
+        { t: 'text', k: 'savingsPct', label: 'Savings %', ph: '31' },
+        { t: 'text', k: 'co2Factor', label: 'Daily CO₂ tonnes', ph: '4.2' },
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
+        { t: 'text', k: 'baselineLabel', label: 'Baseline label', ph: 'Manual baseline' },
+        { t: 'text', k: 'optimizedLabel', label: 'Optimized label', ph: 'Optimized routing' },
+        { t: 'text', k: 'savingsLabel', label: 'Savings kicker', ph: 'Estimated annual savings' },
+        { t: 'text', k: 'co2Label', label: 'Emissions suffix', ph: 't CO₂e avoided annually' },
+        { t: 'text', k: 'ctaLabel', label: 'Button label', ph: 'Request fleet ledger' },
+        { t: 'text', k: 'href', label: 'Button link', ph: 'ports.html#fleet-audit' }
+      ],
+      style: [
+        { t: 'color', c: '--rc-bg', label: 'Container surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-card-bg', label: 'Readout panel bg', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-on', label: 'Readout text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-card-muted', label: 'Readout muted', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-accent', label: 'Highlight amber', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-cta-ink', label: 'CTA text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-bar', label: 'Slider track', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  stackcards: {
+    label: 'Stacked cards', icon: 'stackcards', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stickyOffset: '88px',
+        cards: [
+          { stepNum: '01', badge: 'Berth Telemetry', title: 'Ingress slot negotiation', detail: 'Continuously ingest quay crane schedules 72 hours ahead of pilot station ETA.', stat: '14 European terminals linked', src: '', alt: '' },
+          { stepNum: '02', badge: 'Speed Pacing', title: 'Cubic propeller curve match', detail: 'Trim two knots in open water to arrive on schedule rather than idling at anchorage.', stat: '−31% idle fuel burn', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sc-top': '88px',
+          '--sc-surface': cvar('surface'), '--sc-ink': cvar('ink'),
+          '--sc-muted': cvar('muted'), '--sc-accent': cvar('brand'),
+          '--sc-badge-bg': cvar('ink'), '--sc-badge-fg': '#FFFFFF',
+          '--sc-line': cvar('line'), '--sc-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', k: 'stickyOffset', label: 'Sticky top offset', units: U.size },
+        {
+          t: 'qa', k: 'cards', label: 'Stacked cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'stepNum', label: 'Step code', ph: '01', def: '01' },
+            { k: 'badge', label: 'Category badge', ph: 'Telemetry', def: 'Stage' },
+            { k: 'title', label: 'Heading', ph: 'Protocol step title', def: 'New card' },
+            { k: 'stat', label: 'Key metric', ph: '−31% idle burn', def: '' },
+            { k: 'src', label: 'Image', ph: 'asset:step', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'detail', label: 'Detail', ph: 'Short technical note', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sc-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-badge-bg', label: 'Step pill bg', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-badge-fg', label: 'Step pill text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -3149,6 +3274,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'scrollsteps') return `Scroll steps · ${((n.props.steps as any[]) || []).length} step${((n.props.steps as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'dragstrip') return `Filmstrip · ${((n.props.slides as any[]) || []).length} frame${((n.props.slides as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'stayfilter') return `Stay finder · ${((n.props.stays as any[]) || []).length} stay${((n.props.stays as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'roicalc') return `ROI calculator · ${n.props.heading || 'Savings model'}`;
+  if (n.type === 'stackcards') return `Stacked cards · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -6376,6 +6503,8 @@ const TEXT_SLOTS = {
   scrollsteps: [['steps', 'title', 'badge', 'detail', 'alt']],
   dragstrip: ['ariaLabel', ['slides', 'title', 'meta', 'alt']],
   stayfilter: ['currencySymbol', 'lowLabel', 'midLabel', 'highLabel', 'guestsLabel', 'singularLabel', 'unitLabel', 'perNightLabel', 'emptyText', ['stays', 'stayName', 'location', 'summary', 'tags', 'lowRate', 'midRate', 'highRate', 'ctaLabel', 'alt']],
+  roicalc: ['heading', 'summary', 'slider1Label', 'slider1Unit', 'slider2Label', 'slider2Unit', 'currencySymbol', 'baselineLabel', 'optimizedLabel', 'savingsLabel', 'co2Label', 'ctaLabel'],
+  stackcards: [['cards', 'stepNum', 'badge', 'title', 'detail', 'stat', 'alt']],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -10874,7 +11003,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10905,14 +11034,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'scrollsteps') scrollsteps = true;
     else if (node.type === 'dragstrip') dragstrip = true;
     else if (node.type === 'stayfilter') stayfilter = true;
+    else if (node.type === 'roicalc') roicalc = true;
+    else if (node.type === 'stackcards') stackcards = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10942,6 +11073,8 @@ function extraWidgetCss(used: {
     + (used.scrollsteps ? `\n${SCROLLSTEPS_CSS}` : '')
     + (used.dragstrip ? `\n${DRAGSTRIP_CSS}` : '')
     + (used.stayfilter ? `\n${STAYFILTER_CSS}` : '')
+    + (used.roicalc ? `\n${ROICALC_CSS}` : '')
+    + (used.stackcards ? `\n${STACKCARDS_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -13224,6 +13357,89 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<p class="pagecraft-stay-empty" data-sf-empty${initShown > 0 ? ' hidden' : ''}>${esc(emptyTxt)}</p>`
         + `</div>`;
     }
+    case 'roicalc': {
+      const heading = String(p.heading || '');
+      const summary = String(p.summary || '');
+      const s1Lbl = String(p.slider1Label || 'Active vessels');
+      const s1Min = parseFloat(String(p.slider1Min ?? '4')) || 1;
+      const s1Max = Math.max(s1Min + 1, parseFloat(String(p.slider1Max ?? '60')) || 60);
+      const s1Step = parseFloat(String(p.slider1Step ?? '1')) || 1;
+      const s1Val = Math.min(s1Max, Math.max(s1Min, parseFloat(String(p.slider1Value ?? '18')) || 18));
+      const s1Unit = String(p.slider1Unit || '').trim();
+      const s2Lbl = String(p.slider2Label || 'Operating sea-days / yr');
+      const s2Min = parseFloat(String(p.slider2Min ?? '120')) || 1;
+      const s2Max = Math.max(s2Min + 1, parseFloat(String(p.slider2Max ?? '340')) || 340);
+      const s2Step = parseFloat(String(p.slider2Step ?? '10')) || 1;
+      const s2Val = Math.min(s2Max, Math.max(s2Min, parseFloat(String(p.slider2Value ?? '280')) || 280));
+      const s2Unit = String(p.slider2Unit || '').trim();
+      const factor = parseFloat(String(p.baseFactor ?? '1450')) || 1450;
+      const pct = Math.min(95, Math.max(1, parseFloat(String(p.savingsPct ?? '31')) || 31));
+      const co2f = parseFloat(String(p.co2Factor ?? '4.2')) || 4.2;
+      const sym = String(p.currencySymbol || '€');
+      const baseLbl = String(p.baselineLabel || 'Baseline annual spend');
+      const optLbl = String(p.optimizedLabel || 'With optimization');
+      const savLbl = String(p.savingsLabel || 'Estimated annual savings');
+      const co2Lbl = String(p.co2Label || 't CO₂e avoided annually');
+      const ctaLbl = String(p.ctaLabel || '').trim();
+      const rawHref = safeUrl(String(p.href || '').trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const baseSpend = s1Val * s2Val * factor;
+      const savSpend = baseSpend * (pct / 100);
+      const optSpend = Math.max(0, baseSpend - savSpend);
+      const co2 = s1Val * s2Val * co2f * (pct / 100);
+      const fmtInt = (v: number) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const baseId = domId();
+      return `<div ${at()} ${cx('pagecraft-roicalc')} data-roicalc data-base-factor="${factor}" data-savings-pct="${pct}" data-co2-factor="${co2f}" data-sym="${esc(sym)}" data-co2-label="${esc(co2Lbl)}">`
+        + `<div class="pagecraft-roicalc-ctrl">`
+        + (heading ? `<h3 class="pagecraft-roicalc-h">${esc(heading)}</h3>` : '')
+        + (summary ? `<p class="pagecraft-roicalc-sub">${esc(summary)}</p>` : '')
+        + `<div class="pagecraft-roicalc-field">`
+        + `<label class="pagecraft-roicalc-lbl" for="${baseId}-r1"><span>${esc(s1Lbl)}</span><output data-rc-out="1">${esc(fmtInt(s1Val) + (s1Unit ? ' ' + s1Unit : ''))}</output></label>`
+        + `<input class="pagecraft-roicalc-range" id="${baseId}-r1" type="range" min="${s1Min}" max="${s1Max}" step="${s1Step}" value="${s1Val}" data-rc-in="1" data-unit="${esc(s1Unit)}">`
+        + `</div>`
+        + `<div class="pagecraft-roicalc-field">`
+        + `<label class="pagecraft-roicalc-lbl" for="${baseId}-r2"><span>${esc(s2Lbl)}</span><output data-rc-out="2">${esc(fmtInt(s2Val) + (s2Unit ? ' ' + s2Unit : ''))}</output></label>`
+        + `<input class="pagecraft-roicalc-range" id="${baseId}-r2" type="range" min="${s2Min}" max="${s2Max}" step="${s2Step}" value="${s2Val}" data-rc-in="2" data-unit="${esc(s2Unit)}">`
+        + `</div>`
+        + `</div>`
+        + `<div class="pagecraft-roicalc-panel">`
+        + `<div><p class="pagecraft-roicalc-kicker">${esc(savLbl)}</p>`
+        + `<p class="pagecraft-roicalc-hero" data-rc-savings>${esc(sym + fmtInt(savSpend))}</p>`
+        + `<p class="pagecraft-roicalc-co2" data-rc-co2>${esc(fmtInt(co2) + ' ' + co2Lbl)}</p></div>`
+        + `<div class="pagecraft-roicalc-bars">`
+        + `<div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(baseLbl)}</span><strong data-rc-base>${esc(sym + fmtInt(baseSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-base" style="width:100%"></div></div></div>`
+        + `<div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(optLbl)}</span><strong data-rc-opt>${esc(sym + fmtInt(optSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-opt" data-rc-opt-bar style="width:${100 - pct}%"></div></div></div>`
+        + `</div>`
+        + (ctaLbl && link ? `<a class="pagecraft-roicalc-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : (ctaLbl && o.edit) ? `<span class="pagecraft-roicalc-cta">${esc(ctaLbl)}</span>` : '')
+        + `</div>`
+        + `</div>`;
+    }
+    case 'stackcards': {
+      const items = (Array.isArray(p.cards) ? p.cards as any[] : []).filter(Boolean);
+      const off = String(p.stickyOffset || '').trim();
+      const offsetStyle = off ? ` style="--sc-top:${esc(off)}"` : '';
+      const cardsHtml = items.map((it, i) => {
+        const num = String(it.stepNum || String(i + 1).padStart(2, '0'));
+        const badge = String(it.badge || '').trim();
+        const title = String(it.title || `Step ${i + 1}`);
+        const detail = String(it.detail || '').trim();
+        const stat = String(it.stat || '').trim();
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<li class="pagecraft-stackcards-card" style="--sc-i:${i}">`
+          + `<div class="pagecraft-stackcards-body">`
+          + `<div class="pagecraft-stackcards-meta"><span class="pagecraft-stackcards-num">${esc(num)}</span>${badge ? `<span class="pagecraft-stackcards-badge">${esc(badge)}</span>` : ''}</div>`
+          + `<h3 class="pagecraft-stackcards-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-stackcards-detail">${esc(detail)}</p>` : '')
+          + (stat ? `<p class="pagecraft-stackcards-stat">${esc(stat)}</p>` : '')
+          + `</div>`
+          + `<div class="pagecraft-stackcards-media"><img class="pagecraft-stackcards-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-stackcards')} data-stackcards${o.edit ? ' data-stackcards-edit' : ''}${offsetStyle}>`
+        + `<ol class="pagecraft-stackcards-list" role="list">${cardsHtml}</ol></div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -13845,7 +14061,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14355,7 +14571,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

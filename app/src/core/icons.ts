@@ -110,7 +110,9 @@ const IC: Record<string, string> = {
   snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
   scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>',
   dragstrip: '<rect x="3" y="4" width="8" height="10.5" rx="1.8"/><rect x="13" y="4" width="8" height="10.5" rx="1.8"/><path d="M3 19h5.5M15.5 19H21"/><rect x="8.5" y="18" width="7" height="2" rx="1"/>',
-  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>'
+  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>',
+  roicalc: '<path d="M3 6.5h18M3 12h18"/><rect x="7" y="4.5" width="3" height="4" rx="1"/><rect x="14" y="10" width="3" height="4" rx="1"/><rect x="3" y="16" width="18" height="3.5" rx="1.25"/>',
+  stackcards: '<path d="M6.5 4.5h11M5 8h14"/><rect x="3" y="11" width="18" height="8.5" rx="2"/>'
 };
 /* The grid's outer unit is spare, so it is cropped: 12px chrome icons stay legible. */
 const IC_VIEW = '1 1 22 22';

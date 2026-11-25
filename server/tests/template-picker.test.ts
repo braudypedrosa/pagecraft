@@ -111,6 +111,7 @@ test("template picker renders the twelve named templates and represented facets"
     "SKARVEN · Technical Alpine Gear",
     "SORAIA · Thermal Bathhouse",
     "Salt House · Holiday Homes",
+    "VESTERPORT · Maritime Routing & Port Decarbonisation",
     "Stillwood · Cabin Retreat",
   ]);
   a.deepEqual(
@@ -184,7 +185,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 19);
+  a.equal(visibleCards(document).length, 20);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

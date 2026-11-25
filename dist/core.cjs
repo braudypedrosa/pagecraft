@@ -123,6 +123,8 @@ __export(index_exports, {
   QUICK_SIDES: () => QUICK_SIDES,
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
+  ROICALC_CSS: () => ROICALC_CSS,
+  ROICALC_JS: () => ROICALC_JS,
   ROSTER_CSS: () => ROSTER_CSS,
   ROSTER_JS: () => ROSTER_JS,
   SCHEMA: () => SCHEMA,
@@ -142,6 +144,7 @@ __export(index_exports, {
   SNAPRAIL_CSS: () => SNAPRAIL_CSS,
   SNAPRAIL_JS: () => SNAPRAIL_JS,
   SRCSET_W: () => SRCSET_W,
+  STACKCARDS_CSS: () => STACKCARDS_CSS,
   STATES: () => STATES,
   STAYFILTER_CSS: () => STAYFILTER_CSS,
   STAYFILTER_JS: () => STAYFILTER_JS,
@@ -743,7 +746,9 @@ var IC = {
   snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
   scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>',
   dragstrip: '<rect x="3" y="4" width="8" height="10.5" rx="1.8"/><rect x="13" y="4" width="8" height="10.5" rx="1.8"/><path d="M3 19h5.5M15.5 19H21"/><rect x="8.5" y="18" width="7" height="2" rx="1"/>',
-  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>'
+  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>',
+  roicalc: '<path d="M3 6.5h18M3 12h18"/><rect x="7" y="4.5" width="3" height="4" rx="1"/><rect x="14" y="10" width="3" height="4" rx="1"/><rect x="3" y="16" width="18" height="3.5" rx="1.25"/>',
+  stackcards: '<path d="M6.5 4.5h11M5 8h14"/><rect x="3" y="11" width="18" height="8.5" rx="2"/>'
 };
 var IC_VIEW = "1 1 22 22";
 var icStroke = (size) => size < 16 ? 2 : 1.75;
@@ -2381,6 +2386,8 @@ var KIND = {
   scrollsteps: "scroll steps",
   dragstrip: "draggable filmstrip",
   stayfilter: "stay finder",
+  roicalc: "savings calculator",
+  stackcards: "stacked cards",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -4518,6 +4525,114 @@ var STAYFILTER_JS = `<script>
 })();
 </script>
 `;
+var ROICALC_CSS = `
+.pagecraft-roicalc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:stretch;width:100%;padding:28px;border:1px solid var(--rc-line,#CBD5E1);border-radius:var(--rc-radius,14px);background:var(--rc-bg,#FFFFFF);color:var(--rc-ink,#0F1722);box-sizing:border-box}
+.pagecraft-roicalc-ctrl{display:flex;flex-direction:column;gap:20px;min-width:0;justify-content:center}
+.pagecraft-roicalc-h{margin:0;font-size:clamp(22px,2.2vw,28px);font-weight:700;line-height:1.2;letter-spacing:-0.015em;color:var(--rc-ink,#0F1722)}
+.pagecraft-roicalc-sub{margin:-8px 0 0;font-size:15px;line-height:1.55;color:var(--rc-muted,#4C596B);max-width:54ch}
+.pagecraft-roicalc-field{display:flex;flex-direction:column;gap:8px}
+.pagecraft-roicalc-lbl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;font-weight:600;color:var(--rc-ink,#0F1722)}
+.pagecraft-roicalc-lbl output{font-variant-numeric:tabular-nums;color:var(--rc-bar,#164E87);font-weight:700}
+.pagecraft-roicalc-range{width:100%;margin:0;height:6px;accent-color:var(--rc-bar,#164E87);cursor:pointer}
+.pagecraft-roicalc-range:focus-visible,.pagecraft-roicalc-cta:focus-visible{outline:2px solid var(--rc-bar,#164E87);outline-offset:3px}
+.pagecraft-roicalc-panel{display:flex;flex-direction:column;justify-content:space-between;gap:20px;padding:24px;border-radius:calc(var(--rc-radius,14px) - 4px);background:var(--rc-card-bg,#0B1420);color:var(--rc-on,#FFFFFF);min-width:0}
+.pagecraft-roicalc-kicker{margin:0;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rc-card-muted,#DCE6F5)}
+.pagecraft-roicalc-hero{margin:4px 0 0;font-size:clamp(34px,4vw,48px);font-weight:700;line-height:1.05;letter-spacing:-0.025em;font-variant-numeric:tabular-nums;color:var(--rc-accent,#E59A28)}
+.pagecraft-roicalc-co2{margin:6px 0 0;font-size:14.5px;font-weight:500;color:var(--rc-card-muted,#DCE6F5);font-variant-numeric:tabular-nums}
+.pagecraft-roicalc-bars{display:flex;flex-direction:column;gap:14px}
+.pagecraft-roicalc-barrow{display:flex;flex-direction:column;gap:6px}
+.pagecraft-roicalc-barhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13.5px;color:var(--rc-card-muted,#DCE6F5)}
+.pagecraft-roicalc-barhead strong{font-variant-numeric:tabular-nums;color:var(--rc-on,#FFFFFF)}
+.pagecraft-roicalc-track{height:10px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.pagecraft-roicalc-fill{height:100%;border-radius:999px;transition:width .2s ease}
+.pagecraft-roicalc-fill-base{width:100%;background:rgba(255,255,255,.42)}
+.pagecraft-roicalc-fill-opt{background:var(--rc-accent,#E59A28)}
+.pagecraft-roicalc-cta{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-height:44px;padding:0 20px;border-radius:8px;background:var(--rc-accent,#E59A28);color:var(--rc-cta-ink,#0F1722);font-size:14px;font-weight:700;text-decoration:none;transition:opacity .15s ease}
+.pagecraft-roicalc-cta:hover{opacity:.92}
+@media(prefers-reduced-motion:reduce){.pagecraft-roicalc-fill,.pagecraft-roicalc-cta{transition:none}}
+@media(max-width:860px){.pagecraft-roicalc{grid-template-columns:1fr;padding:20px}}
+`;
+var ROICALC_JS = `<script>
+(function(){
+  var disposers=[];
+  function fmtMoney(sym,val){
+    var n=Math.round(val);
+    return sym+n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g,',');
+  }
+  function fmtNum(val){
+    var n=Math.round(val);
+    return n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g,',');
+  }
+  document.querySelectorAll('[data-roicalc]').forEach(function(root){
+    if(root.hasAttribute('data-pc-rc-ready'))return;
+    root.setAttribute('data-pc-rc-ready','1');
+    var in1=root.querySelector('[data-rc-in="1"]');
+    var in2=root.querySelector('[data-rc-in="2"]');
+    var out1=root.querySelector('[data-rc-out="1"]');
+    var out2=root.querySelector('[data-rc-out="2"]');
+    var savEl=root.querySelector('[data-rc-savings]');
+    var co2El=root.querySelector('[data-rc-co2]');
+    var baseEl=root.querySelector('[data-rc-base]');
+    var optEl=root.querySelector('[data-rc-opt]');
+    var optBar=root.querySelector('[data-rc-opt-bar]');
+    if(!in1||!in2)return;
+    var factor=parseFloat(root.getAttribute('data-base-factor')||'1450')||1450;
+    var pct=Math.min(95,Math.max(1,parseFloat(root.getAttribute('data-savings-pct')||'31')||31));
+    var co2f=parseFloat(root.getAttribute('data-co2-factor')||'4.2')||4.2;
+    var sym=root.getAttribute('data-sym')||'\u20AC';
+    var co2Lbl=root.getAttribute('data-co2-label')||'t CO\u2082e avoided annually';
+    function render(){
+      var v1=parseFloat(in1.value)||0;
+      var v2=parseFloat(in2.value)||0;
+      var u1=in1.getAttribute('data-unit')||'';
+      var u2=in2.getAttribute('data-unit')||'';
+      if(out1)out1.textContent=fmtNum(v1)+(u1?' '+u1:'');
+      if(out2)out2.textContent=fmtNum(v2)+(u2?' '+u2:'');
+      var baseSpend=v1*v2*factor;
+      var savings=baseSpend*(pct/100);
+      var optSpend=Math.max(0,baseSpend-savings);
+      var co2=v1*v2*co2f*(pct/100);
+      if(savEl)savEl.textContent=fmtMoney(sym,savings);
+      if(baseEl)baseEl.textContent=fmtMoney(sym,baseSpend);
+      if(optEl)optEl.textContent=fmtMoney(sym,optSpend);
+      if(optBar)optBar.style.width=(100-pct)+'%';
+      if(co2El)co2El.textContent=fmtNum(co2)+' '+co2Lbl;
+    }
+    in1.addEventListener('input',render);
+    in2.addEventListener('input',render);
+    render();
+    disposers.push(function(){
+      in1.removeEventListener('input',render);
+      in2.removeEventListener('input',render);
+      root.removeAttribute('data-pc-rc-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+var STACKCARDS_CSS = `
+.pagecraft-stackcards{display:block;width:100%}
+.pagecraft-stackcards-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.pagecraft-stackcards-card{box-sizing:border-box;position:sticky;top:calc(var(--sc-top,88px) + var(--sc-i,0) * 18px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:28px;align-items:center;padding:26px;border:1px solid var(--sc-line,#CBD5E1);border-radius:var(--sc-radius,14px);background:var(--sc-surface,#FFFFFF);color:var(--sc-ink,#0F1722);box-shadow:0 12px 30px rgba(11,20,32,.07)}
+.pagecraft-stackcards[data-stackcards-edit] .pagecraft-stackcards-card{position:static}
+.pagecraft-stackcards-body{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pagecraft-stackcards-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pagecraft-stackcards-num{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:28px;padding:0 9px;border-radius:6px;background:var(--sc-badge-bg,#0B1420);color:var(--sc-badge-fg,#FFFFFF);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.pagecraft-stackcards-badge{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sc-accent,#164E87)}
+.pagecraft-stackcards-title{margin:0;font-size:clamp(22px,2.2vw,28px);font-weight:700;line-height:1.2;letter-spacing:-0.015em;color:var(--sc-ink,#0F1722)}
+.pagecraft-stackcards-detail{margin:0;font-size:15.5px;line-height:1.6;color:var(--sc-muted,#4C596B);max-width:56ch}
+.pagecraft-stackcards-stat{margin:4px 0 0;padding-top:12px;border-top:1px solid var(--sc-line,#CBD5E1);font-size:14px;font-weight:700;color:var(--sc-accent,#164E87);font-variant-numeric:tabular-nums}
+.pagecraft-stackcards-media{min-width:0}
+.pagecraft-stackcards-img{display:block;width:100%;height:auto;aspect-ratio:3 / 2;object-fit:cover;border-radius:calc(var(--sc-radius,14px) - 4px)}
+@media(max-width:860px){
+  .pagecraft-stackcards-card{position:static;grid-template-columns:1fr;gap:18px;padding:20px}
+}
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -4557,6 +4672,7 @@ function mediaReferences(document) {
     if (node.type === "scrollsteps" && Array.isArray(props.steps)) props.steps.forEach((item, j) => scan(item?.src, [...base, "props", "steps", j, "src"], where));
     if (node.type === "dragstrip" && Array.isArray(props.slides)) props.slides.forEach((item, j) => scan(item?.src, [...base, "props", "slides", j, "src"], where));
     if (node.type === "stayfilter" && Array.isArray(props.stays)) props.stays.forEach((item, j) => scan(item?.src, [...base, "props", "stays", j, "src"], where));
+    if (node.type === "stackcards" && Array.isArray(props.cards)) props.cards.forEach((item, j) => scan(item?.src, [...base, "props", "cards", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
@@ -7637,6 +7753,160 @@ var DEF = {
         { t: "unit", c: "--sf-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  roicalc: {
+    label: "ROI calculator",
+    icon: "roicalc",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        heading: "Model annual bunker & idle savings",
+        summary: "Adjust active fleet vessels and sea-days to estimate fuel and emission savings from dynamic speed-to-berth pacing.",
+        slider1Label: "Active vessels",
+        slider1Min: "4",
+        slider1Max: "60",
+        slider1Step: "1",
+        slider1Value: "18",
+        slider1Unit: "vessels",
+        slider2Label: "Operating sea-days / yr",
+        slider2Min: "120",
+        slider2Max: "340",
+        slider2Step: "10",
+        slider2Value: "280",
+        slider2Unit: "days",
+        baseFactor: "1450",
+        savingsPct: "31",
+        co2Factor: "4.2",
+        currencySymbol: "\u20AC",
+        baselineLabel: "Manual queue & steaming burn",
+        optimizedLabel: "With dynamic pacing (\u221231%)",
+        savingsLabel: "Estimated annual fuel & port savings",
+        co2Label: "t CO\u2082e avoided annually",
+        ctaLabel: "Request fleet ledger",
+        href: ""
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--rc-bg": cvar("surface"),
+          "--rc-card-bg": "#0B1420",
+          "--rc-on": "#FFFFFF",
+          "--rc-card-muted": "#DCE6F5",
+          "--rc-ink": cvar("ink"),
+          "--rc-muted": cvar("muted"),
+          "--rc-accent": "#E59A28",
+          "--rc-cta-ink": "#0F1722",
+          "--rc-bar": cvar("brand"),
+          "--rc-line": cvar("line"),
+          "--rc-radius": "14px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "heading", label: "Heading", ph: "Model annual savings" },
+        { t: "area", k: "summary", label: "Summary", ph: "Adjust controls to estimate savings." },
+        { t: "text", k: "slider1Label", label: "Slider 1 label", ph: "Active vessels" },
+        { t: "unit", k: "slider1Min", label: "Slider 1 min", integer: 1, units: [""] },
+        { t: "unit", k: "slider1Max", label: "Slider 1 max", integer: 1, units: [""] },
+        { t: "unit", k: "slider1Step", label: "Slider 1 step", integer: 1, units: [""] },
+        { t: "unit", k: "slider1Value", label: "Slider 1 default", integer: 1, units: [""] },
+        { t: "text", k: "slider1Unit", label: "Slider 1 unit", ph: "vessels" },
+        { t: "text", k: "slider2Label", label: "Slider 2 label", ph: "Sea-days / yr" },
+        { t: "unit", k: "slider2Min", label: "Slider 2 min", integer: 1, units: [""] },
+        { t: "unit", k: "slider2Max", label: "Slider 2 max", integer: 1, units: [""] },
+        { t: "unit", k: "slider2Step", label: "Slider 2 step", integer: 1, units: [""] },
+        { t: "unit", k: "slider2Value", label: "Slider 2 default", integer: 1, units: [""] },
+        { t: "text", k: "slider2Unit", label: "Slider 2 unit", ph: "days" },
+        { t: "text", k: "baseFactor", label: "Daily baseline cost", ph: "1450" },
+        { t: "text", k: "savingsPct", label: "Savings %", ph: "31" },
+        { t: "text", k: "co2Factor", label: "Daily CO\u2082 tonnes", ph: "4.2" },
+        { t: "text", k: "currencySymbol", label: "Currency symbol", ph: "\u20AC" },
+        { t: "text", k: "baselineLabel", label: "Baseline label", ph: "Manual baseline" },
+        { t: "text", k: "optimizedLabel", label: "Optimized label", ph: "Optimized routing" },
+        { t: "text", k: "savingsLabel", label: "Savings kicker", ph: "Estimated annual savings" },
+        { t: "text", k: "co2Label", label: "Emissions suffix", ph: "t CO\u2082e avoided annually" },
+        { t: "text", k: "ctaLabel", label: "Button label", ph: "Request fleet ledger" },
+        { t: "text", k: "href", label: "Button link", ph: "ports.html#fleet-audit" }
+      ],
+      style: [
+        { t: "color", c: "--rc-bg", label: "Container surface", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-card-bg", label: "Readout panel bg", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-on", label: "Readout text", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-card-muted", label: "Readout muted", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-accent", label: "Highlight amber", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-cta-ink", label: "CTA text", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-bar", label: "Slider track", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-muted", label: "Muted colour", r: 1, layout: "inline" },
+        { t: "color", c: "--rc-line", label: "Border colour", r: 1, layout: "inline" },
+        { t: "unit", c: "--rc-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  stackcards: {
+    label: "Stacked cards",
+    icon: "stackcards",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        stickyOffset: "88px",
+        cards: [
+          { stepNum: "01", badge: "Berth Telemetry", title: "Ingress slot negotiation", detail: "Continuously ingest quay crane schedules 72 hours ahead of pilot station ETA.", stat: "14 European terminals linked", src: "", alt: "" },
+          { stepNum: "02", badge: "Speed Pacing", title: "Cubic propeller curve match", detail: "Trim two knots in open water to arrive on schedule rather than idling at anchorage.", stat: "\u221231% idle fuel burn", src: "", alt: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sc-top": "88px",
+          "--sc-surface": cvar("surface"),
+          "--sc-ink": cvar("ink"),
+          "--sc-muted": cvar("muted"),
+          "--sc-accent": cvar("brand"),
+          "--sc-badge-bg": cvar("ink"),
+          "--sc-badge-fg": "#FFFFFF",
+          "--sc-line": cvar("line"),
+          "--sc-radius": "14px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "unit", k: "stickyOffset", label: "Sticky top offset", units: U.size },
+        {
+          t: "qa",
+          k: "cards",
+          label: "Stacked cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "stepNum", label: "Step code", ph: "01", def: "01" },
+            { k: "badge", label: "Category badge", ph: "Telemetry", def: "Stage" },
+            { k: "title", label: "Heading", ph: "Protocol step title", def: "New card" },
+            { k: "stat", label: "Key metric", ph: "\u221231% idle burn", def: "" },
+            { k: "src", label: "Image", ph: "asset:step", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe image", def: "" },
+            { k: "detail", label: "Detail", ph: "Short technical note", def: "", area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--sc-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-muted", label: "Body colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-accent", label: "Accent colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-badge-bg", label: "Step pill bg", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-badge-fg", label: "Step pill text", r: 1, layout: "inline" },
+        { t: "color", c: "--sc-line", label: "Border colour", r: 1, layout: "inline" },
+        { t: "unit", c: "--sc-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -8144,6 +8414,8 @@ var nameOf = (n) => {
   if (n.type === "scrollsteps") return `Scroll steps \xB7 ${(n.props.steps || []).length} step${(n.props.steps || []).length === 1 ? "" : "s"}`;
   if (n.type === "dragstrip") return `Filmstrip \xB7 ${(n.props.slides || []).length} frame${(n.props.slides || []).length === 1 ? "" : "s"}`;
   if (n.type === "stayfilter") return `Stay finder \xB7 ${(n.props.stays || []).length} stay${(n.props.stays || []).length === 1 ? "" : "s"}`;
+  if (n.type === "roicalc") return `ROI calculator \xB7 ${n.props.heading || "Savings model"}`;
+  if (n.type === "stackcards") return `Stacked cards \xB7 ${(n.props.cards || []).length} card${(n.props.cards || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -10832,7 +11104,9 @@ var TEXT_SLOTS = {
   snaprail: ["prevLabel", "nextLabel", ["railCards", "cardTag", "title", "detail", "stat"]],
   scrollsteps: [["steps", "title", "badge", "detail", "alt"]],
   dragstrip: ["ariaLabel", ["slides", "title", "meta", "alt"]],
-  stayfilter: ["currencySymbol", "lowLabel", "midLabel", "highLabel", "guestsLabel", "singularLabel", "unitLabel", "perNightLabel", "emptyText", ["stays", "stayName", "location", "summary", "tags", "lowRate", "midRate", "highRate", "ctaLabel", "alt"]]
+  stayfilter: ["currencySymbol", "lowLabel", "midLabel", "highLabel", "guestsLabel", "singularLabel", "unitLabel", "perNightLabel", "emptyText", ["stays", "stayName", "location", "summary", "tags", "lowRate", "midRate", "highRate", "ctaLabel", "alt"]],
+  roicalc: ["heading", "summary", "slider1Label", "slider1Unit", "slider2Label", "slider2Unit", "currencySymbol", "baselineLabel", "optimizedLabel", "savingsLabel", "co2Label", "ctaLabel"],
+  stackcards: [["cards", "stepNum", "badge", "title", "detail", "stat", "alt"]]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -14899,7 +15173,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -14930,9 +15204,11 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "scrollsteps") scrollsteps = true;
     else if (node.type === "dragstrip") dragstrip = true;
     else if (node.type === "stayfilter") stayfilter = true;
+    else if (node.type === "roicalc") roicalc = true;
+    else if (node.type === "stackcards") stackcards = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -14963,7 +15239,9 @@ ${SWATCHSHOP_CSS}` : "") + (used.snaprail ? `
 ${SNAPRAIL_CSS}` : "") + (used.scrollsteps ? `
 ${SCROLLSTEPS_CSS}` : "") + (used.dragstrip ? `
 ${DRAGSTRIP_CSS}` : "") + (used.stayfilter ? `
-${STAYFILTER_CSS}` : "") + (used.videoLightbox ? `
+${STAYFILTER_CSS}` : "") + (used.roicalc ? `
+${ROICALC_CSS}` : "") + (used.stackcards ? `
+${STACKCARDS_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -16692,6 +16970,57 @@ function renderNode(n, o) {
       const countLbl = `${initShown} ${initShown === 1 ? sing : plur}`;
       return `<div ${at()} ${cx("pagecraft-stayfilter")} data-stayfilter data-init-guests="${initG}" data-max-guests="${maxG}" data-sym="${esc(sym)}" data-singular="${esc(sing)}" data-plural="${esc(plur)}"><div class="pagecraft-stay-bar"><div class="pagecraft-stay-guests" role="group" aria-label="${esc(gLbl)}"><span class="pagecraft-stay-glbl">${esc(gLbl)}</span><button type="button" class="pagecraft-stay-step" data-sf-step="-1" aria-label="Fewer guests"${initG <= 1 ? " disabled" : ""}>\u2212</button><output class="pagecraft-stay-count" data-sf-guests aria-live="polite">${initG}</output><button type="button" class="pagecraft-stay-step" data-sf-step="1" aria-label="More guests"${initG >= maxG ? " disabled" : ""}>+</button></div><div class="pagecraft-stay-seasons" role="radiogroup" aria-label="Season">${seasonBtns}</div><p class="pagecraft-stay-result" data-sf-result aria-live="polite">${esc(countLbl)}</p></div><ul class="pagecraft-stay-list" role="list">${rowsHtml}</ul><p class="pagecraft-stay-empty" data-sf-empty${initShown > 0 ? " hidden" : ""}>${esc(emptyTxt)}</p></div>`;
     }
+    case "roicalc": {
+      const heading = String(p.heading || "");
+      const summary = String(p.summary || "");
+      const s1Lbl = String(p.slider1Label || "Active vessels");
+      const s1Min = parseFloat(String(p.slider1Min ?? "4")) || 1;
+      const s1Max = Math.max(s1Min + 1, parseFloat(String(p.slider1Max ?? "60")) || 60);
+      const s1Step = parseFloat(String(p.slider1Step ?? "1")) || 1;
+      const s1Val = Math.min(s1Max, Math.max(s1Min, parseFloat(String(p.slider1Value ?? "18")) || 18));
+      const s1Unit = String(p.slider1Unit || "").trim();
+      const s2Lbl = String(p.slider2Label || "Operating sea-days / yr");
+      const s2Min = parseFloat(String(p.slider2Min ?? "120")) || 1;
+      const s2Max = Math.max(s2Min + 1, parseFloat(String(p.slider2Max ?? "340")) || 340);
+      const s2Step = parseFloat(String(p.slider2Step ?? "10")) || 1;
+      const s2Val = Math.min(s2Max, Math.max(s2Min, parseFloat(String(p.slider2Value ?? "280")) || 280));
+      const s2Unit = String(p.slider2Unit || "").trim();
+      const factor = parseFloat(String(p.baseFactor ?? "1450")) || 1450;
+      const pct = Math.min(95, Math.max(1, parseFloat(String(p.savingsPct ?? "31")) || 31));
+      const co2f = parseFloat(String(p.co2Factor ?? "4.2")) || 4.2;
+      const sym = String(p.currencySymbol || "\u20AC");
+      const baseLbl = String(p.baselineLabel || "Baseline annual spend");
+      const optLbl = String(p.optimizedLabel || "With optimization");
+      const savLbl = String(p.savingsLabel || "Estimated annual savings");
+      const co2Lbl = String(p.co2Label || "t CO\u2082e avoided annually");
+      const ctaLbl = String(p.ctaLabel || "").trim();
+      const rawHref = safeUrl(String(p.href || "").trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+      const baseSpend = s1Val * s2Val * factor;
+      const savSpend = baseSpend * (pct / 100);
+      const optSpend = Math.max(0, baseSpend - savSpend);
+      const co2 = s1Val * s2Val * co2f * (pct / 100);
+      const fmtInt = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const baseId = domId();
+      return `<div ${at()} ${cx("pagecraft-roicalc")} data-roicalc data-base-factor="${factor}" data-savings-pct="${pct}" data-co2-factor="${co2f}" data-sym="${esc(sym)}" data-co2-label="${esc(co2Lbl)}"><div class="pagecraft-roicalc-ctrl">` + (heading ? `<h3 class="pagecraft-roicalc-h">${esc(heading)}</h3>` : "") + (summary ? `<p class="pagecraft-roicalc-sub">${esc(summary)}</p>` : "") + `<div class="pagecraft-roicalc-field"><label class="pagecraft-roicalc-lbl" for="${baseId}-r1"><span>${esc(s1Lbl)}</span><output data-rc-out="1">${esc(fmtInt(s1Val) + (s1Unit ? " " + s1Unit : ""))}</output></label><input class="pagecraft-roicalc-range" id="${baseId}-r1" type="range" min="${s1Min}" max="${s1Max}" step="${s1Step}" value="${s1Val}" data-rc-in="1" data-unit="${esc(s1Unit)}"></div><div class="pagecraft-roicalc-field"><label class="pagecraft-roicalc-lbl" for="${baseId}-r2"><span>${esc(s2Lbl)}</span><output data-rc-out="2">${esc(fmtInt(s2Val) + (s2Unit ? " " + s2Unit : ""))}</output></label><input class="pagecraft-roicalc-range" id="${baseId}-r2" type="range" min="${s2Min}" max="${s2Max}" step="${s2Step}" value="${s2Val}" data-rc-in="2" data-unit="${esc(s2Unit)}"></div></div><div class="pagecraft-roicalc-panel"><div><p class="pagecraft-roicalc-kicker">${esc(savLbl)}</p><p class="pagecraft-roicalc-hero" data-rc-savings>${esc(sym + fmtInt(savSpend))}</p><p class="pagecraft-roicalc-co2" data-rc-co2>${esc(fmtInt(co2) + " " + co2Lbl)}</p></div><div class="pagecraft-roicalc-bars"><div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(baseLbl)}</span><strong data-rc-base>${esc(sym + fmtInt(baseSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-base" style="width:100%"></div></div></div><div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(optLbl)}</span><strong data-rc-opt>${esc(sym + fmtInt(optSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-opt" data-rc-opt-bar style="width:${100 - pct}%"></div></div></div></div>` + (ctaLbl && link ? `<a class="pagecraft-roicalc-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : ctaLbl && o.edit ? `<span class="pagecraft-roicalc-cta">${esc(ctaLbl)}</span>` : "") + `</div></div>`;
+    }
+    case "stackcards": {
+      const items = (Array.isArray(p.cards) ? p.cards : []).filter(Boolean);
+      const off = String(p.stickyOffset || "").trim();
+      const offsetStyle = off ? ` style="--sc-top:${esc(off)}"` : "";
+      const cardsHtml = items.map((it, i) => {
+        const num = String(it.stepNum || String(i + 1).padStart(2, "0"));
+        const badge = String(it.badge || "").trim();
+        const title = String(it.title || `Step ${i + 1}`);
+        const detail = String(it.detail || "").trim();
+        const stat = String(it.stat || "").trim();
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        return `<li class="pagecraft-stackcards-card" style="--sc-i:${i}"><div class="pagecraft-stackcards-body"><div class="pagecraft-stackcards-meta"><span class="pagecraft-stackcards-num">${esc(num)}</span>${badge ? `<span class="pagecraft-stackcards-badge">${esc(badge)}</span>` : ""}</div><h3 class="pagecraft-stackcards-title">${esc(title)}</h3>` + (detail ? `<p class="pagecraft-stackcards-detail">${esc(detail)}</p>` : "") + (stat ? `<p class="pagecraft-stackcards-stat">${esc(stat)}</p>` : "") + `</div><div class="pagecraft-stackcards-media"><img class="pagecraft-stackcards-img" src="${src}" alt="${alt}"${dim} decoding="async"></div></li>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-stackcards")} data-stackcards${o.edit ? " data-stackcards-edit" : ""}${offsetStyle}><ol class="pagecraft-stackcards-list" role="list">${cardsHtml}</ol></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -17206,7 +17535,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${/data-roicalc/.test(body) ? ROICALC_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 </script>
 ` : ""}</body>
@@ -17766,6 +18095,8 @@ function proposalApply(changes, proposalId = "", options) {
   QUICK_SIDES,
   REF_DEPTH,
   RESERVED,
+  ROICALC_CSS,
+  ROICALC_JS,
   ROSTER_CSS,
   ROSTER_JS,
   SCHEMA,
@@ -17785,6 +18116,7 @@ function proposalApply(changes, proposalId = "", options) {
   SNAPRAIL_CSS,
   SNAPRAIL_JS,
   SRCSET_W,
+  STACKCARDS_CSS,
   STATES,
   STAYFILTER_CSS,
   STAYFILTER_JS,

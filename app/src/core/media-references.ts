@@ -64,6 +64,8 @@ export function mediaReferences(document: Doc): MediaReference[] {
       scan(item?.src, [...base, 'props', 'slides', j, 'src'], where));
     if (node.type === 'stayfilter' && Array.isArray(props.stays)) props.stays.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'stays', j, 'src'], where));
+    if (node.type === 'stackcards' && Array.isArray(props.cards)) props.cards.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'cards', j, 'src'], where));
     const definition = document.meta.components?.find(def => def.id === node.use);
     definition?.props.filter(prop => prop.t === 'img').forEach(prop =>
       scan(node.vals?.[prop.k], [...base, 'vals', prop.k], where));

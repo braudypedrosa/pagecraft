@@ -927,5 +927,24 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(sfWin.document.querySelectorAll('[data-sf-price]')[1]?.textContent).toBe('€980');
     sfDispose!();
     sfDom.window.close();
+
+    const rcDom = domFor(C.renderNode(C.N('roicalc', {
+      slider1Value: '10', slider2Value: '200', baseFactor: '1000', savingsPct: '30', co2Factor: '4', currencySymbol: '€'
+    }), { edit: false }));
+    const rcWin = rcDom.window as any;
+    let rcDispose: (() => void) | null = null;
+    rcWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rcDispose = fn; };
+    rcWin.eval(scriptBody(C.ROICALC_JS));
+    expect(rcWin.document.querySelector('[data-rc-savings]')?.textContent).toBe('€600,000');
+    const rcIn1 = rcWin.document.querySelector('[data-rc-in="1"]') as HTMLInputElement;
+    rcIn1.value = '20';
+    rcIn1.dispatchEvent(new rcWin.Event('input', { bubbles: true }));
+    expect(rcWin.document.querySelector('[data-rc-savings]')?.textContent).toBe('€1,200,000');
+    rcDispose!();
+    rcDom.window.close();
+
+    const scHtml = C.renderNode(C.N('stackcards'), { edit: false });
+    expect(scHtml).toContain('pagecraft-stackcards');
+    expect(scHtml).toContain('--sc-i:1');
   });
 });

@@ -1966,3 +1966,116 @@ export const STAYFILTER_JS = `<script>
 })();
 </script>
 `;
+
+/* ---- Roicalc (WSC-116 dual scrub-slider savings model) ---------------- */
+export const ROICALC_CSS = `
+.pagecraft-roicalc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:stretch;width:100%;padding:28px;border:1px solid var(--rc-line,#CBD5E1);border-radius:var(--rc-radius,14px);background:var(--rc-bg,#FFFFFF);color:var(--rc-ink,#0F1722);box-sizing:border-box}
+.pagecraft-roicalc-ctrl{display:flex;flex-direction:column;gap:20px;min-width:0;justify-content:center}
+.pagecraft-roicalc-h{margin:0;font-size:clamp(22px,2.2vw,28px);font-weight:700;line-height:1.2;letter-spacing:-0.015em;color:var(--rc-ink,#0F1722)}
+.pagecraft-roicalc-sub{margin:-8px 0 0;font-size:15px;line-height:1.55;color:var(--rc-muted,#4C596B);max-width:54ch}
+.pagecraft-roicalc-field{display:flex;flex-direction:column;gap:8px}
+.pagecraft-roicalc-lbl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;font-weight:600;color:var(--rc-ink,#0F1722)}
+.pagecraft-roicalc-lbl output{font-variant-numeric:tabular-nums;color:var(--rc-bar,#164E87);font-weight:700}
+.pagecraft-roicalc-range{width:100%;margin:0;height:6px;accent-color:var(--rc-bar,#164E87);cursor:pointer}
+.pagecraft-roicalc-range:focus-visible,.pagecraft-roicalc-cta:focus-visible{outline:2px solid var(--rc-bar,#164E87);outline-offset:3px}
+.pagecraft-roicalc-panel{display:flex;flex-direction:column;justify-content:space-between;gap:20px;padding:24px;border-radius:calc(var(--rc-radius,14px) - 4px);background:var(--rc-card-bg,#0B1420);color:var(--rc-on,#FFFFFF);min-width:0}
+.pagecraft-roicalc-kicker{margin:0;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rc-card-muted,#DCE6F5)}
+.pagecraft-roicalc-hero{margin:4px 0 0;font-size:clamp(34px,4vw,48px);font-weight:700;line-height:1.05;letter-spacing:-0.025em;font-variant-numeric:tabular-nums;color:var(--rc-accent,#E59A28)}
+.pagecraft-roicalc-co2{margin:6px 0 0;font-size:14.5px;font-weight:500;color:var(--rc-card-muted,#DCE6F5);font-variant-numeric:tabular-nums}
+.pagecraft-roicalc-bars{display:flex;flex-direction:column;gap:14px}
+.pagecraft-roicalc-barrow{display:flex;flex-direction:column;gap:6px}
+.pagecraft-roicalc-barhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13.5px;color:var(--rc-card-muted,#DCE6F5)}
+.pagecraft-roicalc-barhead strong{font-variant-numeric:tabular-nums;color:var(--rc-on,#FFFFFF)}
+.pagecraft-roicalc-track{height:10px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.pagecraft-roicalc-fill{height:100%;border-radius:999px;transition:width .2s ease}
+.pagecraft-roicalc-fill-base{width:100%;background:rgba(255,255,255,.42)}
+.pagecraft-roicalc-fill-opt{background:var(--rc-accent,#E59A28)}
+.pagecraft-roicalc-cta{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-height:44px;padding:0 20px;border-radius:8px;background:var(--rc-accent,#E59A28);color:var(--rc-cta-ink,#0F1722);font-size:14px;font-weight:700;text-decoration:none;transition:opacity .15s ease}
+.pagecraft-roicalc-cta:hover{opacity:.92}
+@media(prefers-reduced-motion:reduce){.pagecraft-roicalc-fill,.pagecraft-roicalc-cta{transition:none}}
+@media(max-width:860px){.pagecraft-roicalc{grid-template-columns:1fr;padding:20px}}
+`;
+
+export const ROICALC_JS = `<script>
+(function(){
+  var disposers=[];
+  function fmtMoney(sym,val){
+    var n=Math.round(val);
+    return sym+n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g,',');
+  }
+  function fmtNum(val){
+    var n=Math.round(val);
+    return n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g,',');
+  }
+  document.querySelectorAll('[data-roicalc]').forEach(function(root){
+    if(root.hasAttribute('data-pc-rc-ready'))return;
+    root.setAttribute('data-pc-rc-ready','1');
+    var in1=root.querySelector('[data-rc-in="1"]');
+    var in2=root.querySelector('[data-rc-in="2"]');
+    var out1=root.querySelector('[data-rc-out="1"]');
+    var out2=root.querySelector('[data-rc-out="2"]');
+    var savEl=root.querySelector('[data-rc-savings]');
+    var co2El=root.querySelector('[data-rc-co2]');
+    var baseEl=root.querySelector('[data-rc-base]');
+    var optEl=root.querySelector('[data-rc-opt]');
+    var optBar=root.querySelector('[data-rc-opt-bar]');
+    if(!in1||!in2)return;
+    var factor=parseFloat(root.getAttribute('data-base-factor')||'1450')||1450;
+    var pct=Math.min(95,Math.max(1,parseFloat(root.getAttribute('data-savings-pct')||'31')||31));
+    var co2f=parseFloat(root.getAttribute('data-co2-factor')||'4.2')||4.2;
+    var sym=root.getAttribute('data-sym')||'€';
+    var co2Lbl=root.getAttribute('data-co2-label')||'t CO₂e avoided annually';
+    function render(){
+      var v1=parseFloat(in1.value)||0;
+      var v2=parseFloat(in2.value)||0;
+      var u1=in1.getAttribute('data-unit')||'';
+      var u2=in2.getAttribute('data-unit')||'';
+      if(out1)out1.textContent=fmtNum(v1)+(u1?' '+u1:'');
+      if(out2)out2.textContent=fmtNum(v2)+(u2?' '+u2:'');
+      var baseSpend=v1*v2*factor;
+      var savings=baseSpend*(pct/100);
+      var optSpend=Math.max(0,baseSpend-savings);
+      var co2=v1*v2*co2f*(pct/100);
+      if(savEl)savEl.textContent=fmtMoney(sym,savings);
+      if(baseEl)baseEl.textContent=fmtMoney(sym,baseSpend);
+      if(optEl)optEl.textContent=fmtMoney(sym,optSpend);
+      if(optBar)optBar.style.width=(100-pct)+'%';
+      if(co2El)co2El.textContent=fmtNum(co2)+' '+co2Lbl;
+    }
+    in1.addEventListener('input',render);
+    in2.addEventListener('input',render);
+    render();
+    disposers.push(function(){
+      in1.removeEventListener('input',render);
+      in2.removeEventListener('input',render);
+      root.removeAttribute('data-pc-rc-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+
+/* ---- Stackcards (WSC-047 scroll-pinning protocol cards) --------------- */
+export const STACKCARDS_CSS = `
+.pagecraft-stackcards{display:block;width:100%}
+.pagecraft-stackcards-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.pagecraft-stackcards-card{box-sizing:border-box;position:sticky;top:calc(var(--sc-top,88px) + var(--sc-i,0) * 18px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:28px;align-items:center;padding:26px;border:1px solid var(--sc-line,#CBD5E1);border-radius:var(--sc-radius,14px);background:var(--sc-surface,#FFFFFF);color:var(--sc-ink,#0F1722);box-shadow:0 12px 30px rgba(11,20,32,.07)}
+.pagecraft-stackcards[data-stackcards-edit] .pagecraft-stackcards-card{position:static}
+.pagecraft-stackcards-body{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pagecraft-stackcards-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pagecraft-stackcards-num{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:28px;padding:0 9px;border-radius:6px;background:var(--sc-badge-bg,#0B1420);color:var(--sc-badge-fg,#FFFFFF);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.pagecraft-stackcards-badge{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sc-accent,#164E87)}
+.pagecraft-stackcards-title{margin:0;font-size:clamp(22px,2.2vw,28px);font-weight:700;line-height:1.2;letter-spacing:-0.015em;color:var(--sc-ink,#0F1722)}
+.pagecraft-stackcards-detail{margin:0;font-size:15.5px;line-height:1.6;color:var(--sc-muted,#4C596B);max-width:56ch}
+.pagecraft-stackcards-stat{margin:4px 0 0;padding-top:12px;border-top:1px solid var(--sc-line,#CBD5E1);font-size:14px;font-weight:700;color:var(--sc-accent,#164E87);font-variant-numeric:tabular-nums}
+.pagecraft-stackcards-media{min-width:0}
+.pagecraft-stackcards-img{display:block;width:100%;height:auto;aspect-ratio:3 / 2;object-fit:cover;border-radius:calc(var(--sc-radius,14px) - 4px)}
+@media(max-width:860px){
+  .pagecraft-stackcards-card{position:static;grid-template-columns:1fr;gap:18px;padding:20px}
+}
+`;

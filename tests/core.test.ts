@@ -5890,7 +5890,7 @@ test('every responsive inspector declaration round-trips and compiles at all thr
         `${owner} ${c.label || c.c || c.k} did not compile ${bucket}`);
     }
   }
-  a.equal(declarations.length, 311,
+  a.equal(declarations.length, 330,
     'adding or removing a responsive inspector row requires updating the exhaustive acceptance count');
 });
 

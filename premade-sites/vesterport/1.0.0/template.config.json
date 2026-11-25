@@ -1,0 +1,166 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "vesterport",
+  "version": "1.0.0",
+  "name": "VESTERPORT · Maritime Routing & Port Decarbonisation",
+  "sampleName": "VESTERPORT — Autonomous Maritime Routing & Port Decarbonisation",
+  "description": "Four-page Nordic maritime routing and port decarbonisation platform featuring a 100vh dusk container port hero with monumental −31% telemetry typography, interactive dual-slider fleet fuel savings calculator, scroll-stacking operational protocol cards, live European port hub clocks, IMO CII & EU ETS compliance ledger, and fleet audit booking.",
+  "categories": [
+    "Maritime & Logistics",
+    "Enterprise Tech"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 236,
+      "height": 40
+    },
+    {
+      "id": "hero-port-bg",
+      "file": "assets/hero-port-bg.webp",
+      "name": "hero-port-bg.webp",
+      "width": 1600,
+      "height": 960
+    },
+    {
+      "id": "closing-port-bg",
+      "file": "assets/closing-port-bg.webp",
+      "name": "closing-port-bg.webp",
+      "width": 1600,
+      "height": 760
+    },
+    {
+      "id": "banner-voyage",
+      "file": "assets/banner-voyage.webp",
+      "name": "banner-voyage.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-compliance",
+      "file": "assets/banner-compliance.webp",
+      "name": "banner-compliance.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-ports",
+      "file": "assets/banner-ports.webp",
+      "name": "banner-ports.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "step-berth",
+      "file": "assets/step-berth.webp",
+      "name": "step-berth.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "step-bridge",
+      "file": "assets/step-bridge.webp",
+      "name": "step-bridge.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "step-swell",
+      "file": "assets/step-swell.webp",
+      "name": "step-swell.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "step-shorepower",
+      "file": "assets/step-shorepower.webp",
+      "name": "step-shorepower.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "port-rotterdam",
+      "file": "assets/port-rotterdam.webp",
+      "name": "port-rotterdam.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "port-gothenburg",
+      "file": "assets/port-gothenburg.webp",
+      "name": "port-gothenburg.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "port-antwerp",
+      "file": "assets/port-antwerp.webp",
+      "name": "port-antwerp.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "ops-waalbochten",
+      "file": "assets/ops-waalbochten.webp",
+      "name": "ops-waalbochten.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "footer-port",
+      "file": "assets/footer-port.webp",
+      "name": "footer-port.webp",
+      "width": 720,
+      "height": 480
+    },
+    {
+      "id": "lead-astrid",
+      "file": "assets/lead-astrid.webp",
+      "name": "lead-astrid.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "lead-klara",
+      "file": "assets/lead-klara.webp",
+      "name": "lead-klara.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "lead-mina",
+      "file": "assets/lead-mina.webp",
+      "name": "lead-mina.webp",
+      "width": 960,
+      "height": 1200
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:vesterport:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "7aaa6fb02b68f5e9e4fe06952370e0ee8dd451fe1e95d5e031a61a5f933cf337"
+}

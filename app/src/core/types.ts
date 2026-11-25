@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -313,6 +313,15 @@ export interface DragstripItem { title?: string; meta?: string; src?: string; al
 export interface DragstripProps { cardRatio?: string; ariaLabel?: string; slides?: DragstripItem[] }
 export interface StayfilterItem { stayName?: string; location?: string; summary?: string; sleeps?: string; tags?: string; lowRate?: string; midRate?: string; highRate?: string; ctaLabel?: string; href?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface StayfilterProps { currencySymbol?: string; defaultGuests?: string; maxGuests?: string; defaultSeason?: string; lowLabel?: string; midLabel?: string; highLabel?: string; guestsLabel?: string; singularLabel?: string; unitLabel?: string; perNightLabel?: string; emptyText?: string; stays?: StayfilterItem[] }
+export interface RoicalcProps {
+  heading?: string; summary?: string;
+  slider1Label?: string; slider1Min?: string; slider1Max?: string; slider1Step?: string; slider1Value?: string; slider1Unit?: string;
+  slider2Label?: string; slider2Min?: string; slider2Max?: string; slider2Step?: string; slider2Value?: string; slider2Unit?: string;
+  baseFactor?: string; savingsPct?: string; co2Factor?: string; currencySymbol?: string;
+  baselineLabel?: string; optimizedLabel?: string; savingsLabel?: string; co2Label?: string; ctaLabel?: string; href?: string;
+}
+export interface StackcardsItem { stepNum?: string; badge?: string; title?: string; detail?: string; stat?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface StackcardsProps { stickyOffset?: string; cards?: StackcardsItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -323,7 +332,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

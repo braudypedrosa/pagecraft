@@ -242,6 +242,8 @@ test('all 51 module renderers emit their representative authored value', () => {
     scrollsteps: { expected: /data-scrollsteps.*QA Seam Step/, configure: n => { n.props.steps = [{ title: 'QA Seam Step', badge: '48h', detail: 'Detail', src: 'https://example.com/st.jpg' }]; } },
     dragstrip: { expected: /data-dragstrip.*QA Filmstrip Suite/, configure: n => { n.props.slides = [{ title: 'QA Filmstrip Suite', meta: 'Cliffside', src: 'https://example.com/ds.jpg' }]; } },
     stayfilter: { expected: /data-stayfilter.*QA Cliff Villa/, configure: n => { n.props.stays = [{ stayName: 'QA Cliff Villa', sleeps: '4', lowRate: '420', midRate: '560', highRate: '720', src: 'https://example.com/v1.jpg' }]; } },
+    roicalc: { expected: /data-roicalc.*QA Bunker Model/, configure: n => { n.props.heading = 'QA Bunker Model'; } },
+    stackcards: { expected: /data-stackcards.*QA Protocol Card/, configure: n => { n.props.cards = [{ stepNum: '01', title: 'QA Protocol Card', detail: 'Step detail', src: 'https://example.com/sc.jpg' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -306,7 +308,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(199);
+  expect(declarations).toHaveLength(224);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -354,7 +356,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(316);
+  expect(declarations).toHaveLength(335);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];
