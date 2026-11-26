@@ -187,31 +187,30 @@ export function smtpNoticeSender(cfg: MailConfig, transport?: Transporter): Noti
  */
 export function throttle(max = 5, windowMs = 15 * 60 * 1000, maxKeys = 5000) {
   const hits = new Map<string, number[]>();
-  const recentOf = (key: string, now: number) => (hits.get(key) || []).filter(t => now - t < windowMs);
+  let overflow: number[] = [];
+  // Unknown keys share one extra window under saturation. A key promoted into a free slot
+  // inherits that window so promotion cannot restart its budget.
+  const recentOf = (key: string, now: number) => (hits.get(key) ?? overflow).filter(t => now - t < windowMs);
   return {
-    /** true when this address may be sent another link. Records the attempt when it may. */
     take(key: string, now = Date.now()) {
       if (!hits.has(key) && hits.size >= maxKeys) {
-        /* Swept here rather than on a timer: the only thing that grows this map is traffic, and
-           traffic is also what cleans it. A timer would be a second thing to get wrong. */
-        for (const [k, v] of hits) if (!v.some(t => now - t < windowMs)) hits.delete(k);
-        /* Active attacker-controlled keys still do not earn unbounded memory, but refusing every
-           new key while the map is full would let one caller with many keys lock out everyone
-           else. The least recently seen keys are forgotten instead. */
-        for (const k of hits.keys()) {
-          if (hits.size < maxKeys) break;
-          hits.delete(k);
+        // Entries are ordered by last accepted request. All expired windows are at the front.
+        for (const [oldKey, times] of hits) {
+          if (now - times[times.length - 1] < windowMs) break;
+          hits.delete(oldKey);
         }
       }
       const recent = recentOf(key, now);
-      // Re-inserted so the map's order is recency: eviction above takes the stalest key first.
-      hits.delete(key);
-      hits.set(key, recent);
       if (recent.length >= max) return false;
       recent.push(now);
+      if (hits.has(key) || hits.size < maxKeys) {
+        hits.delete(key);
+        hits.set(key, recent);
+      } else {
+        overflow = recent;
+      }
       return true;
     },
-    /** true when `take` would refuse this key now. Records nothing. */
     limited: (key: string, now = Date.now()) => recentOf(key, now).length >= max,
     size: () => hits.size
   };

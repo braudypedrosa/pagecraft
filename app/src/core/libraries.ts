@@ -294,6 +294,57 @@ const cleanHref = (v: unknown) => {
 const cleanTarget = (v: unknown) => (v === '_blank' ? '_blank' : '');
 const LINK_TARGET = '@link-target:';
 
+/* Library declarations are untrusted input. Keep normal CSS values, including quoted content
+   and data URLs, but reject a top-level declaration or rule boundary that could change the
+   surrounding generated rule. HTML-safe stylesheet serialization happens at final emission. */
+const SAFE_CSS_PROPERTY = /^(?:--[A-Za-z0-9_-]+|-?[a-z][a-z-]*)$/;
+function cleanCssValue(value: unknown) {
+  if (typeof value !== 'string') return '';
+  let quote = '';
+  const closing: string[] = [];
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (ch === '\\') {
+      if (++i === value.length) return '';
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = '';
+      else if (/[\r\n\f]/.test(ch)) return '';
+      continue;
+    }
+    if (ch === '/' && value[i + 1] === '*') {
+      const end = value.indexOf('*/', i + 2);
+      if (end === -1) return '';
+      i = end + 1;
+      continue;
+    }
+    if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '(' || ch === '[') closing.push(ch === '(' ? ')' : ']');
+    else if (ch === ')' || ch === ']') {
+      if (closing.pop() !== ch) return '';
+    } else if (ch === '{' || ch === '}' || (!closing.length && ch === ';')) return '';
+  }
+  return quote || closing.length || value.includes('\0') ? '' : value;
+}
+function cleanDecls(value: unknown) {
+  const out: Record<string, string> = {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out;
+  for (const [property, candidate] of Object.entries(value as Record<string, unknown>)) {
+    const css = cleanCssValue(candidate);
+    if (SAFE_CSS_PROPERTY.test(property) && css) out[property] = css;
+  }
+  return out;
+}
+function cleanCss(value: unknown) {
+  const css = value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return { d: cleanDecls(css.d), t: cleanDecls(css.t), m: cleanDecls(css.m) };
+}
+function cleanStates(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([state, css]) => [state, cleanCss(css)]));
+}
+
 /** One item as a site may hold it. `components` is the bundle's, so a nested instance's values
     can be cleaned by the kind its own definition gives them. */
 function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]): T {
@@ -309,6 +360,9 @@ function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]
     }
   };
   const cleanNode = (n: Node) => {
+    n.css = cleanCss(n.css) as Node['css'];
+    if (n.st) n.st = cleanStates(n.st) as Node['st'];
+    if (n.adv && typeof n.adv.css !== 'string') n.adv.css = '';
     const p = (n.props || {}) as Record<string, unknown>;
     if (n.type === 'text' && typeof p.html === 'string') p.html = cleanRich(p.html);
     if ('target' in p) p.target = cleanTarget(p.target);
@@ -322,6 +376,12 @@ function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]
     }
     if (n.use) cleanValues(components.find(c => c.id === n.use), n.vals);
   };
+  if (kind === 'color') (item as unknown as ColorToken).value = cleanCssValue((item as unknown as ColorToken).value);
+  if (kind === 'textStyle' || kind === 'class') {
+    const style = item as unknown as TextStyle | StyleClass;
+    style.css = cleanCss(style.css) as typeof style.css;
+    if ('st' in style && style.st) style.st = cleanStates(style.st) as StyleClass['st'];
+  }
   if (kind === 'component') {
     const def = item as unknown as ComponentDef;
     for (const prop of def.props || []) if (typeof prop.def === 'string') prop.def = cleanValue(prop.t, prop.def);

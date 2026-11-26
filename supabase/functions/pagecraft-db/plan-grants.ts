@@ -166,14 +166,30 @@ export async function dispatchPlan(
 
   if (op === "plan.recomputeStale") {
     /* Grants expire and past-due grace runs out without any event arriving, so a periodic job
-       re-derives every paid account. Each account is its own short transaction. */
-    const rows = await sql<Row[]>`select id from users where plan <> 'free' order by id limit 1000`;
-    let changed = 0;
-    for (const row of rows) {
-      const result = await sql.begin((transaction) => recompute(transaction, text(row.id)));
-      if (result.changed) changed++;
+       re-derives every paid account. Cursor pages prevent the same first 1,000 IDs starving the
+       rest. Each account is its own short transaction, and a concurrent deletion skips only that
+       account instead of abandoning the batch. */
+    let after = "", checked = 0, changed = 0;
+    while (true) {
+      const rows = await sql<Row[]>`
+        select id from users
+        where plan <> 'free' and id > ${after}
+        order by id limit 1000
+      `;
+      if (!rows.length) break;
+      after = text(rows[rows.length - 1].id);
+      for (const row of rows) {
+        try {
+          const result = await sql.begin((transaction) => recompute(transaction, text(row.id)));
+          checked++;
+          if (result.changed) changed++;
+        } catch (error) {
+          if ((error as { code?: string }).code !== "USER_NOT_FOUND") throw error;
+        }
+      }
+      if (rows.length < 1000) break;
     }
-    return { checked: rows.length, changed };
+    return { checked, changed };
   }
 
   return refuse("unknown gateway operation", "UNKNOWN_OPERATION");

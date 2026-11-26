@@ -71,6 +71,7 @@ import {
   type SiteRevision,
   type Store,
   validHost,
+  claimableHost,
   validSlug,
 } from "./store.ts";
 import {
@@ -178,6 +179,7 @@ import {
 } from "./portable-packages.ts";
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
+import type { HostClaims } from "./host-claims.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
 import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
 import {
@@ -335,6 +337,8 @@ export interface Options {
   editorHost?: string;
   /** where a login link points. Needed because the link is built outside a request. */
   editorOrigin?: string;
+  /** Actor-scoped DNS proof required before custom-host routing or TLS is enabled. */
+  hostClaims?: HostClaims;
   /** how the link reaches the person. Logged in development. */
   sendLink?: LinkSender;
   /** Review assignment, comment, and decision mail. Omitted when SMTP is unset. */
@@ -4296,6 +4300,18 @@ export function createApp(o: Options) {
     });
   });
 
+  async function hostClaimError(c: Context, host: string, actorId: string) {
+    if (!o.hostClaims) {
+      return c.json({ error: "domain_verification_unavailable", detail: "Custom-domain verification is unavailable on this server." }, 503);
+    }
+    if (await o.hostClaims.verify(host, actorId)) return null;
+    return c.json({
+      error: "domain_not_verified",
+      detail: "Add the DNS TXT record below, point this domain to Pagecraft, wait for DNS to update, then try again.",
+      verification: o.hostClaims.challenge(host, actorId),
+    }, 422);
+  }
+
   /* Creating a site is not something a client does, so it needs a signed-in person and
      grants them ownership of what they made. */
   app.post("/api/sites", async (c) => {
@@ -4366,7 +4382,7 @@ export function createApp(o: Options) {
        the honest value for "no domain yet". */
     const requestedHost = String(body.host || "").trim();
     const host = requestedHost
-      ? validHost(requestedHost)
+      ? claimableHost(requestedHost, o.editorHost)
       : `unclaimed-${crypto.randomUUID()}.invalid`;
     if (!host) {
       return c.json({
@@ -4374,6 +4390,10 @@ export function createApp(o: Options) {
         detail:
           "A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.",
       }, 400);
+    }
+    if (requestedHost) {
+      const error = await hostClaimError(c, host, user.id);
+      if (error) return error;
     }
     /* Stored at this build's schema, so the row starts where the save path expects it. */
     let doc: Doc | null = null;
@@ -4900,13 +4920,19 @@ export function createApp(o: Options) {
     const body = await c.req.json().catch(() => null) as
       | { host?: string }
       | null;
-    const host = validHost(body?.host || "");
+    const host = claimableHost(body?.host || "", o.editorHost);
     if (!host) {
       return c.json({
         error: "that is not a domain",
         detail:
           "A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.",
       }, 400);
+    }
+
+    const current = await o.store.byId(id);
+    if (current?.host !== host) {
+      const error = await hostClaimError(c, host, gate.user.id);
+      if (error) return error;
     }
 
     const moved = await o.store.setHost(id, host);

@@ -560,6 +560,41 @@ test('an import cleans what becomes markup: rich text, links, targets and unsafe
   a.equal((html.match(/"/g) || []).length % 2, 0, 'no attribute was broken open');
 });
 
+test('an import and update keep valid CSS while discarding unsafe declaration boundaries', () => {
+  const author = authorSite();
+  const card = author.meta.components!.find(component => component.id === 'card')!;
+  card.node.css = { d: { color: 'var(--c-quiet)', 'bad;name': 'blue', margin: '12px; 24px' }, t: {}, m: {} } as never;
+  card.node.cls.push('badge');
+  author.meta.tokens!.colors.push({ id: 'quiet', name: 'Quiet', value: 'hsl(210 20% 40%)' });
+  author.meta.tokens!.classes.push({ id: 'badge', name: 'Badge', css: { d: { content: '";"', 'font-size': '14px', 'background-image': 'url("data:image/svg+xml;utf8,icon")' }, t: {}, m: {} } });
+  const first = extractLibraryBundle(author, [{ kind: 'component', id: 'card' }], C.SCHEMA);
+  const imported = planLibraryImport(blankSite(), first, source(1), [{ kind: 'component', id: 'card' }], { assets, newId }).doc;
+  const local = imported.meta.components!.find(component => component.id === 'card')!;
+  a.deepEqual(local.node.css.d, { color: 'var(--c-quiet)' });
+  a.equal(imported.meta.tokens!.colors.find(color => color.id === 'quiet')?.value, 'hsl(210 20% 40%)');
+  a.deepEqual(imported.meta.tokens!.classes.find(style => style.id === 'badge')?.css.d,
+    { content: '";"', 'font-size': '14px', 'background-image': 'url("data:image/svg+xml;utf8,icon")' });
+
+  card.node.css.d = { color: 'rebeccapurple', padding: '8px' } as never;
+  const second = extractLibraryBundle(author, [{ kind: 'component', id: 'card' }], C.SCHEMA);
+  const updated = planLibraryUpdate(imported, second, source(2), { 'component:card': 'theirs' }, { assets, newId }).doc!;
+  a.deepEqual(updated.meta.components!.find(component => component.id === 'card')!.node.css.d,
+    { color: 'rebeccapurple', padding: '8px' });
+});
+
+test('standalone HTML preserves CSS ranges and quotes style end tags as text', () => {
+  C.seed(); C.state.ui = C.initUi(); C.blankProject('Stylesheet text');
+  const box = C.N('box');
+  box.adv.css = '&::before{content:"</style>"}';
+  C.state.pages[0].tree = [box];
+  const css = '@media (width < 640px){.example::before{content:"</STYLE>"}}';
+  const html = C.buildPage(C.state.pages[0], { fontCss: css });
+  a.match(html, /content:"\\3C \/style>"/);
+  a.match(html, /content:"\\3C \/STYLE>"/);
+  a.ok(html.includes('@media (width < 640px)'));
+  a.equal((html.match(/<\/style>/gi) || []).length, 2);
+});
+
 test('an import and an update report the Embeds they would bring, before anything is copied', () => {
   const bundle = hostileBundle();
   const chosen = [{ kind: 'component' as const, id: 'promo' }];

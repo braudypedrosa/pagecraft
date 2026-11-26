@@ -144,7 +144,7 @@ export interface Store {
    `app.test.ts` asserts that by reading Hono's own route table. Adding a route without adding
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
-  'invitations',
+  'invitations', 'billing',
   'forms', 'review', '_pc', 'oauth',
   'account', 'notifications', 'mcp', 'owner',
   'api', 'auth', 'brand', 'internal', 'edit', 'sites', 'templates', 'v1', 'sign-up', 'sign-in', 'forgot-password',
@@ -206,6 +206,19 @@ export function validHost(raw: string): string | null {
     if (!l || l.length > 63) return null;
     if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(l)) return null;
   }
+  return host;
+}
+
+/** Hosts a customer may claim. Platform names and local-only suffixes never become customer
+ * routing or certificate names. `editorHost` also covers non-Pagecraft self-hosted installs. */
+export function claimableHost(raw: string, editorHost = ''): string | null {
+  const host = validHost(raw);
+  if (!host) return null;
+  const platform = validHost(editorHost);
+  const reserved = ['itspagecraft.com', 'localhost'];
+  if (platform) reserved.push(platform);
+  if (reserved.some(name => host === name || host.endsWith('.' + name))) return null;
+  if (host.endsWith('.local') || host.endsWith('.internal')) return null;
   return host;
 }
 

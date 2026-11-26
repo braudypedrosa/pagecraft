@@ -4071,6 +4071,21 @@ function formFieldName(field: any, index: number) {
   return String(field && field.name || '').trim() || slugify(field && field.label) || 'field-' + (index + 1);
 }
 
+/** Hosting can disambiguate duplicate names. Reserve authored keys before assigning suffixes. */
+export function cloudFieldNames(names: readonly string[]): string[] {
+  const reserved = new Set(names);
+  const counts = new Map<string, number>();
+  for (const name of names) counts.set(name, (counts.get(name) || 0) + 1);
+  const next = new Map<string, number>();
+  return names.map(name => {
+    if (counts.get(name) === 1) return name;
+    let suffix = next.get(name) || 1;
+    while (reserved.has(name + '-' + suffix)) suffix++;
+    next.set(name, suffix + 1);
+    return name + '-' + suffix;
+  });
+}
+
 /* ---- forms in other shapes ------------------------------------------------
    Docked bar and Booking request are forms: one renderer, one set of field names, one receiver
    and one review. They differ only in how the fields are laid out. */
@@ -5299,7 +5314,7 @@ function lint() {
 
         const names = fields.map(formFieldName);
         names.forEach((nm, fi) => {
-          if (names.indexOf(nm) !== fi)
+          if (handling.kind !== 'cloud' && names.indexOf(nm) !== fi)
             add('warn', 'field-dup-name', `Two fields in a form in the ${region} both submit as “${nm}”, so one value will overwrite the other.`, w, n.id);
         });
       }
@@ -11818,8 +11833,10 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         .map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`)
         .join('');
       const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
+      const names = fields.map(formFieldName);
+      const submittedNames = handling.kind === 'cloud' ? cloudFieldNames(names) : names;
       const drawn = fields.map((f, i) => {
-        const name = esc(formFieldName(f, i));
+        const name = esc(submittedNames[i]);
         const req = f.required ? ' required' : '';
         const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
         /* Half-width fields share a row. A class rather than a declaration, so the mobile rule
@@ -13059,6 +13076,9 @@ at=i;show();dlg.showModal();
 const LB_JS = /* @__PURE__ */ lightboxRuntime();
 
 const tidy = (css: string) => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
+/* HTML recognizes a style end tag even inside a CSS string. Escape just that prefix:
+   ordinary less-than operators in media and container queries must remain CSS delimiters. */
+const styleText = (css: string) => css.replace(/<(?=\/style[\t\n\f\r />])/gi, '\\3C ');
 
 /* `ctx` carries the item a detail page stands for, and `rel` — how far this file
    sits from the root. Both reach every link and every asset path through the
@@ -13204,10 +13224,10 @@ function buildPage(pg: Page, ctx: {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
+${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${styleText(ctx.fontCss)}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
-${tidy(css)}${hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : ''}${hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : ''}${extraCss}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
+${styleText(tidy(css) + (hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : '') + (hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : '') + extraCss + (moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))}
 </style>
 ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainTags(m.headHtml || '')}${demoteMainTags(pg.headHtml || '')}
 </head>

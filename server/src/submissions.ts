@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile, rm, link, unlink, stat, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Doc, FormField, Node } from '../../app/src/core/types.ts';
-import { slugify, isFormType, formFieldsOf, bookingTotal } from '../../app/src/core/index.ts';
+import { cloudFieldNames, formFieldName, isFormType, formFieldsOf, bookingTotal } from '../../app/src/core/index.ts';
 
 export type SubmissionStatus = 'new' | 'read' | 'archived' | 'success' | 'failed';
 export interface SiteForm { id: string; name: string; pages: string[]; fields: FormField[];
@@ -19,7 +19,8 @@ export interface Submission {
 /** Who is emailed about new entries. No `recipients` means nobody has chosen: every owner. */
 export interface FormAlertSettings { recipients?: string[]; failedAt?: string }
 export const submissionOutcome = (entry: Submission) => entry.status === 'failed' ? 'failed' : 'success';
-export function sortSubmissions(entries: Submission[], order = 'desc') {
+type SubmissionSummary = Submission & { labels: string[] };
+export function sortSubmissions<T extends Submission>(entries: T[], order = 'desc') {
   const direction = order === 'asc' ? 1 : -1;
   return [...entries].sort((a,b) => direction * (a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)));
 }
@@ -55,11 +56,23 @@ export function siteForms(doc: Doc): SiteForm[] {
   return [...forms.values()];
 }
 export function submissionValues(form: SiteForm, body: URLSearchParams) {
+  const original = form.fields.map(formFieldName);
+  const names = cloudFieldNames(original);
+  // Older published forms submitted duplicate controls in document order. An unchecked
+  // checkbox is absent, so accept a legacy group only when its positions are unambiguous.
+  const legacy = new Map<number, string>();
+  for (const base of new Set(original.filter((name, i) => name !== names[i] && body.has(name)))) {
+    const group = form.fields.map((_, i) => i).filter(i => original[i] === base);
+    const posted = body.getAll(base);
+    const present = posted.length === group.length ? group : group.filter(i => form.fields[i].type !== 'checkbox');
+    if (present.length !== posted.length || group.some(i => body.has(names[i]))) throw new Error('Check ' + base + '.');
+    present.forEach((index, j) => legacy.set(index, posted[j]));
+  }
   const values = form.fields.map((field, i) => {
-    const name = field.name || slugify(field.label) || 'field-' + (i + 1);
+    const name = names[i];
     const all = body.getAll(name);
     if (all.length > 1) throw new Error('Check ' + (field.label || name) + '.');
-    const value = (all[0] || '').trim();
+    const value = (legacy.get(i) ?? all[0] ?? '').trim();
     if (field.required && !value) throw new Error((field.label || name) + ' is required.');
     if (value.length > 8000) throw new Error((field.label || name) + ' is too long.');
     if (value && field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) throw new Error('Enter a valid email address.');
@@ -70,7 +83,7 @@ export function submissionValues(form: SiteForm, body: URLSearchParams) {
     return { label: field.label || name, value };
   });
   if (form.booking) {
-    const total = bookingTotal(form.booking, (body.get('booking-service') || '').trim(), (body.get('booking-guests') || '1').trim());
+    const total = bookingTotal(form.booking, values[original.indexOf('booking-service')]?.value || '', values[original.indexOf('booking-guests')]?.value || '1');
     if (total) values.push({ label: String(form.booking.totalLabel || 'Estimated total'), value: total });
   }
   return values;
@@ -85,7 +98,9 @@ export class FileSubmissionStore {
   constructor(root: string) { this.root = root; }
   private dir(site: string) { return join(this.root, createHash('sha256').update(site).digest('hex')); }
   private failedDir(site: string) { return join(this.dir(site), 'failed'); }
-  private summaries = new Map<string, { stamp: string; rows: Submission[] }>();
+  private summaries = new Map<string, { stamp: string; rows: SubmissionSummary[] }>();
+  // Entry bodies are immutable. Cache recent failure dates to avoid reopening retained files for every prune.
+  private failedDates = new Map<string, string>();
   /** Sites whose older failed entries, stored beside successful ones, were already moved out. */
   private sorted = new Set<string>();
   /** Every entry file, successful first, then failed. */
@@ -101,7 +116,7 @@ export class FileSubmissionStore {
     catch (e) { if (!missing(e)) throw e; return JSON.parse(await readFile(paths[1], 'utf8')); }
   }
   /** Keep only metadata in memory; page reads load at most 25 entry bodies. */
-  async overview(site: string): Promise<Submission[]> {
+  async overview(site: string): Promise<SubmissionSummary[]> {
     const dir = this.dir(site);
     const info = await stat(dir).catch(e => { if (e.code === 'ENOENT') return null; throw e; });
     if (!info) { this.summaries.delete(site); return []; }
@@ -110,11 +125,11 @@ export class FileSubmissionStore {
     const cached = this.summaries.get(site);
     if (cached?.stamp === stamp) return cached.rows;
     const files = await this.files(site);
-    const rows: Submission[] = [];
+    const rows: SubmissionSummary[] = [];
     for (let i = 0; i < files.length; i += 32) {
       rows.push(...await Promise.all(files.slice(i, i + 32).map(async file => {
         const entry: Submission = JSON.parse(await readFile(file, 'utf8'));
-        return { ...entry, values: [] };
+        return { ...entry, labels: [...new Set(entry.values.map(field => field.label))], values: [] };
       })));
     }
     rows.sort((a,b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
@@ -122,15 +137,21 @@ export class FileSubmissionStore {
     this.summaries.set(site, { stamp, rows });
     return rows;
   }
+  async readEntries(site: string, rows: Submission[]) {
+    return Promise.all(rows.map(row => this.read(site, row)));
+  }
   async page(site: string, metadata: Submission[], form: string, status: string, requested: number, order = 'desc') {
     const filtered = sortSubmissions(metadata.filter(e => e.formId === form && (!status || submissionOutcome(e) === status)), order);
     const page = Math.max(1, Math.min(Math.max(1, Math.ceil(filtered.length / 25)), Math.floor(requested) || 1));
-    const items = await Promise.all(filtered.slice((page-1)*25, page*25).map(e => this.read(site, e)));
+    const items = await this.readEntries(site, filtered.slice((page-1)*25, page*25));
     return { items, page };
   }
   async list(site: string): Promise<Submission[]> {
     const entries: Submission[] = [];
-    for (const file of await this.files(site)) entries.push(JSON.parse(await readFile(file, 'utf8')));
+    const files = await this.files(site);
+    for (let i = 0; i < files.length; i += 32) {
+      entries.push(...await Promise.all(files.slice(i, i + 32).map(async path => JSON.parse(await readFile(path, 'utf8')))));
+    }
     return entries.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
   }
   async add(site: string, entry: Submission) {
@@ -147,6 +168,7 @@ export class FileSubmissionStore {
     try { await link(temp, join(dir, entry.id + '.json')); created = true; }
     catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; created = false; }
     finally { await unlink(temp); }
+    if (created) this.summaries.delete(site);
     if (failed) await this.pruneFailed(site);
     return created;
   }
@@ -175,16 +197,34 @@ export class FileSubmissionStore {
     const names = (await readdir(dir)).filter(isEntryFile);
     if (names.length <= FAILED_LIMIT) return;
     const rows = await Promise.all(names.map(async name => {
-      const entry: Partial<Submission> = JSON.parse(await readFile(join(dir, name), 'utf8').catch(() => '{}'));
-      return { name, createdAt: entry.createdAt || '' };
+      const path = join(dir, name);
+      let date = this.failedDates.get(path);
+      if (date === undefined) {
+        try { date = String(JSON.parse(await readFile(path, 'utf8')).createdAt || ''); }
+        catch (e) { if (missing(e)) return null; throw e; }
+        if (this.failedDates.size >= 10 * FAILED_LIMIT) this.failedDates.delete(this.failedDates.keys().next().value!);
+        this.failedDates.set(path, date);
+      }
+      return { name, date };
     }));
-    rows.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.name.localeCompare(b.name));
-    for (const row of rows.slice(0, rows.length - FAILED_LIMIT)) await unlink(join(dir, row.name)).catch(e => { if (!missing(e)) throw e; });
+    const retained = rows.filter(row => row !== null);
+    retained.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+    for (const row of retained.slice(0, Math.max(0, retained.length - FAILED_LIMIT))) {
+      const path = join(dir, row.name);
+      await unlink(path).catch(e => { if (!missing(e)) throw e; });
+      this.failedDates.delete(path);
+    }
   }
   async remove(site: string, id: string) {
     if (!/^[a-f0-9-]{36}$/.test(id)) return false;
     for (const dir of [this.dir(site), this.failedDir(site)]) {
-      try { await unlink(join(dir, id + '.json')); this.summaries.delete(site); return true; }
+      const path = join(dir, id + '.json');
+      try {
+        await unlink(path);
+        this.failedDates.delete(path);
+        this.summaries.delete(site);
+        return true;
+      }
       catch (e) { if (!missing(e)) throw e; }
     }
     return false;
@@ -206,5 +246,11 @@ export class FileSubmissionStore {
     await writeFile(temp, JSON.stringify(settings), { flag: 'wx', mode: 0o600 });
     await rename(temp, join(dir, 'alerts.json'));
   }
-  async removeSite(site: string) { await rm(this.dir(site), { recursive: true, force: true }); }
+  async removeSite(site: string) {
+    await rm(this.dir(site), { recursive: true, force: true });
+    this.summaries.delete(site);
+    this.sorted.delete(site);
+    const prefix = this.failedDir(site) + '/';
+    for (const path of this.failedDates.keys()) if (path.startsWith(prefix)) this.failedDates.delete(path);
+  }
 }

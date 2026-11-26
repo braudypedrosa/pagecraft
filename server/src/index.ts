@@ -58,6 +58,7 @@ import { FileAccountDeletionLog, FileServerErrorLog, installCrashRecorder, type 
 import { startErrorAlerts } from "./error-alerts.ts";
 import { GatewayBillingLedger, paddleBillingConfig } from "./paddle-billing.ts";
 import { GatewayPlanGrants } from "./plan-grants.ts";
+import { dnsHostClaims } from "./host-claims.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -99,6 +100,7 @@ async function pickStores(): Promise<{
   manualImports?: ManualImportReadFastPath;
   libraries?: LibraryStore;
   collaborationInvitations: CollaborationInvitationStore;
+  storageDeletionDrain?: (worker: string, limit?: number) => Promise<unknown>;
   /** The database gateway, when the stores use one. Billing needs it. */
   gateway?: import('./store-gateway.ts').PagecraftGateway;
 }> {
@@ -149,6 +151,7 @@ async function pickStores(): Promise<{
       manualImports: new GatewayManualImportReader(gateway),
       libraries: new GatewayLibraryStore(gateway),
       collaborationInvitations: new GatewayCollaborationInvitationStore(gateway),
+      storageDeletionDrain: (worker, limit = 25) => gateway.call("storage.drainDeletionOutbox", { worker, limit }),
       gateway,
     };
   }
@@ -205,6 +208,7 @@ const {
   manualImports,
   libraries,
   collaborationInvitations,
+  storageDeletionDrain,
   gateway: dataGateway,
 } = await pickStores();
 
@@ -434,6 +438,15 @@ if (backgroundWorkers) {
   void drainWordPressWebhooks();
 }
 
+const storageDeletionWorker = `pagecraft-storage-delete-${process.pid}-${crypto.randomUUID()}`;
+if (backgroundWorkers && storageDeletionDrain) {
+  const drainStorageDeletions = () => storageDeletionDrain(storageDeletionWorker, 25).catch((caught) =>
+    console.error("Storage deletion outbox could not be drained:", (caught as Error).message));
+  const storageDeletionTimer = setInterval(drainStorageDeletions, 5 * 60_000);
+  storageDeletionTimer.unref();
+  void drainStorageDeletions();
+}
+
 const invitationWorker =
   `pagecraft-invites-${process.pid}-${crypto.randomUUID()}`;
 let invitationDrainRunning = false;
@@ -566,6 +579,14 @@ if (alertEmail && noticeMail) {
 }
 const editorOrigin = process.env.EDITOR_ORIGIN ||
   (process.env.NODE_ENV === "production" ? `https://${EDITOR_HOST}` : undefined);
+const hostClaimSecret = process.env.PAGECRAFT_HOST_CLAIM_SECRET ||
+  process.env.PAGECRAFT_COOKIE_SECRET || process.env.DATABASE_GATEWAY_KEY;
+if (hostClaimSecret && hostClaimSecret.length < 32) {
+  console.warn("Custom-domain claims are off: the host claim secret must be at least 32 characters.");
+}
+const hostClaims = hostClaimSecret && hostClaimSecret.length >= 32
+  ? dnsHostClaims(hostClaimSecret)
+  : undefined;
 const scheduleRunnerKey = process.env.PAGECRAFT_SCHEDULE_RUNNER_KEY || undefined;
 if (scheduleRunnerKey && scheduleRunnerKey.length < 32) {
   throw new Error("PAGECRAFT_SCHEDULE_RUNNER_KEY must be at least 32 characters");
@@ -642,6 +663,7 @@ const app = createApp({
   editorHtml,
   editorHost: EDITOR_HOST,
   editorOrigin,
+  hostClaims,
   sendLink: mail ? smtpSender(mail) : undefined,
   sendNotice,
   secureCookies: process.env.NODE_ENV === "production",

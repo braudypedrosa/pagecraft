@@ -313,6 +313,18 @@ test('CMS dependencies and missing referenced assets are rejected explicitly', (
   );
 });
 
+test('bounded DEFLATE extraction accepts empty and nonempty entries', () => {
+  // ZIP_DEFLATED archive containing an empty text file and a five-byte greeting.
+  const zip = Buffer.from(
+    'UEsDBBQAAAAIAAAAIQAAAAAAAgAAAAAAAAAJAAAAZW1wdHkudHh0AwBQSwMEFAAAAAgAAAAhAIKJ' +
+    '0fcHAAAABQAAAAwAAABncmVldGluZy50eHTzSM3JyQcAUEsBAhQDFAAAAAgAAAAhAAAAAAACAAAA' +
+    'AAAAAAkAAAAAAAAAAAAAAIABAAAAAGVtcHR5LnR4dFBLAQIUAxQAAAAIAAAAIQCCidH3BwAAAAUA' +
+    'AAAMAAAAAAAAAAAAAACAASkAAABncmVldGluZy50eHRQSwUGAAAAAAIAAgBxAAAAWgAAAAAA', 'base64');
+  const entries = extractPortableZip(zip);
+  a.equal(entries.get('empty.txt')?.byteLength, 0);
+  a.equal(decoder.decode(entries.get('greeting.txt')), 'Hello');
+});
+
 test('portable ZIP creation enforces the bounded file-count contract', () => {
   const tooMany = Array.from({ length: PORTABLE_PACKAGE_LIMITS_V1.files + 1 }, (_, index) => ({
     path: `files/${index}.txt`, bytes: new Uint8Array()

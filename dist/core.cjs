@@ -209,6 +209,7 @@ __export(index_exports, {
   cleanRich: () => cleanRich,
   clip: () => clip,
   clone: () => clone,
+  cloudFieldNames: () => cloudFieldNames,
   cloudFormEndpoint: () => cloudFormEndpoint,
   cloudFormsEnabled: () => cloudFormsEnabled,
   cmsBindable: () => cmsBindable,
@@ -8070,6 +8071,19 @@ function buildLink(o) {
 function formFieldName(field, index) {
   return String(field && field.name || "").trim() || slugify(field && field.label) || "field-" + (index + 1);
 }
+function cloudFieldNames(names) {
+  const reserved = new Set(names);
+  const counts = /* @__PURE__ */ new Map();
+  for (const name of names) counts.set(name, (counts.get(name) || 0) + 1);
+  const next = /* @__PURE__ */ new Map();
+  return names.map((name) => {
+    if (counts.get(name) === 1) return name;
+    let suffix = next.get(name) || 1;
+    while (reserved.has(name + "-" + suffix)) suffix++;
+    next.set(name, suffix + 1);
+    return name + "-" + suffix;
+  });
+}
 var FORM_TYPES = ["form", "dockbar", "slotpicker"];
 var isFormType = (type) => FORM_TYPES.includes(type);
 var choiceValues = (values) => [...new Set(values.map((value) => String(value ?? "").replace(/\s*,\s*/g, " ").trim()).filter(Boolean))];
@@ -9036,7 +9050,7 @@ function lint() {
         });
         const names = fields.map(formFieldName);
         names.forEach((nm, fi) => {
-          if (names.indexOf(nm) !== fi)
+          if (handling.kind !== "cloud" && names.indexOf(nm) !== fi)
             add("warn", "field-dup-name", `Two fields in a form in the ${region} both submit as \u201C${nm}\u201D, so one value will overwrite the other.`, w, n.id);
         });
       }
@@ -14872,8 +14886,10 @@ function renderNode(n, o) {
       const disabled = act ? "" : " disabled";
       const getQueryFields = formFixedQuery(handling, fields).map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`).join("");
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
+      const names = fields.map(formFieldName);
+      const submittedNames = handling.kind === "cloud" ? cloudFieldNames(names) : names;
       const drawn = fields.map((f, i) => {
-        const name = esc(formFieldName(f, i));
+        const name = esc(submittedNames[i]);
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
         const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
@@ -15778,6 +15794,7 @@ at=i;show();dlg.showModal();
 }
 var LB_JS = /* @__PURE__ */ lightboxRuntime();
 var tidy = (css) => css.replace(/\}/g, "}\n").replace(/\n{2,}/g, "\n").replace(/^\s+|\s+$/g, "");
+var styleText = (css) => css.replace(/<(?=\/style[\t\n\f\r />])/gi, "\\3C ");
 function jsonLdGraph(pg2, ctx = {}) {
   const m = state.meta;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
@@ -15870,7 +15887,7 @@ ${pg2.desc ? `<meta name="description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<link rel="canonical" href="${esc(canon)}">
 ` : ""}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">
 ` : ""}${ctx.fontCss ? `<style>
-${ctx.fontCss}
+${styleText(ctx.fontCss)}
 </style>
 ` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
 <meta property="og:title" content="${esc(title)}">
@@ -15879,11 +15896,11 @@ ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">
 <meta name="twitter:card" content="summary_large_image">
 ` : ""}${jsonLd(pg2, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
-${tidy(css)}${hasPublicSelect ? `
-${PUBLIC_SELECT_CSS}` : ""}${hasPublicDate ? `
-${PUBLIC_DATE_CSS}` : ""}${extraCss}${moves ? `
+${styleText(tidy(css) + (hasPublicSelect ? `
+${PUBLIC_SELECT_CSS}` : "") + (hasPublicDate ? `
+${PUBLIC_DATE_CSS}` : "") + extraCss + (moves ? `
 ${ANIM_CSS}
-${ANIM_CALM}` : ""}
+${ANIM_CALM}` : ""))}
 </style>
 ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMainTags(m.headHtml || "")}${demoteMainTags(pg2.headHtml || "")}
 </head>
@@ -16536,6 +16553,7 @@ function proposalApply(changes, proposalId = "", options) {
   cleanRich,
   clip,
   clone,
+  cloudFieldNames,
   cloudFormEndpoint,
   cloudFormsEnabled,
   cmsBindable,

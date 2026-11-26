@@ -112,6 +112,58 @@ async function releaseAssetFile(ownerId: string, path: string) {
   }
 }
 
+async function drainStorageDeletionOutbox(worker: string, requestedLimit: number) {
+  const limit = Math.max(1, Math.min(100, integer(requestedLimit) || 25));
+  const claimed = await sql<Record<string, unknown>[]>`
+    with claim as (
+      select path from storage_deletion_outbox
+      where next_attempt_at <= now()
+        and (locked_at is null or locked_at < now() - interval '5 minutes')
+      order by next_attempt_at, created_at for update skip locked
+      limit ${limit}
+    ) update storage_deletion_outbox o
+    set locked_at = now(), locked_by = ${worker}, attempts = attempts + 1
+    from claim where o.path = claim.path returning o.*
+  `;
+  let deleted = 0;
+  for (const item of claimed) {
+    const path = text(item.path);
+    let success = false;
+    let message = "";
+    try {
+      const stillClaimed = await sql`
+        select 1 from assets where storage_path = ${path}
+        union all
+        select 1 from library_assets where storage_path = ${path}
+        limit 1
+      `;
+      if (!stillClaimed.length) {
+        const result = await storage.from(ASSET_BUCKET).remove([path]);
+        if (result.error) throw result.error;
+        deleted++;
+      }
+      success = true;
+    } catch (error) {
+      message = String((error as Error).message || error).slice(0, 2000);
+    }
+    if (success) {
+      await sql`delete from storage_deletion_outbox where path = ${path} and locked_by = ${worker}`;
+    } else {
+      const delaySeconds = Math.min(21600, 15 * 2 ** Math.min(integer(item.attempts), 8));
+      await sql`
+        update storage_deletion_outbox set locked_at = null, locked_by = null,
+          next_attempt_at = now() + (${delaySeconds}::text || ' seconds')::interval,
+          last_error = ${message}
+        where path = ${path} and locked_by = ${worker}
+      `;
+    }
+  }
+  const remaining = one(await sql<Record<string, unknown>[]>`
+    select count(*)::integer as count from storage_deletion_outbox
+  `);
+  return { processed: claimed.length, deleted, pending: integer(remaining?.count) };
+}
+
 function storedBlobChunks(
   rows: Record<string, unknown>[],
 ): StoredGatewayBlobChunkV1[] {
@@ -362,6 +414,8 @@ async function dispatch(op: string, args: Record<string, unknown>) {
   if (isCrmOp(op)) return await dispatchCrm(sql, op, args);
   if (isBillingOp(op)) return await dispatchBilling(sql, op, args);
   switch (op) {
+    case "storage.drainDeletionOutbox":
+      return await drainStorageDeletionOutbox(text(args.worker), integer(args.limit));
     case "site.list":
       return await sql`select * from sites order by name`;
     case "site.listMeta":
@@ -3279,6 +3333,13 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         const state = await accountDeletionState(transaction, userId);
         if (state.status !== "ok") return state;
         if (state.ownedSites > 0) return { status: "owned_sites" } as const;
+        await transaction`
+          insert into storage_deletion_outbox (path)
+          select la.storage_path from library_assets la
+          join libraries l on l.id = la.library_id
+          where l.owner_id = ${userId}
+          on conflict (path) do nothing
+        `;
         await transaction`delete from users where id = ${userId}`;
         return { status: "deleted", authUserId: text(user.auth_user_id) } as const;
       });
@@ -3289,6 +3350,9 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         authUserDeleted = !error;
         if (error) console.error("profile deleted but the Auth user remains", error.message);
       }
+      await drainStorageDeletionOutbox(`account-${userId}`, 100).catch((error) =>
+        console.error("library file cleanup remains queued", String((error as Error).message || error))
+      );
       return { status: "deleted", authUserDeleted };
     }
     case "auth.revoke":

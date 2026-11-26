@@ -22,7 +22,11 @@ test.skipIf(!database)('real HTTP/PostgreSQL/filesystem: publish, move, delete, 
   const start = async () => {
     const app = createApp({ store: new PgStore(pool), auth: new PgAuthStore(pool),
       publications: new FileHostedPublicationStore(root), editorHtml: '<title>QA</title>',
-      editorHost: '127.0.0.1', sendLink: (_to, url) => { link = url; } });
+      editorHost: '127.0.0.1', sendLink: (_to, url) => { link = url; },
+      hostClaims: {
+        challenge: host => ({ type: 'dns_txt', name: `_pagecraft.${host}`, value: 'pagecraft-verification=test' }),
+        verify: async host => host.endsWith('.test'),
+      } });
     const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port: 0 });
     if (!server.listening) await new Promise<void>(resolve => server.once('listening', resolve));
     const address = server.address();
