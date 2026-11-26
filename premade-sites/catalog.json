@@ -2298,6 +2298,126 @@
       "previewPage": "index.html",
       "assetCount": 19,
       "assetBytes": 1173300
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "bramble-vet",
+      "version": "1.0.1",
+      "name": "Bramble Vet",
+      "sampleName": "Bramble Vet",
+      "description": "Single-page fear-free veterinary clinic landing site featuring a friendly split phone header, arch-masked patient portrait hero, click-to-play clinic video tour facade, ruled care pricing, care team slider, pet parent quotes, and appointment picker.",
+      "categories": [
+        "Pet Care & Health",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjtxb1vxy",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9bb102143684976b931b41f3edf218df6e26a0d4beadc666d17029911663a7ff",
+      "previewPage": "index.html",
+      "assetCount": 9,
+      "assetBytes": 830192
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "devon-park",
+      "version": "1.0.1",
+      "name": "Devon Park",
+      "sampleName": "Devon Park · Systems Engineer",
+      "description": "Swiss grid single-page portfolio and CV for an independent distributed systems engineer, featuring a desktop sticky identity sidebar, impact metrics, tag-filtered systems work, copyable benchmark code block, chronological career spine, and inquiry form.",
+      "categories": [
+        "Personal & CV",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjuvs1vqr",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "c32526c4ce0ba73d3d89d09791045a59236c494110d8187a3670b827c928921c",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 131099
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "fieldwork-radio",
+      "version": "1.0.1",
+      "name": "Fieldwork Radio",
+      "sampleName": "Fieldwork Radio",
+      "description": "Broadsheet single-page site for an investigative audio documentary series featuring an inline playable episode player, tag-filtered audio archive, host byline strip, ruled live tour table, and tip-line intake.",
+      "categories": [
+        "Media & Podcast",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjw4j1vg2",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a2e20cfb84a9179206260a7565c2d599faf8baaf3c664ae7a6be574eebac7745",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 322143
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kairn-climbing",
+      "version": "1.0.1",
+      "name": "Kairn Climbing",
+      "sampleName": "Kairn Climbing",
+      "description": "Single-page bouldering and strength gym landing site featuring an edge-to-edge split hero, dark sector telemetry strip, steep wall zone breakdowns, ruled drop-in ledger, and horizontal waiver booking form.",
+      "categories": [
+        "Sports & Fitness",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjxvs1vb7",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a87bf7ed9a507e324ed4757d8432ba8ad5a4c117721dc67fd64d9dbb98d9d026",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 250157
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "maren-and-tomas",
+      "version": "1.0.1",
+      "name": "Maren & Tomás",
+      "sampleName": "Maren & Tomás · Lisbon 2027",
+      "description": "Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.",
+      "categories": [
+        "Weddings & Celebrations",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfk0me1vmk",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "5b76be7e4444322734fa16aef1e35c24a2961f47551d256f220122ac844beaa3",
+      "previewPage": "index.html",
+      "assetCount": 8,
+      "assetBytes": 1000856
     }
   ]
 }

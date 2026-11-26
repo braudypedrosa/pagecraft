@@ -1,0 +1,61 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "kairn-climbing",
+  "version": "1.0.1",
+  "name": "Kairn Climbing",
+  "sampleName": "Kairn Climbing",
+  "description": "Single-page bouldering and strength gym landing site featuring an edge-to-edge split hero, dark sector telemetry strip, steep wall zone breakdowns, ruled drop-in ledger, and horizontal waiver booking form.",
+  "categories": [
+    "Sports & Fitness",
+    "One Page"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "../1.0.0/assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "../1.0.0/assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "hero-wall",
+      "file": "../1.0.0/assets/hero-wall.webp",
+      "name": "hero-wall.webp",
+      "width": 896,
+      "height": 1200
+    },
+    {
+      "id": "logo",
+      "file": "../1.0.0/assets/logo.svg",
+      "name": "logo.svg",
+      "width": 210,
+      "height": 44
+    },
+    {
+      "id": "zone-cave",
+      "file": "../1.0.0/assets/zone-cave.webp",
+      "name": "zone-cave.webp",
+      "width": 1200,
+      "height": 896
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:kairn-climbing:1.0.1",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "a87bf7ed9a507e324ed4757d8432ba8ad5a4c117721dc67fd64d9dbb98d9d026"
+}

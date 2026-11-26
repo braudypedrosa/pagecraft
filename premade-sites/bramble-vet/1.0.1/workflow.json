@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "bramble-vet",
+  "version": "1.0.1",
+  "sampleName": "Bramble Vet",
+  "packageSha256": "9bb102143684976b931b41f3edf218df6e26a0d4beadc666d17029911663a7ff",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}
