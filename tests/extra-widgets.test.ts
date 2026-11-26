@@ -732,6 +732,45 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(gcRoot.hasAttribute('data-pc-gc-ready')).toBe(false);
     gcDom.window.close();
 
+    // High-impact upgrades: gallery masonry, slider progress bar, filter spring pill, tabs spring indicator
+    const masonryHtml = C.renderNode(C.N('gallery', {
+      galleryLayout: 'masonry', ratio: '4 / 3', lightbox: 1,
+      items: [{ src: 'https://example.test/m1.jpg', alt: 'M1' }, { src: 'https://example.test/m2.jpg', alt: 'M2' }]
+    }), { edit: false });
+    expect(masonryHtml).toContain('pagecraft-gallery-masonry');
+    expect(masonryHtml).not.toContain('pagecraft-gallery-fixed');
+
+    const progSliderHtml = C.renderNode(C.N('slider', { arrows: 1, pagination: 'progress' }, {}, [
+      C.N('column', {}, {}, [C.N('heading', { text: 'Slide 1' })]),
+      C.N('column', {}, {}, [C.N('heading', { text: 'Slide 2' })]),
+    ]), { edit: false });
+    expect(progSliderHtml).toContain('data-pagination="progress"');
+    expect(progSliderHtml).toContain('data-slide-progress');
+    expect(progSliderHtml).toContain('data-slide-progress-fill');
+
+    const flHtml = C.renderNode(C.N('filter', { all: 'All', tags: 'One, Two' }, {}, [
+      C.N('box', { tags: 'One' }, {}, [C.N('heading', { text: 'Item 1' })]),
+      C.N('box', { tags: 'Two' }, {}, [C.N('heading', { text: 'Item 2' })]),
+    ]), { edit: false });
+    const flDom = domFor(flHtml);
+    const flWin = flDom.window as any;
+    let flDispose: (() => void) | null = null;
+    flWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { flDispose = fn; };
+    flWin.eval(scriptBody(C.FILTER_JS));
+    expect(flWin.document.querySelector('.pagecraft-filter-pill')).toBeTruthy();
+    flDispose!();
+    expect(flWin.document.querySelector('.pagecraft-filter-pill')).toBeNull();
+    flDom.window.close();
+
+    const tbHtml = C.renderNode(C.N('tabs', {
+      items: [{ label: 'Alpha', panel: 'Panel A' }, { label: 'Beta', panel: 'Panel B' }]
+    }), { edit: false });
+    const tbDom = domFor(tbHtml);
+    const tbWin = tbDom.window as any;
+    tbWin.eval(scriptBody(C.TABS_JS));
+    expect(tbWin.document.querySelector('.pagecraft-tab-indicator')).toBeTruthy();
+    tbDom.window.close();
+
     // Stage switcher click + keyboard interaction
     const swHtml = C.renderNode(C.N('switcher', {
       stageLayout: 'rail', ratio: '3 / 2',

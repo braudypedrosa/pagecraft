@@ -107,7 +107,7 @@ export interface ImageProps extends Linkable {
   w?: string; h?: string; lazy?: 0 | 1 | boolean;
 }
 export interface GalleryProps {
-  items?: GalleryTile[]; ratio?: string; fit?: string;
+  items?: GalleryTile[]; galleryLayout?: 'grid' | 'masonry'; ratio?: string; fit?: string;
   captions?: 0 | 1 | boolean; lightbox?: 0 | 1 | boolean; lazy?: 0 | 1 | boolean;
 }
 export interface GalleryTile { src?: string; alt?: string; caption?: string; w?: string; h?: string }
@@ -184,6 +184,7 @@ export interface TabsProps { items?: TabPanel[] }
     the pair of arrow buttons, and a page without one still swipes and scrolls. */
 export interface SliderProps {
   controlsPosition?: 'sides' | 'bottom';
+  pagination?: 'dots' | 'progress';
   arrows?: 0 | 1;
   /** what a screen reader calls the scrollable region */
   aria?: string;
