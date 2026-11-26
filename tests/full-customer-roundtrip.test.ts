@@ -224,6 +224,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('masonry', { cols: '3', items: [{ src: 'https://example.test/ms1.webp', alt: 'Vinyl 1', title: 'SUB-014', meta: '180 g', ratio: '4 / 5' }] }),
     C.N('maplist', { mapSrc: 'https://example.test/map.svg', items: [{ pinLabel: '€2,150', price: '€2,150 / mo', title: 'Wharf Loft', meta: '94 m²', x: '34', y: '44', src: 'https://example.test/apt1.webp', alt: 'Wharf Loft', ctaLabel: 'Tour', href: 'https://example.test/tour' }] }),
     C.N('thumbviewer', { ratio: '16 / 10', items: [{ src: 'https://example.test/tv1.webp', alt: 'Living', label: '01 Living', title: 'Living Hall', meta: 'South exposure' }] }),
+    C.N('financeswitch', { leaseLabel: 'Lease (36 mo)', cashLabel: 'Cash purchase', defaultMode: 'lease', items: [{ title: 'NV-01 Single Motor', badge: '590 km', specs: '220 kW · RWD', leasePrice: '€549 / mo', cashPrice: '€56,900', leaseNote: '0% deposit', cashNote: 'Excl. VAT', ctaLabel: 'Book Drive', href: 'https://example.test/drive', src: 'https://example.test/nv1.webp', alt: 'NV-01' }] }),
+    C.N('rangeslider', { heading: 'Winter simulator', defaultTemp: '-10', baseRangeKm: '640', href: 'https://example.test/range' }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -263,8 +265,8 @@ describe('full customer document round trip', () => {
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(60);
-    expect(new Set(choices)).toHaveLength(60);
+    expect(choices).toHaveLength(62);
+    expect(new Set(choices)).toHaveLength(62);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

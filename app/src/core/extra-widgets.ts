@@ -2230,12 +2230,12 @@ export const MASONRY_JS = `<script>
 export const MAPLIST_CSS = `
 .pagecraft-maplist{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr);gap:24px;align-items:stretch;width:100%;color:var(--ml-ink,#17231E)}
 .pagecraft-maplist-list{display:flex;flex-direction:column;gap:12px;min-width:0}
-.pagecraft-maplist-card{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);color:inherit;font:inherit;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.pagecraft-maplist-card{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:124px minmax(0,1fr);gap:0;align-items:stretch;padding:0;overflow:hidden;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);color:inherit;font:inherit;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
 .pagecraft-maplist-card:hover{border-color:var(--ml-accent,#136B52)}
 .pagecraft-maplist-card[data-selected="1"]{border-color:var(--ml-accent,#136B52);box-shadow:0 0 0 2px color-mix(in srgb,var(--ml-accent,#136B52) 22%,transparent),0 10px 24px rgba(16,26,22,.08)}
 .pagecraft-maplist-card:focus-visible,.pagecraft-maplist-pin:focus-visible,.pagecraft-maplist-cta:focus-visible{outline:2px solid var(--ml-accent,#136B52);outline-offset:2px}
-.pagecraft-maplist-thumb{width:88px;height:72px;object-fit:cover;border-radius:calc(var(--ml-radius,12px) * .65);display:block}
-.pagecraft-maplist-body{min-width:0;display:flex;flex-direction:column;gap:3px}
+.pagecraft-maplist-thumb{width:100%;height:100%;min-height:112px;object-fit:cover;border-radius:0;display:block}
+.pagecraft-maplist-body{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:14px 16px}
 .pagecraft-maplist-price{font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--ml-accent,#136B52);font-variant-numeric:tabular-nums}
 .pagecraft-maplist-title{margin:0;font-size:16.5px;font-weight:700;line-height:1.22;color:var(--ml-ink,#17231E)}
 .pagecraft-maplist-meta{margin:0;font-size:13px;font-weight:600;color:var(--ml-muted,#4E6058)}
@@ -2256,6 +2256,10 @@ export const MAPLIST_CSS = `
 @media(max-width:899px){
   .pagecraft-maplist{grid-template-columns:1fr}
   .pagecraft-maplist-stage{min-height:280px}
+}
+@media(max-width:479px){
+  .pagecraft-maplist-card{grid-template-columns:104px minmax(0,1fr)}
+  .pagecraft-maplist-body{padding:12px}
 }
 `;
 
@@ -2390,6 +2394,172 @@ export const THUMBVIEWER_JS = `<script>
     disposers.push(function(){
       offs.forEach(function(fn){fn();});
       root.removeAttribute('data-pc-tv-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+
+/* ---- Financeswitch (WSC-204 simultaneous cash purchase vs monthly lease cards) ---- */
+export const FINANCESWITCH_CSS = `
+.pagecraft-financeswitch{display:flex;flex-direction:column;gap:22px;width:100%;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-bar{display:inline-flex;align-self:center;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--fs-line,#1F2A3A);border-radius:var(--fs-radius,12px);background:var(--fs-surface,#121923)}
+.pagecraft-fs-mode{appearance:none;min-height:40px;padding:0 18px;border:0;border-radius:calc(var(--fs-radius,12px) * .67);background:transparent;color:var(--fs-muted,#9AA8BD);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color .16s ease,color .16s ease}
+.pagecraft-fs-mode[aria-pressed="true"]{background:var(--fs-accent,#36CFE6);color:var(--fs-on,#0A0E14)}
+.pagecraft-fs-mode:focus-visible,.pagecraft-fs-cta:focus-visible{outline:2px solid var(--fs-accent,#36CFE6);outline-offset:2px}
+.pagecraft-fs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.pagecraft-fs-card{display:flex;flex-direction:column;border:1px solid var(--fs-line,#1F2A3A);border-radius:var(--fs-radius,12px);background:var(--fs-surface,#121923);overflow:hidden}
+.pagecraft-fs-media{aspect-ratio:16 / 10;background:var(--fs-bg,#0A0E14);overflow:hidden}
+.pagecraft-fs-img{width:100%;height:100%;object-fit:cover;display:block}
+.pagecraft-fs-body{display:flex;flex-direction:column;flex:1 1 auto;gap:12px;padding:22px}
+.pagecraft-fs-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pagecraft-fs-title{margin:0;font-size:20px;font-weight:700;line-height:1.25;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-badge{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--fs-accent,#36CFE6)}
+.pagecraft-fs-specs{margin:0;font-size:13.5px;line-height:1.5;color:var(--fs-muted,#9AA8BD)}
+.pagecraft-fs-pricing{margin-top:auto;padding-top:14px;border-top:1px solid var(--fs-line,#1F2A3A);display:flex;flex-direction:column;gap:4px}
+.pagecraft-fs-price{font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-note{font-size:13px;line-height:1.4;color:var(--fs-muted,#9AA8BD)}
+.pagecraft-fs-cta{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:4px;padding:0 16px;border-radius:calc(var(--fs-radius,12px) * .67);background:var(--fs-accent,#36CFE6);color:var(--fs-on,#0A0E14);font-size:14px;font-weight:600;text-decoration:none;box-sizing:border-box;transition:opacity .16s ease}
+.pagecraft-fs-cta:hover{opacity:.9}
+@media(prefers-reduced-motion:reduce){.pagecraft-fs-mode,.pagecraft-fs-cta{transition:none}}
+@media(max-width:960px){.pagecraft-fs-grid{grid-template-columns:1fr}}
+`;
+
+export const FINANCESWITCH_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-financeswitch]').forEach(function(root){
+    if(root.hasAttribute('data-pc-fs-ready'))return;
+    root.setAttribute('data-pc-fs-ready','');
+    var btns=[].slice.call(root.querySelectorAll('[data-fs-mode]'));
+    var prices=[].slice.call(root.querySelectorAll('[data-fs-price]'));
+    var notes=[].slice.call(root.querySelectorAll('[data-fs-note]'));
+    function setMode(mode){
+      root.setAttribute('data-fs-active',mode);
+      btns.forEach(function(btn){
+        btn.setAttribute('aria-pressed',btn.getAttribute('data-fs-mode')===mode?'true':'false');
+      });
+      prices.forEach(function(el){
+        var next=el.getAttribute(mode==='cash'?'data-cash-price':'data-lease-price');
+        if(next!==null)el.textContent=next;
+      });
+      notes.forEach(function(el){
+        var next=el.getAttribute(mode==='cash'?'data-cash-note':'data-lease-note');
+        if(next!==null)el.textContent=next;
+      });
+    }
+    var offs=[];
+    btns.forEach(function(btn){
+      function onClick(){setMode(btn.getAttribute('data-fs-mode')||'lease');}
+      btn.addEventListener('click',onClick);
+      offs.push(function(){btn.removeEventListener('click',onClick);});
+    });
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-fs-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+
+/* ---- Rangeslider (WSC-071 interactive winter highway & temperature range simulator) ---- */
+export const RANGESLIDER_CSS = `
+.pagecraft-rangeslider{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:24px;align-items:stretch;width:100%;padding:28px;border:1px solid var(--rs-line,#D7E0EC);border-radius:var(--rs-radius,12px);background:var(--rs-surface,#FFFFFF);color:var(--rs-ink,#0A0E14);box-sizing:border-box}
+.pagecraft-rs-ctrl{display:flex;flex-direction:column;justify-content:center;gap:18px;min-width:0}
+.pagecraft-rs-h{margin:0;font-size:24px;font-weight:700;line-height:1.2;color:var(--rs-ink,#0A0E14)}
+.pagecraft-rs-sub{margin:0;font-size:15px;line-height:1.55;color:var(--rs-muted,#475569)}
+.pagecraft-rs-field{display:flex;flex-direction:column;gap:10px}
+.pagecraft-rs-lbl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;font-weight:600;color:var(--rs-ink,#0A0E14)}
+.pagecraft-rs-lbl output{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--rs-accent,#0B6E7D)}
+.pagecraft-rs-range{width:100%;height:8px;margin:0;accent-color:var(--rs-accent,#0B6E7D);cursor:pointer}
+.pagecraft-rs-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--rs-muted,#475569);font-variant-numeric:tabular-nums}
+.pagecraft-rs-wheels{display:flex;flex-wrap:wrap;gap:8px}
+.pagecraft-rs-wbtn{appearance:none;min-height:38px;padding:0 14px;border:1px solid var(--rs-line,#D7E0EC);border-radius:calc(var(--rs-radius,12px) * .67);background:transparent;color:var(--rs-ink,#0A0E14);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .16s ease,border-color .16s ease,color .16s ease}
+.pagecraft-rs-wbtn[aria-pressed="true"]{background:var(--rs-ink,#0A0E14);border-color:var(--rs-ink,#0A0E14);color:var(--rs-on,#FFFFFF)}
+.pagecraft-rs-wbtn:focus-visible,.pagecraft-rs-range:focus-visible,.pagecraft-rs-cta:focus-visible{outline:2px solid var(--rs-accent,#0B6E7D);outline-offset:2px}
+.pagecraft-rs-readout{display:flex;flex-direction:column;justify-content:space-between;gap:18px;padding:24px;border-radius:calc(var(--rs-radius,12px) * .85);background:var(--rs-bg,#0A0E14);color:#F4F7FB;min-width:0}
+.pagecraft-rs-rhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pagecraft-rs-rtag{font-size:12.5px;font-weight:600;color:#9AA8BD}
+.pagecraft-rs-speed{font-size:12.5px;font-weight:600;color:#36CFE6;font-variant-numeric:tabular-nums}
+.pagecraft-rs-km{margin:0;font-size:clamp(36px,4.5vw,50px);font-weight:700;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#F4F7FB}
+.pagecraft-rs-track{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.pagecraft-rs-fill{height:100%;border-radius:999px;background:#36CFE6;transition:width .18s ease}
+.pagecraft-rs-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+.pagecraft-rs-stat{display:flex;flex-direction:column;gap:3px}
+.pagecraft-rs-slbl{font-size:12px;color:#9AA8BD}
+.pagecraft-rs-sval{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:#F4F7FB}
+.pagecraft-rs-cta{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:0 18px;border-radius:calc(var(--rs-radius,12px) * .67);background:#36CFE6;color:#0A0E14;font-size:14px;font-weight:600;text-decoration:none;box-sizing:border-box;transition:opacity .16s ease}
+.pagecraft-rs-cta:hover{opacity:.9}
+.pagecraft-rs-note{margin:0;font-size:12px;line-height:1.45;color:#9AA8BD}
+@media(prefers-reduced-motion:reduce){.pagecraft-rs-fill,.pagecraft-rs-wbtn,.pagecraft-rs-cta{transition:none}}
+@media(max-width:860px){.pagecraft-rangeslider{grid-template-columns:1fr;padding:20px}}
+`;
+
+export const RANGESLIDER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-rangeslider]').forEach(function(root){
+    if(root.hasAttribute('data-pc-rs-ready'))return;
+    root.setAttribute('data-pc-rs-ready','');
+    var baseKm=parseFloat(root.getAttribute('data-rs-base-range')||'640')||640;
+    var input=root.querySelector('[data-rs-temp]');
+    var tempOut=root.querySelector('[data-rs-temp-out]');
+    var rangeOut=root.querySelector('[data-rs-range]');
+    var bar=root.querySelector('[data-rs-bar]');
+    var chargeOut=root.querySelector('[data-rs-charge]');
+    var heatOut=root.querySelector('[data-rs-heat]');
+    var wheelBtns=[].slice.call(root.querySelectorAll('[data-rs-wheel]'));
+    var wheelDelta=0;
+    wheelBtns.forEach(function(btn){
+      if(btn.getAttribute('aria-pressed')==='true'){
+        wheelDelta=parseFloat(btn.getAttribute('data-rs-delta')||'0')||0;
+      }
+    });
+    function formatTemp(t){return (t>0?'+':'')+String(t)+'°C';}
+    function update(){
+      var temp=input?parseFloat(input.value):-10;
+      if(!isFinite(temp))temp=-10;
+      var ret=temp>=15?Math.max(.96,1-Math.max(0,temp-22)*.002):Math.max(.55,1-(15-temp)*.0062);
+      var km=Math.max(220,Math.round(baseKm*ret+wheelDelta));
+      var pct=Math.max(20,Math.min(100,Math.round((km/baseKm)*100)));
+      var chg=17+(temp<0?Math.min(6,Math.ceil((-temp)/6)):0);
+      var heat=Math.max(0,Math.round((15-Math.min(15,temp))*1.65));
+      if(tempOut)tempOut.textContent=formatTemp(temp);
+      if(rangeOut)rangeOut.textContent=String(km)+' km';
+      if(bar)bar.style.width=pct+'%';
+      if(chargeOut)chargeOut.textContent=String(chg)+' min';
+      if(heatOut)heatOut.textContent=(heat>0?'+'+heat:'0')+' km recovered';
+    }
+    var offs=[];
+    if(input){
+      input.addEventListener('input',update);
+      input.addEventListener('change',update);
+      offs.push(function(){input.removeEventListener('input',update);input.removeEventListener('change',update);});
+    }
+    wheelBtns.forEach(function(btn){
+      function onWheel(){
+        wheelDelta=parseFloat(btn.getAttribute('data-rs-delta')||'0')||0;
+        wheelBtns.forEach(function(b){b.setAttribute('aria-pressed',b===btn?'true':'false');});
+        update();
+      }
+      btn.addEventListener('click',onWheel);
+      offs.push(function(){btn.removeEventListener('click',onWheel);});
+    });
+    update();
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-rs-ready');
     });
   });
   if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){

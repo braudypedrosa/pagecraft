@@ -67,7 +67,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
       ['dragstrip', 'Draggable filmstrip'], ['stayfilter', 'Stay finder'],
       ['roicalc', 'ROI calculator'], ['stackcards', 'Stacked cards'],
       ['showbill', 'Venue bill'], ['masonry', 'Masonry archive'],
-      ['maplist', 'Map listings'], ['thumbviewer', 'Thumbnail viewer']
+      ['maplist', 'Map listings'], ['thumbviewer', 'Thumbnail viewer'],
+      ['financeswitch', 'Finance switch'], ['rangeslider', 'Range slider']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -100,7 +101,9 @@ export const PURPOSE: Record<string, string> = {
   showbill: 'Date-block schedule of performances or sessions with room filter buttons.',
   masonry: 'Mixed-aspect media archive grid with an integrated lightbox viewer.',
   maplist: 'Synchronized residence cards paired with clickable price pins on a district map.',
-  thumbviewer: 'Large stage image with previous/next controls and synchronized thumbnail strip.'
+  thumbviewer: 'Large stage image with previous/next controls and synchronized thumbnail strip.',
+  financeswitch: 'Trim cards with a simultaneous lease vs. cash purchase mode switch.',
+  rangeslider: 'Interactive temperature and wheel simulator estimating winter highway range.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -171,6 +174,8 @@ const ALIASES: Record<string, string> = {
   masonry: 'masonry gallery archive mixed aspect vinyl lookbook lightbox',
   maplist: 'map pins listings apartments lofts residences neighborhood interactive split',
   thumbviewer: 'thumbnail viewer gallery stage floorplan interior plates',
+  financeswitch: 'finance switch lease cash pricing trims vehicle ev purchase toggle',
+  rangeslider: 'range slider winter temperature ev autonomy simulator battery calculator',
   list: 'collection cms dynamic',
 };
 

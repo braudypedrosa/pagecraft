@@ -1,0 +1,166 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "nordvolt-ev",
+  "version": "1.0.0",
+  "name": "NORDVOLT · 800V Electric Shooting Brakes",
+  "sampleName": "NORDVOLT — 800-Volt Nordic Electric Shooting Brakes",
+  "description": "Four-page 800-volt electric shooting brake platform designed for sub-zero Nordic corridors, featuring a 100dvh studio fastback hero with bottom telemetry strip, simultaneous cash vs. lease trim switch (financeswitch), interactive winter highway range simulator (rangeslider), horizontal craft snap rail, 800V skateboard hotspot chassis diagram, thermal recovery progress gauges, 320 kW charging curve & corridor table, bi-directional V2H accordion, OTA telemetry FAQ, and 48-hour unaccompanied test drive flow.",
+  "categories": [
+    "Hardware & Mobility",
+    "Electric Vehicles"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 224,
+      "height": 40
+    },
+    {
+      "id": "drivetrain-800v-map",
+      "file": "assets/drivetrain-800v-map.svg",
+      "name": "drivetrain-800v-map.svg",
+      "width": 960,
+      "height": 640
+    },
+    {
+      "id": "charge-curve-320kw",
+      "file": "assets/charge-curve-320kw.svg",
+      "name": "charge-curve-320kw.svg",
+      "width": 960,
+      "height": 520
+    },
+    {
+      "id": "hero-fastback-bg",
+      "file": "assets/hero-fastback-bg.webp",
+      "name": "hero-fastback-bg.webp",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "id": "banner-range",
+      "file": "assets/banner-range.webp",
+      "name": "banner-range.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-charging",
+      "file": "assets/banner-charging.webp",
+      "name": "banner-charging.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-drive",
+      "file": "assets/banner-drive.webp",
+      "name": "banner-drive.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "trim-nv01",
+      "file": "assets/trim-nv01.webp",
+      "name": "trim-nv01.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "trim-nv02",
+      "file": "assets/trim-nv02.webp",
+      "name": "trim-nv02.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "trim-nv03",
+      "file": "assets/trim-nv03.webp",
+      "name": "trim-nv03.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "heatpump-unit",
+      "file": "assets/heatpump-unit.webp",
+      "name": "heatpump-unit.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "battery-pack",
+      "file": "assets/battery-pack.webp",
+      "name": "battery-pack.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "home-driveway",
+      "file": "assets/home-driveway.webp",
+      "name": "home-driveway.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "ota-telemetry",
+      "file": "assets/ota-telemetry.webp",
+      "name": "ota-telemetry.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "nordic-highway",
+      "file": "assets/nordic-highway.webp",
+      "name": "nordic-highway.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "proving-arjeplog",
+      "file": "assets/proving-arjeplog.webp",
+      "name": "proving-arjeplog.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "bench-inverter",
+      "file": "assets/bench-inverter.webp",
+      "name": "bench-inverter.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "lab-goteborg",
+      "file": "assets/lab-goteborg.webp",
+      "name": "lab-goteborg.webp",
+      "width": 1200,
+      "height": 800
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:nordvolt-ev:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "cfa883565b4f47ec0ef90613091ce25faf87c2e7b7dbefcdbe71fdce93f422ec"
+}

@@ -126,13 +126,6 @@
       "height": 800
     },
     {
-      "id": "footer-port",
-      "file": "assets/footer-port.webp",
-      "name": "footer-port.webp",
-      "width": 720,
-      "height": 480
-    },
-    {
       "id": "lead-astrid",
       "file": "assets/lead-astrid.webp",
       "name": "lead-astrid.webp",
@@ -162,5 +155,5 @@
     "sourceId": "template:vesterport:1.0.0",
     "sourceVersion": 1
   },
-  "importedPackageSha256": "7aaa6fb02b68f5e9e4fe06952370e0ee8dd451fe1e95d5e031a61a5f933cf337"
+  "importedPackageSha256": "2e20a4eb4d2dc493d146731585dd35813f882774fc5bf0e90c571ec513590e7b"
 }

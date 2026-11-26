@@ -40,7 +40,8 @@ import {
   ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
   TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
   DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS,
-  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS
+  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS,
+  FINANCESWITCH_CSS, FINANCESWITCH_JS, RANGESLIDER_CSS, RANGESLIDER_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -50,7 +51,7 @@ const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').re
 /** Nav menu, manual Breadcrumb, and Exhibit index are the widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
-const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills';
+const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills' || node.type === 'financeswitch';
 
 /** A WordPress-owned destination is stored in the editor as a typed, target-neutral
  * reference. It is not a browser URL: `pageHref` converts it to the exact signed
@@ -2869,6 +2870,143 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--tv-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  financeswitch: {
+    label: 'Finance switch', icon: 'financeswitch', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        leaseLabel: 'Monthly lease (36 mo)',
+        cashLabel: 'Cash purchase',
+        defaultMode: 'lease',
+        items: [
+          {
+            title: 'NV-01 Single Motor', badge: '590 km WLTP',
+            specs: '220 kW rear drive · 800V LFP · 18 min fast charge',
+            leasePrice: '€549 / mo', cashPrice: '€56,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-01 Single Motor studio view'
+          },
+          {
+            title: 'NV-02 AWD Shooting Brake', badge: '640 km WLTP',
+            specs: '360 kW dual SiC · 1,820 L load bay · CO₂ heat pump',
+            leasePrice: '€649 / mo', cashPrice: '€64,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-02 AWD Shooting Brake studio view'
+          },
+          {
+            title: 'NV-03 Track Pack', badge: '610 km WLTP',
+            specs: '440 kW torque-vectoring AWD · Brembo 6-piston · Öhlins',
+            leasePrice: '€769 / mo', cashPrice: '€74,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-03 Track Pack studio view'
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--fs-surface': cvar('surface'), '--fs-bg': cvar('bg'),
+          '--fs-ink': cvar('ink'), '--fs-muted': cvar('muted'),
+          '--fs-accent': cvar('brand'), '--fs-on': '#0A0E14',
+          '--fs-line': cvar('line'), '--fs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'leaseLabel', label: 'Lease button label', ph: 'Monthly lease (36 mo)' },
+        { t: 'text', k: 'cashLabel', label: 'Cash button label', ph: 'Cash purchase' },
+        { t: 'select', k: 'defaultMode', label: 'Initial mode', opts: [['lease', 'Lease'], ['cash', 'Cash']] },
+        {
+          t: 'qa', k: 'items', label: 'Vehicle or plan cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'title', label: 'Trim / plan title', ph: 'NV-02 AWD Shooting Brake', def: 'New trim' },
+            { k: 'badge', label: 'Top highlight', ph: '640 km WLTP', def: '' },
+            { k: 'specs', label: 'Specifications', ph: '360 kW dual SiC · 1,820 L', def: '' },
+            { k: 'leasePrice', label: 'Lease price', ph: '€649 / mo', def: '€599 / mo' },
+            { k: 'cashPrice', label: 'Cash price', ph: '€64,900', def: '€59,900' },
+            { k: 'leaseNote', label: 'Lease note', ph: '36 months · €0 down', def: '' },
+            { k: 'cashNote', label: 'Cash note', ph: 'Direct price · warranty', def: '' },
+            { k: 'src', label: 'Vehicle image', ph: 'asset:trim', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe trim view', def: '' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Book 48h Test Drive', def: 'Book 48h Test Drive' },
+            { k: 'href', label: 'Button link', ph: 'test-drive.html#book', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--fs-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-bg', label: 'Image frame fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-muted', label: 'Secondary copy', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-accent', label: 'Toggle & CTA accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--fs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  rangeslider: {
+    label: 'Range slider', icon: 'rangeslider', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        heading: 'Estimate cold-weather highway range',
+        summary: 'Scrub outside temperature and tyre package to see verified Arjeplog telemetry for 110 km/h Nordic cruising.',
+        tempLabel: 'Ambient winter temperature',
+        minTemp: '-25',
+        maxTemp: '25',
+        defaultTemp: '-10',
+        baseRangeKm: '640',
+        wheelOptions: '19" Aero Winter:0|20" Touring:-28|21" Track:-54',
+        speedLabel: '110 km/h highway telemetry',
+        chargeLabel: '10–80% DC fast charge',
+        heatLabel: 'CO₂ heat-pump recovery',
+        ctaLabel: 'Explore 800V Thermal Specs',
+        href: 'range.html#thermal',
+        note: 'Based on 102 kWh net pack, preconditioned departure, and 21°C cabin setpoint.'
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--rs-surface': '#FFFFFF', '--rs-bg': '#0A0E14',
+          '--rs-ink': '#0A0E14', '--rs-muted': '#475569',
+          '--rs-accent': '#0B6E7D', '--rs-on': '#FFFFFF',
+          '--rs-line': '#D7E0EC', '--rs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'heading', label: 'Heading', ph: 'Estimate winter range' },
+        { t: 'area', k: 'summary', label: 'Summary', ph: 'Adjust temperature and tyres.' },
+        { t: 'text', k: 'tempLabel', label: 'Temperature label', ph: 'Ambient temperature' },
+        { t: 'unit', k: 'minTemp', label: 'Min temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'maxTemp', label: 'Max temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'defaultTemp', label: 'Default temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'baseRangeKm', label: 'Base WLTP (km)', integer: 1, units: [''] },
+        { t: 'text', k: 'wheelOptions', label: 'Wheel presets', ph: '19" Aero Winter:0|20" Touring:-28' },
+        { t: 'text', k: 'speedLabel', label: 'Speed telemetry badge', ph: '110 km/h cruise' },
+        { t: 'text', k: 'chargeLabel', label: 'Charge label', ph: '10–80% DC fast charge' },
+        { t: 'text', k: 'heatLabel', label: 'Heat-pump label', ph: 'CO₂ heat-pump recovery' },
+        { t: 'text', k: 'ctaLabel', label: 'Button label', ph: 'Explore 800V Specs' },
+        { t: 'text', k: 'href', label: 'Button link', ph: 'range.html#thermal' },
+        { t: 'text', k: 'note', label: 'Methodology note', ph: '102 kWh net pack.' }
+      ],
+      style: [
+        { t: 'color', c: '--rs-surface', label: 'Control panel fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-bg', label: 'Readout panel fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-ink', label: 'Control text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-muted', label: 'Muted text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-accent', label: 'Slider accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-on', label: 'Selected wheel text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -3478,6 +3616,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'masonry') return `Masonry · ${((n.props.items as any[]) || []).length} plate${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'maplist') return `Map listings · ${((n.props.items as any[]) || []).length} unit${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'thumbviewer') return `Thumbnail viewer · ${((n.props.items as any[]) || []).length} view${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'financeswitch') return `Finance switch · ${((n.props.items as any[]) || []).length} trim${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'rangeslider') return `Range slider · ${n.props.baseRangeKm || '640'} km`;
   return d.label;
 };
 
@@ -6712,6 +6852,8 @@ const TEXT_SLOTS = {
   masonry: [['items', 'alt', 'title', 'meta']],
   maplist: ['mapAlt', ['items', 'pinLabel', 'price', 'title', 'meta', 'detail', 'ctaLabel', 'alt']],
   thumbviewer: [['items', 'alt', 'label', 'title', 'meta']],
+  financeswitch: ['leaseLabel', 'cashLabel', ['items', 'title', 'badge', 'specs', 'leasePrice', 'cashPrice', 'leaseNote', 'cashNote', 'ctaLabel', 'alt']],
+  rangeslider: ['heading', 'summary', 'tempLabel', 'speedLabel', 'chargeLabel', 'heatLabel', 'ctaLabel', 'note'],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -11210,7 +11352,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false, financeswitch = false, rangeslider = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -11247,14 +11389,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'masonry') masonry = true;
     else if (node.type === 'maplist') maplist = true;
     else if (node.type === 'thumbviewer') thumbviewer = true;
+    else if (node.type === 'financeswitch') financeswitch = true;
+    else if (node.type === 'rangeslider') rangeslider = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer, financeswitch, rangeslider };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean; maplist?: boolean; thumbviewer?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean; maplist?: boolean; thumbviewer?: boolean; financeswitch?: boolean; rangeslider?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -11290,6 +11434,8 @@ function extraWidgetCss(used: {
     + (used.masonry ? `\n${MASONRY_CSS}` : '')
     + (used.maplist ? `\n${MAPLIST_CSS}` : '')
     + (used.thumbviewer ? `\n${THUMBVIEWER_CSS}` : '')
+    + (used.financeswitch ? `\n${FINANCESWITCH_CSS}` : '')
+    + (used.rangeslider ? `\n${RANGESLIDER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -13805,6 +13951,102 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-thumbviewer-strip">${thumbs}</div>`
         + `</div>`;
     }
+    case 'financeswitch': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const leaseLbl = String(p.leaseLabel || 'Monthly lease (36 mo)');
+      const cashLbl = String(p.cashLabel || 'Cash purchase');
+      const mode = String(p.defaultMode || 'lease').toLowerCase() === 'cash' ? 'cash' : 'lease';
+      const cards = items.map((it, i) => {
+        const title = String(it.title || `Trim ${i + 1}`);
+        const badge = String(it.badge || '').trim();
+        const specs = String(it.specs || '').trim();
+        const leasePrice = String(it.leasePrice || '€549 / mo');
+        const cashPrice = String(it.cashPrice || '€56,900');
+        const leaseNote = String(it.leaseNote || '');
+        const cashNote = String(it.cashNote || '');
+        const shownPrice = mode === 'cash' ? cashPrice : leasePrice;
+        const shownNote = mode === 'cash' ? cashNote : leaseNote;
+        const cta = String(it.ctaLabel || 'Book 48h Test Drive');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<article class="pagecraft-fs-card">`
+          + `<div class="pagecraft-fs-media"><img class="pagecraft-fs-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-fs-body">`
+          + `<div class="pagecraft-fs-top"><h3 class="pagecraft-fs-title">${esc(title)}</h3>${badge ? `<span class="pagecraft-fs-badge">${esc(badge)}</span>` : ''}</div>`
+          + (specs ? `<p class="pagecraft-fs-specs">${esc(specs)}</p>` : '')
+          + `<div class="pagecraft-fs-pricing">`
+          + `<span class="pagecraft-fs-price" data-fs-price data-lease-price="${esc(leasePrice)}" data-cash-price="${esc(cashPrice)}">${esc(shownPrice)}</span>`
+          + `<span class="pagecraft-fs-note" data-fs-note data-lease-note="${esc(leaseNote)}" data-cash-note="${esc(cashNote)}">${esc(shownNote)}</span>`
+          + `</div>`
+          + (cta && link ? `<a class="pagecraft-fs-cta" href="${esc(link)}">${esc(cta)}</a>` : (cta && o.edit) ? `<span class="pagecraft-fs-cta">${esc(cta)}</span>` : '')
+          + `</div></article>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-financeswitch')} data-financeswitch data-fs-active="${mode}">`
+        + `<div class="pagecraft-fs-bar" role="group" aria-label="Financing mode">`
+        + `<button type="button" class="pagecraft-fs-mode" data-fs-mode="lease" aria-pressed="${mode === 'lease' ? 'true' : 'false'}">${esc(leaseLbl)}</button>`
+        + `<button type="button" class="pagecraft-fs-mode" data-fs-mode="cash" aria-pressed="${mode === 'cash' ? 'true' : 'false'}">${esc(cashLbl)}</button>`
+        + `</div>`
+        + `<div class="pagecraft-fs-grid">${cards}</div>`
+        + `</div>`;
+    }
+    case 'rangeslider': {
+      const heading = String(p.heading || '').trim();
+      const summary = String(p.summary || '').trim();
+      const tempLbl = String(p.tempLabel || 'Ambient winter temperature');
+      const minT = Math.round(parseFloat(String(p.minTemp ?? '-25'))) || -25;
+      const maxT = Math.max(minT + 10, Math.round(parseFloat(String(p.maxTemp ?? '25'))) || 25);
+      const defT = Math.min(maxT, Math.max(minT, Number.isFinite(parseFloat(String(p.defaultTemp ?? '-10'))) ? parseFloat(String(p.defaultTemp ?? '-10')) : -10));
+      const baseKm = Math.max(200, Math.round(parseFloat(String(p.baseRangeKm ?? '640'))) || 640);
+      const speedLbl = String(p.speedLabel || '110 km/h highway telemetry');
+      const chargeLbl = String(p.chargeLabel || '10–80% DC fast charge');
+      const heatLbl = String(p.heatLabel || 'CO₂ heat-pump recovery');
+      const ctaLbl = String(p.ctaLabel || '').trim();
+      const rawHref = safeUrl(String(p.href || '').trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const note = String(p.note || '').trim();
+      const wheelsRaw = String(p.wheelOptions || '19" Aero Winter:0|20" Touring:-28|21" Track:-54');
+      const wheels = wheelsRaw.split('|').map(part => {
+        const [lbl, d] = part.split(':');
+        return { label: String(lbl || '').trim(), delta: parseFloat(String(d ?? '0')) || 0 };
+      }).filter(w => w.label);
+      const firstDelta = wheels[0]?.delta || 0;
+      const ret = defT >= 15 ? Math.max(0.96, 1 - Math.max(0, defT - 22) * 0.002) : Math.max(0.55, 1 - (15 - defT) * 0.0062);
+      const initKm = Math.max(220, Math.round(baseKm * ret + firstDelta));
+      const initPct = Math.max(20, Math.min(100, Math.round((initKm / baseKm) * 100)));
+      const initChg = 17 + (defT < 0 ? Math.min(6, Math.ceil((-defT) / 6)) : 0);
+      const initHeat = Math.max(0, Math.round((15 - Math.min(15, defT)) * 1.65));
+      const fmtT = (t: number) => `${t > 0 ? '+' : ''}${t}°C`;
+      const baseId = domId();
+      const wheelBtns = wheels.map((w, i) =>
+        `<button type="button" class="pagecraft-rs-wbtn" data-rs-wheel data-rs-delta="${w.delta}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(w.label)}</button>`
+      ).join('');
+      return `<div ${at()} ${cx('pagecraft-rangeslider')} data-rangeslider data-rs-base-range="${baseKm}">`
+        + `<div class="pagecraft-rs-ctrl">`
+        + (heading ? `<h3 class="pagecraft-rs-h">${esc(heading)}</h3>` : '')
+        + (summary ? `<p class="pagecraft-rs-sub">${esc(summary)}</p>` : '')
+        + `<div class="pagecraft-rs-field">`
+        + `<label class="pagecraft-rs-lbl" for="${baseId}-temp"><span>${esc(tempLbl)}</span><output data-rs-temp-out>${esc(fmtT(defT))}</output></label>`
+        + `<input class="pagecraft-rs-range" id="${baseId}-temp" type="range" min="${minT}" max="${maxT}" step="5" value="${defT}" data-rs-temp>`
+        + `<div class="pagecraft-rs-scale"><span>${esc(fmtT(minT))}</span><span>0°C</span><span>${esc(fmtT(maxT))}</span></div>`
+        + `</div>`
+        + (wheelBtns ? `<div class="pagecraft-rs-wheels" role="group" aria-label="Wheel and tyre package">${wheelBtns}</div>` : '')
+        + `</div>`
+        + `<div class="pagecraft-rs-readout">`
+        + `<div class="pagecraft-rs-rhead"><span class="pagecraft-rs-rtag">Projected Nordic highway range</span><span class="pagecraft-rs-speed">${esc(speedLbl)}</span></div>`
+        + `<p class="pagecraft-rs-km" data-rs-range>${initKm} km</p>`
+        + `<div class="pagecraft-rs-track"><div class="pagecraft-rs-fill" data-rs-bar style="width:${initPct}%"></div></div>`
+        + `<div class="pagecraft-rs-stats">`
+        + `<div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(chargeLbl)}</span><strong class="pagecraft-rs-sval" data-rs-charge>${initChg} min</strong></div>`
+        + `<div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(heatLbl)}</span><strong class="pagecraft-rs-sval" data-rs-heat>${initHeat > 0 ? `+${initHeat}` : '0'} km recovered</strong></div>`
+        + `</div>`
+        + (ctaLbl && link ? `<a class="pagecraft-rs-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : (ctaLbl && o.edit) ? `<span class="pagecraft-rs-cta">${esc(ctaLbl)}</span>` : '')
+        + (note ? `<p class="pagecraft-rs-note">${esc(note)}</p>` : '')
+        + `</div>`
+        + `</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -14426,7 +14668,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${/data-maplist/.test(body) ? MAPLIST_JS : ''}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${/data-maplist/.test(body) ? MAPLIST_JS : ''}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ''}${/data-financeswitch/.test(body) ? FINANCESWITCH_JS : ''}${/data-rangeslider/.test(body) ? RANGESLIDER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14936,7 +15178,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS, FINANCESWITCH_CSS, FINANCESWITCH_JS, RANGESLIDER_CSS, RANGESLIDER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

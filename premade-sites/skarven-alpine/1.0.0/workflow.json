@@ -3,7 +3,7 @@
   "id": "skarven-alpine",
   "version": "1.0.0",
   "sampleName": "SKARVEN — Technical Alpine Shells & Packs",
-  "packageSha256": "d2f762b97b21dff79bec30c3f47382e877460cd6f97d44ccbae9ee0effd53096",
+  "packageSha256": "3cb5f2ba3007bc62cb72388b2d9ac6b8504941b93b2becff97846d391a72d69d",
   "customCssPolicy": "native-only",
   "gates": {
     "packageValidation": "passed",

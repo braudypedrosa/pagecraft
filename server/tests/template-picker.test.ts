@@ -109,6 +109,7 @@ test("template picker renders the twelve named templates and represented facets"
     "Maren & Tomás · Destination Wedding",
     "MASUDA / 04 · Titanium Eyewear",
     "MERCER QUINN · Patent & AI Litigation",
+    "NORDVOLT · 800V Electric Shooting Brakes",
     "SKARVEN · Technical Alpine Gear",
     "SORAIA · Thermal Bathhouse",
     "SUBBASS HALLE · Sound System & Vinyl Imprint",
@@ -188,7 +189,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 22);
+  a.equal(visibleCards(document).length, 23);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "alder-and-silt",
+  "version": "1.0.1",
+  "name": "ALDER & SILT",
+  "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+  "description": "Four-page ecological landscape architecture and watershed civil practice featuring a floating mineral pill header, coastal elevation transect hero, interactive hover-preview monograph index, pixel-aligned LiDAR floodway compare scrubber, sticky-photo scrolling stewardship steps, subsurface soil horizon schematics, and site walk brief intake.",
+  "categories": [
+    "Landscape & Ecology",
+    "Architecture"
+  ],
+  "pages": [
+    {
+      "id": "aldr-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "aldr-page-sites",
+      "name": "Selected Sites",
+      "slug": "sites"
+    },
+    {
+      "id": "aldr-page-process",
+      "name": "Ecology & Process",
+      "slug": "process"
+    },
+    {
+      "id": "aldr-page-consultation",
+      "name": "Site Walk",
+      "slug": "consultation"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "74b9fe024f762529533e87244d812831c6d14296997fee128fc078018422cbc7",
+  "previewPage": "index.html",
+  "assetCount": 17,
+  "assetBytes": 3333937
+}

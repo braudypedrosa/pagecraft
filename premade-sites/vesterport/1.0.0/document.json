@@ -20,37 +20,413 @@
                 "css": "",
                 "htmlId": ""
               },
-              "children": [],
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "#F2F5FA",
+                      "font-size": "24px",
+                      "letter-spacing": "0.02em",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-brand-h",
+                  "props": {
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "text": "VESTERPORT",
+                    "ts": "subtitle"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "#9AA8BE",
+                      "font-size": "14px",
+                      "line-height": "1.6",
+                      "margin-bottom": "0px",
+                      "max-width": "34ch",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-mission",
+                  "props": {
+                    "html": "<p>Sovereign fleet telemetry, FuelEU Maritime accounting, and IMO CII compliance across North Sea &amp; Baltic corridors.</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "15px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#60A5FA",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "15px",
+                              "width": "15px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-cii-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "shield",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "center",
+                              "color": "#F2F5FA",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.2",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-cii-t",
+                          "props": {
+                            "html": "<p>IMO CII</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#131E2E",
+                          "border": "1px solid #24354D",
+                          "border-radius": "6px",
+                          "display": "inline-flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "6px",
+                          "min-height": "32px",
+                          "padding-bottom": "4px",
+                          "padding-left": "11px",
+                          "padding-right": "11px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-b-cii",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "15px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#60A5FA",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "15px",
+                              "width": "15px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-fueleu-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "lock",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "center",
+                              "color": "#F2F5FA",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.2",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-fueleu-t",
+                          "props": {
+                            "html": "<p>FuelEU</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#131E2E",
+                          "border": "1px solid #24354D",
+                          "border-radius": "6px",
+                          "display": "inline-flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "6px",
+                          "min-height": "32px",
+                          "padding-bottom": "4px",
+                          "padding-left": "11px",
+                          "padding-right": "11px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-b-fueleu",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "15px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#60A5FA",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "15px",
+                              "width": "15px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-iso-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "check-circle",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "center",
+                              "color": "#F2F5FA",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.2",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-ftr-b-iso-t",
+                          "props": {
+                            "html": "<p>ISO 14001</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#131E2E",
+                          "border": "1px solid #24354D",
+                          "border-radius": "6px",
+                          "display": "inline-flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "6px",
+                          "min-height": "32px",
+                          "padding-bottom": "4px",
+                          "padding-left": "11px",
+                          "padding-right": "11px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-b-iso",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-wrap": "wrap",
+                      "gap": "8px",
+                      "margin-top": "4px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-badges-row",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
               "cls": [],
               "css": {
                 "d": {
-                  "align-self": "flex-start",
-                  "aspect-ratio": "16 / 10",
-                  "border-radius": "10px",
-                  "display": "block",
-                  "height": "auto",
-                  "max-width": "100%",
-                  "object-fit": "cover",
-                  "width": "100%"
+                  "align-items": "flex-start",
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "14px",
+                  "min-width": "0px"
                 },
                 "m": {},
                 "t": {}
               },
               "hide": {},
-              "id": "vp-ftr-port-img",
+              "id": "vp-ftr-brand-col",
               "props": {
-                "alt": "Gantry cranes along deepwater European container berth at civil twilight",
-                "caption": "",
-                "decorative": 0,
-                "h": "480",
-                "label": "",
-                "lazy": 1,
+                "layout": "flex",
                 "link": "",
-                "src": "asset:footer-port",
-                "target": "",
-                "w": "720"
+                "tag": "div",
+                "target": ""
               },
-              "type": "image"
+              "type": "box"
             },
             {
               "adv": {
@@ -76,32 +452,27 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "align-self": "flex-start",
-                          "border-radius": "0px",
-                          "display": "block",
-                          "height": "30px",
-                          "max-width": "100%",
-                          "object-fit": "contain",
-                          "width": "auto"
+                          "color": "#F2F5FA",
+                          "font-size": "12px",
+                          "font-weight": "600",
+                          "letter-spacing": "0.08em",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "text-transform": "uppercase"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-logo",
+                      "id": "vp-ftr-c1-h",
                       "props": {
-                        "alt": "VESTERPORT",
-                        "caption": "",
-                        "decorative": 0,
-                        "h": "40",
-                        "label": "",
-                        "lazy": 1,
-                        "link": "index.html",
-                        "src": "asset:logo",
+                        "level": "h3",
+                        "link": "",
                         "target": "",
-                        "w": "236"
+                        "text": "Platform",
+                        "ts": "cardtitle"
                       },
-                      "type": "image"
+                      "type": "heading"
                     },
                     {
                       "adv": {
@@ -113,19 +484,20 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B8C7DC",
-                          "font-size": "14px",
+                          "--link": "#DCE6F5",
+                          "color": "#9AA8BE",
+                          "font-size": "13.5px",
+                          "line-height": "2.05",
                           "margin-bottom": "0px",
-                          "max-width": "36ch",
                           "text-align": "left"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-note",
+                      "id": "vp-ftr-c1-p",
                       "props": {
-                        "html": "<p>Dynamic speed-to-berth telemetry and automated EU ETS &amp; CII reporting across North Sea and Baltic short-sea corridors.</p>",
+                        "html": "<p><a href=\"index.html\">Platform Overview</a><br><a href=\"voyage-ai.html\">Voyage AI Routing</a><br><a href=\"compliance.html\">Emission Ledger</a></p>",
                         "ts": "body"
                       },
                       "type": "text"
@@ -136,14 +508,14 @@
                     "d": {
                       "display": "flex",
                       "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "10px"
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "vp-ftr-brand-col",
+                  "id": "vp-ftr-c1",
                   "props": {
                     "layout": "flex",
                     "link": "",
@@ -169,21 +541,24 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#F4F7FB",
-                          "font-size": "16px",
+                          "color": "#F2F5FA",
+                          "font-size": "12px",
+                          "font-weight": "600",
+                          "letter-spacing": "0.08em",
                           "margin-bottom": "0px",
-                          "text-align": "left"
+                          "text-align": "left",
+                          "text-transform": "uppercase"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-hq-h",
+                      "id": "vp-ftr-c2-h",
                       "props": {
                         "level": "h3",
                         "link": "",
                         "target": "",
-                        "text": "Nordhavn Operations",
+                        "text": "Corridors",
                         "ts": "cardtitle"
                       },
                       "type": "heading"
@@ -198,8 +573,10 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B8C7DC",
+                          "--link": "#DCE6F5",
+                          "color": "#9AA8BE",
                           "font-size": "13.5px",
+                          "line-height": "2.05",
                           "margin-bottom": "0px",
                           "text-align": "left"
                         },
@@ -207,9 +584,9 @@
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-hq-p",
+                      "id": "vp-ftr-c2-p",
                       "props": {
-                        "html": "<p>Århusgade 128, 2150 Nordhavn<br>Copenhagen · Denmark<br>+45 33 14 82 90</p>",
+                        "html": "<p><a href=\"ports.html\">Rotterdam Maasvlakte</a><br><a href=\"ports.html\">Gothenburg Skandia</a><br><a href=\"ports.html\">Antwerp Deurganck</a></p>",
                         "ts": "body"
                       },
                       "type": "text"
@@ -220,14 +597,14 @@
                     "d": {
                       "display": "flex",
                       "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "vp-ftr-hq-col",
+                  "id": "vp-ftr-c2",
                   "props": {
                     "layout": "flex",
                     "link": "",
@@ -253,21 +630,24 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#F4F7FB",
-                          "font-size": "16px",
+                          "color": "#F2F5FA",
+                          "font-size": "12px",
+                          "font-weight": "600",
+                          "letter-spacing": "0.08em",
                           "margin-bottom": "0px",
-                          "text-align": "left"
+                          "text-align": "left",
+                          "text-transform": "uppercase"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-desk-h",
+                      "id": "vp-ftr-c3-h",
                       "props": {
                         "level": "h3",
                         "link": "",
                         "target": "",
-                        "text": "24/7 Corridor Watch",
+                        "text": "Compliance",
                         "ts": "cardtitle"
                       },
                       "type": "heading"
@@ -282,8 +662,10 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B8C7DC",
+                          "--link": "#DCE6F5",
+                          "color": "#9AA8BE",
                           "font-size": "13.5px",
+                          "line-height": "2.05",
                           "margin-bottom": "0px",
                           "text-align": "left"
                         },
@@ -291,9 +673,9 @@
                         "t": {}
                       },
                       "hide": {},
-                      "id": "vp-ftr-desk-p",
+                      "id": "vp-ftr-c3-p",
                       "props": {
-                        "html": "<p>Rotterdam · Gothenburg · Gdansk<br>ISO 19847 / DNV Veracity Ready<br>dispatch@vesterport.dk</p>",
+                        "html": "<p><a href=\"compliance.html\">CII Rating Matrix</a><br><a href=\"compliance.html\">FuelEU Pool Desk</a><br><a href=\"voyage-ai.html\">Weather Routing</a></p>",
                         "ts": "body"
                       },
                       "type": "text"
@@ -304,14 +686,103 @@
                     "d": {
                       "display": "flex",
                       "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "vp-ftr-desk-col",
+                  "id": "vp-ftr-c3",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F2F5FA",
+                          "font-size": "12px",
+                          "font-weight": "600",
+                          "letter-spacing": "0.08em",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "text-transform": "uppercase"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-c4-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Company",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--link": "#DCE6F5",
+                          "color": "#9AA8BE",
+                          "font-size": "13.5px",
+                          "line-height": "2.05",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-c4-p",
+                      "props": {
+                        "html": "<p><a href=\"ports.html#fleet-audit\">Fleet Audit</a><br>Waalbochten 14, Rotterdam<br>+31 10 555 0192</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "12px",
+                      "min-width": "0px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-c4",
                   "props": {
                     "layout": "flex",
                     "link": "",
@@ -326,8 +797,9 @@
                 "d": {
                   "align-items": "start",
                   "display": "grid",
-                  "gap": "26px",
-                  "grid-template-columns": "1.25fr 1fr 1fr"
+                  "gap": "24px",
+                  "grid-template-columns": "repeat(4, minmax(0, 1fr))",
+                  "width": "100%"
                 },
                 "m": {
                   "gap": "18px",
@@ -335,11 +807,11 @@
                 },
                 "t": {
                   "gap": "20px",
-                  "grid-template-columns": "1fr 1fr"
+                  "grid-template-columns": "repeat(2, minmax(0, 1fr))"
                 }
               },
               "hide": {},
-              "id": "vp-ftr-info",
+              "id": "vp-ftr-ent-cols",
               "props": {
                 "layout": "grid",
                 "link": "",
@@ -352,23 +824,24 @@
           "cls": [],
           "css": {
             "d": {
-              "align-items": "center",
+              "align-items": "start",
               "display": "grid",
-              "gap": "36px",
-              "grid-template-columns": "280px minmax(0, 1fr)",
-              "padding-bottom": "26px"
+              "gap": "48px",
+              "grid-template-columns": "minmax(250px, 330px) minmax(0, 1fr)",
+              "padding-bottom": "36px",
+              "width": "100%"
             },
             "m": {
-              "gap": "20px",
+              "gap": "28px",
               "grid-template-columns": "1fr"
             },
             "t": {
-              "gap": "24px",
-              "grid-template-columns": "220px minmax(0, 1fr)"
+              "gap": "32px",
+              "grid-template-columns": "1fr"
             }
           },
           "hide": {},
-          "id": "vp-ftr-split",
+          "id": "vp-ftr-ent-top",
           "props": {
             "layout": "grid",
             "link": "",
@@ -401,11 +874,226 @@
                   "cls": [],
                   "css": {
                     "d": {
+                      "--icon-size": "16px",
+                      "--icon-stroke": "1.75",
+                      "align-self": "center",
+                      "color": "#60A5FA",
+                      "display": "block",
+                      "flex-shrink": "0",
+                      "height": "16px",
+                      "width": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-globe-ic",
+                  "props": {
+                    "label": "",
+                    "link": "",
+                    "name": "globe",
+                    "target": ""
+                  },
+                  "type": "icon"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-self": "center",
+                      "color": "#9AA8BE",
+                      "font-size": "13px",
+                      "line-height": "1.2",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-region-lbl",
+                  "props": {
+                    "html": "<p>Region</p>",
+                    "ts": "meta"
+                  },
+                  "type": "text"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F2F5FA",
+                          "font-size": "13px",
+                          "font-weight": "500",
+                          "line-height": "1.2",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-ftr-region-val",
+                      "props": {
+                        "html": "<p>North Sea (Rotterdam EU)</p>",
+                        "ts": "meta"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#131E2E",
+                      "border": "1px solid #24354D",
+                      "border-radius": "7px",
+                      "display": "inline-flex",
+                      "padding-bottom": "6px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "6px",
+                      "width": "auto"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-ftr-region-chip",
+                  "props": {
+                    "layout": "block",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "10px",
+                  "width": "auto"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "vp-ftr-region-left",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "color": "#60A5FA",
+                  "font-size": "13px",
+                  "font-weight": "500",
+                  "line-height": "1.2",
+                  "margin-bottom": "0px",
+                  "text-align": "left"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "vp-ftr-region-note",
+              "props": {
+                "html": "<p>EUR / EU ETS Hosting</p>",
+                "ts": "meta"
+              },
+              "type": "text"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "border-top": "1px solid #1E2C40",
+              "display": "flex",
+              "flex-wrap": "wrap",
+              "gap": "12px",
+              "justify-content": "space-between",
+              "padding-bottom": "18px",
+              "padding-top": "18px",
+              "width": "100%"
+            },
+            "m": {},
+            "t": {}
+          },
+          "hide": {},
+          "id": "vp-ftr-region-bar",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
                       "--nav-gap": "18px",
-                      "--nav-hover": "#F4F7FB",
+                      "--nav-hover": "#DCE6F5",
                       "--nav-panel": "var(--c-bg)",
                       "align-self": "flex-start",
-                      "color": "#F4F7FB",
+                      "color": "#DCE6F5",
                       "font-size": "13px",
                       "font-weight": "500",
                       "justify-content": "flex-start",
@@ -457,7 +1145,7 @@
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#B8C7DC",
+                      "color": "#9AA8BE",
                       "font-size": "13px",
                       "line-height": "1.45",
                       "margin-bottom": "0px",
@@ -469,7 +1157,7 @@
                   "hide": {},
                   "id": "vp-footer-copy",
                   "props": {
-                    "html": "<p>Verified across 148 container feeders & Ro-Ro hulls · Copenhagen & Rotterdam</p>",
+                    "html": "<p>© 2026 VESTERPORT Maritime Systems B.V. · Rotterdam</p>",
                     "ts": "body"
                   },
                   "type": "text"
@@ -557,7 +1245,7 @@
                       "border-color": "transparent",
                       "border-radius": "0px",
                       "border-width": "0px",
-                      "color": "#B8C7DC",
+                      "color": "#9AA8BE",
                       "font-size": "13px",
                       "font-weight": "500",
                       "padding-bottom": "2px",
@@ -613,7 +1301,7 @@
           "css": {
             "d": {
               "align-items": "center",
-              "border-top": "1px solid #1E2E45",
+              "border-top": "1px solid #1E2C40",
               "display": "flex",
               "flex-wrap": "wrap",
               "gap": "16px",
@@ -642,25 +1330,25 @@
       "cls": [],
       "css": {
         "d": {
-          "background-color": "#0B1420",
-          "border-top": "1px solid #1E2E45",
-          "color": "#F4F7FB",
-          "padding-bottom": "30px",
+          "background-color": "#0B121C",
+          "border-top": "1px solid #1E2C40",
+          "color": "#F2F5FA",
+          "padding-bottom": "28px",
           "padding-left": "40px",
           "padding-right": "40px",
-          "padding-top": "38px"
+          "padding-top": "40px"
         },
         "m": {
-          "padding-bottom": "20px",
+          "padding-bottom": "24px",
           "padding-left": "20px",
           "padding-right": "20px",
-          "padding-top": "26px"
+          "padding-top": "32px"
         },
         "t": {
-          "padding-bottom": "24px",
+          "padding-bottom": "26px",
           "padding-left": "28px",
           "padding-right": "28px",
-          "padding-top": "32px"
+          "padding-top": "36px"
         }
       },
       "hide": {},
@@ -907,8 +1595,8 @@
     "collections": [],
     "css": "",
     "favicon": "asset:favicon",
-    "font": "'Public Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
-    "headFont": "'Sora',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "font": "'Source Sans 3',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Chivo',system-ui,-apple-system,sans-serif",
     "headHtml": "",
     "lang": "en",
     "maxWidth": "1240px",
@@ -1964,6 +2652,1083 @@
           },
           "hide": {},
           "id": "vp-home-stack-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-corridors-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Live berth handshakes across Northern Europe",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "max-width": "58ch",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-corridors-lead",
+                      "props": {
+                        "html": "<p>Direct port-community telemetry synchronizes vessel RPM well before pilot boarding, eliminating anchor queues at Europe’s densest container and RoPax terminals.</p>",
+                        "ts": "lead"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "max-width": "640px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-home-corridors-stack",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "transparent",
+                      "border-color": "#164E87",
+                      "border-radius": "6px",
+                      "border-style": "solid",
+                      "border-width": "1px",
+                      "color": "#164E87",
+                      "flex-shrink": "0",
+                      "min-height": "42px",
+                      "padding-bottom": "10px",
+                      "padding-left": "18px",
+                      "padding-right": "18px",
+                      "padding-top": "10px",
+                      "transition": "background-color 160ms ease, transform 160ms ease",
+                      "white-space": "nowrap"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-home-corridors-cta",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "ports.html",
+                    "target": "",
+                    "text": "Inspect Port Network →",
+                    "ts": "btn",
+                    "variant": "outline",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "flex-end",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "20px",
+                  "justify-content": "space-between",
+                  "margin-bottom": "34px"
+                },
+                "m": {
+                  "align-items": "flex-start",
+                  "flex-direction": "column",
+                  "margin-bottom": "26px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "vp-home-corridors-row",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-rtm-img",
+                      "props": {
+                        "alt": "Rotterdam Maasvlakte II automated container gantry berths at twilight",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:port-rotterdam",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-rtm-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Rotterdam · Maasvlakte II",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-rtm-p",
+                          "props": {
+                            "html": "<p>14% average berth wait reduction paired with 12 MW cold-ironing shore power pre-allocation on arrival windows.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-rtm-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-corr-rtm",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-got-img",
+                      "props": {
+                        "alt": "Gothenburg Skandiahamnen green corridor terminal with hydro OPS hookup",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:port-gothenburg",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-got-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Gothenburg · Skandiahamnen",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-got-p",
+                          "props": {
+                            "html": "<p>Zero-anchor slot sync across Kattegat ferry lanes with 100% hydro-sourced high-voltage OPS metering.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-got-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-corr-got",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-ant-img",
+                      "props": {
+                        "alt": "Antwerp Deurganckdok Scheldt tidal lock approach and quay infrastructure",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:port-antwerp",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-ant-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Antwerp · Deurganckdok",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-corr-ant-p",
+                          "props": {
+                            "html": "<p>Scheldt estuary tidal lock telemetry trims upstream throttle spikes and cuts outer-anchorage idling fuel by 18%.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-corr-ant-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-corr-ant",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "gap": "20px",
+                  "grid-template-columns": "repeat(3, minmax(0, 1fr))"
+                },
+                "m": {
+                  "gap": "16px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "18px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "vp-home-corr-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-bg)",
+              "border-top": "1px solid var(--c-line)",
+              "color": "var(--c-ink)",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "vp-home-corridors-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F4F7FB",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Audited FuelEU Maritime compliance on every voyage",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "flex-start",
+                              "border-left-color": "#E59A28",
+                              "border-left-width": "3px",
+                              "color": "#F4F7FB",
+                              "font-size": "24px",
+                              "line-height": "1.45",
+                              "max-width": "34ch",
+                              "padding-left": "16px"
+                            },
+                            "m": {
+                              "font-size": "20px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "vp-home-proof-q",
+                          "props": {
+                            "by": "Henrik Solvang",
+                            "source": "Fleet Operations Director · Nordhavn Short-Sea Line",
+                            "text": "Across fourteen North Sea RoPax vessels we cut idle anchor wait by 4.2 hours per turnaround and generated Verifavia-ready EU ETS & FuelEU ledgers straight from bridge flowmeters.",
+                            "ts": "lead"
+                          },
+                          "type": "quote"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#152233",
+                          "border": "1px solid #24364E",
+                          "border-radius": "12px",
+                          "padding-bottom": "22px",
+                          "padding-left": "22px",
+                          "padding-right": "22px",
+                          "padding-top": "22px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-q-card",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--pg-fill": "#E59A28",
+                          "--pg-gap": "16px",
+                          "--pg-height": "10px",
+                          "--pg-muted": "#A9B8CC",
+                          "--pg-radius": "999px",
+                          "--pg-text": "#F4F7FB",
+                          "--pg-track": "#233247",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-bars",
+                      "props": {
+                        "items": [
+                          {
+                            "label": "Just-in-Time Arrival Accuracy",
+                            "unit": "%",
+                            "value": "96"
+                          },
+                          {
+                            "label": "Shore-Power Hookup Coverage",
+                            "unit": "%",
+                            "value": "89"
+                          },
+                          {
+                            "label": "Verified MRV Telemetry Match",
+                            "unit": "%",
+                            "value": "99"
+                          }
+                        ],
+                        "rounded": 1,
+                        "showValue": 1
+                      },
+                      "type": "progress"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "20px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-home-proof-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "12px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-img",
+                      "props": {
+                        "alt": "VESTERPORT Waalbochten Maritime Dispatch Operations Desk monitoring North Sea routing corridors",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:ops-waalbochten",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#A9B8CC",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-cap",
+                      "props": {
+                        "html": "<p>Master mariners and fleet superintendents at Waalbochten Ops Desk maintain 24/7 AIS drift verification, bunker sulfur checks, and DNV-aligned emission exports.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--pc-solid-fg": "var(--c-bg)",
+                          "align-self": "flex-start",
+                          "background-color": "transparent",
+                          "border-color": "rgba(229, 154, 40, 0.55)",
+                          "border-radius": "6px",
+                          "border-style": "solid",
+                          "border-width": "1px",
+                          "color": "#E59A28",
+                          "min-height": "46px",
+                          "padding-bottom": "13px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "13px",
+                          "transition": "background-color 160ms ease, transform 160ms ease"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "vp-home-proof-btn",
+                      "props": {
+                        "align": "flex-start",
+                        "icon": "none",
+                        "link": "compliance.html",
+                        "target": "",
+                        "text": "View FuelEU Compliance →",
+                        "ts": "btn",
+                        "variant": "outline",
+                        "wrap": "inline-flex"
+                      },
+                      "type": "button"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "vp-home-proof-right",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "grid",
+                  "gap": "34px",
+                  "grid-template-columns": "1.05fr 0.95fr"
+                },
+                "m": {
+                  "gap": "20px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "24px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "vp-home-proof-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "#0F1722",
+              "border-bottom": "1px solid #1E2C3E",
+              "border-top": "1px solid #1E2C3E",
+              "color": "#F4F7FB",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "vp-home-proof-sec",
           "props": {
             "floating": 0,
             "inner": "",

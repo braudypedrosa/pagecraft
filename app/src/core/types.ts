@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards' | 'showbill' | 'masonry' | 'maplist' | 'thumbviewer'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards' | 'showbill' | 'masonry' | 'maplist' | 'thumbviewer' | 'financeswitch' | 'rangeslider'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -333,6 +333,18 @@ export interface MaplistItem {
 export interface MaplistProps { mapSrc?: string; mapAlt?: string; items?: MaplistItem[] }
 export interface ThumbviewerItem { src?: string; alt?: string; label?: string; title?: string; meta?: string; w?: string; h?: string }
 export interface ThumbviewerProps { ratio?: string; items?: ThumbviewerItem[] }
+export interface FinanceswitchItem {
+  title?: string; badge?: string; specs?: string;
+  leasePrice?: string; cashPrice?: string; leaseNote?: string; cashNote?: string;
+  ctaLabel?: string; href?: string; src?: string; alt?: string; w?: string; h?: string;
+}
+export interface FinanceswitchProps { leaseLabel?: string; cashLabel?: string; defaultMode?: string; items?: FinanceswitchItem[] }
+export interface RangesliderProps {
+  heading?: string; summary?: string; tempLabel?: string;
+  minTemp?: string; maxTemp?: string; defaultTemp?: string; baseRangeKm?: string;
+  wheelOptions?: string; speedLabel?: string; chargeLabel?: string; heatLabel?: string;
+  ctaLabel?: string; href?: string; note?: string;
+}
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -343,7 +355,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps; showbill: ShowbillProps; masonry: MasonryProps; maplist: MaplistProps; thumbviewer: ThumbviewerProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps; showbill: ShowbillProps; masonry: MasonryProps; maplist: MaplistProps; thumbviewer: ThumbviewerProps; financeswitch: FinanceswitchProps; rangeslider: RangesliderProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

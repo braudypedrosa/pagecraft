@@ -3,7 +3,7 @@
   "id": "vesterport",
   "version": "1.0.0",
   "sampleName": "VESTERPORT — Autonomous Maritime Routing & Port Decarbonisation",
-  "packageSha256": "7aaa6fb02b68f5e9e4fe06952370e0ee8dd451fe1e95d5e031a61a5f933cf337",
+  "packageSha256": "2e20a4eb4d2dc493d146731585dd35813f882774fc5bf0e90c571ec513590e7b",
   "customCssPolicy": "native-only",
   "gates": {
     "packageValidation": "passed",

@@ -27,121 +27,185 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "18px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#14533C",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "18px",
+                              "width": "18px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr1-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "box",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#D6E7DF",
+                          "border-radius": "9px",
+                          "color": "#14533C",
+                          "display": "flex",
+                          "flex-shrink": "0",
+                          "height": "38px",
+                          "justify-content": "center",
+                          "width": "38px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr1-ic-wrap",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#0E1512",
+                              "font-size": "15px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr1-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Free Polar Dispatch",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "13px",
+                              "line-height": "1.4",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr1-p",
+                          "props": {
+                            "html": "<p>Complimentary courier on orders over 2 500 NOK</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex": "1 1 0%",
+                          "flex-direction": "column",
+                          "gap": "2px",
+                          "min-width": "0px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr1-copy",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "align-self": "flex-start",
-                      "border-radius": "0px",
-                      "display": "block",
-                      "height": "28px",
-                      "max-width": "100%",
-                      "object-fit": "contain",
-                      "width": "auto"
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "row",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-ftr-logo",
+                  "id": "skv-ftr-pr1",
                   "props": {
-                    "alt": "SKARVEN",
-                    "caption": "",
-                    "decorative": 0,
-                    "h": "40",
-                    "label": "",
-                    "lazy": 1,
-                    "link": "index.html",
-                    "src": "asset:logo",
-                    "target": "",
-                    "w": "218"
-                  },
-                  "type": "image"
-                },
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "color": "#A6B5AE",
-                      "font-size": "14px",
-                      "margin-bottom": "0px",
-                      "max-width": "34ch",
-                      "text-align": "left"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "skv-ftr-pitch",
-                  "props": {
-                    "html": "<p>Small-batch 3-layer ePTFE storm shells and woven Dyneema® expedition packs welded at our Tromsø harbour bench.</p>",
-                    "ts": "body"
-                  },
-                  "type": "text"
-                }
-              ],
-              "cls": [],
-              "css": {
-                "d": {
-                  "display": "flex",
-                  "flex-direction": "column",
-                  "flex-wrap": "nowrap",
-                  "gap": "12px"
-                },
-                "m": {},
-                "t": {}
-              },
-              "hide": {},
-              "id": "skv-ftr-c1",
-              "props": {
-                "layout": "flex",
-                "link": "",
-                "tag": "div",
-                "target": ""
-              },
-              "type": "box"
-            },
-            {
-              "adv": {
-                "cls": "",
-                "css": "",
-                "htmlId": ""
-              },
-              "children": [
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "color": "#F4F7F5",
-                      "font-size": "16px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "skv-ftr-bench-h",
-                  "props": {
-                    "level": "h3",
+                    "layout": "flex",
                     "link": "",
-                    "target": "",
-                    "text": "Tromsø Harbour Bench",
-                    "ts": "cardtitle"
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "heading"
+                  "type": "box"
                 },
                 {
                   "adv": {
@@ -149,83 +213,185 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "18px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#14533C",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "18px",
+                              "width": "18px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr2-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "shield",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#D6E7DF",
+                          "border-radius": "9px",
+                          "color": "#14533C",
+                          "display": "flex",
+                          "flex-shrink": "0",
+                          "height": "38px",
+                          "justify-content": "center",
+                          "width": "38px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr2-ic-wrap",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#0E1512",
+                              "font-size": "15px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr2-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Lifetime Seam Repair",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "13px",
+                              "line-height": "1.4",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr2-p",
+                          "props": {
+                            "html": "<p>Free ultrasonic re-taping at Tromsø Harbour</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex": "1 1 0%",
+                          "flex-direction": "column",
+                          "gap": "2px",
+                          "min-width": "0px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr2-copy",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#A6B5AE",
-                      "font-size": "13.5px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "row",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-ftr-bench-p",
+                  "id": "skv-ftr-pr2",
                   "props": {
-                    "html": "<p>Storgata 114, 9008 Tromsø<br>Mon–Sat · 09:00 – 18:00 CET<br>+47 77 61 42 90</p>",
-                    "ts": "body"
-                  },
-                  "type": "text"
-                }
-              ],
-              "cls": [],
-              "css": {
-                "d": {
-                  "display": "flex",
-                  "flex-direction": "column",
-                  "flex-wrap": "nowrap",
-                  "gap": "6px"
-                },
-                "m": {},
-                "t": {}
-              },
-              "hide": {},
-              "id": "skv-ftr-c2",
-              "props": {
-                "layout": "flex",
-                "link": "",
-                "tag": "div",
-                "target": ""
-              },
-              "type": "box"
-            },
-            {
-              "adv": {
-                "cls": "",
-                "css": "",
-                "htmlId": ""
-              },
-              "children": [
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "color": "#F4F7F5",
-                      "font-size": "16px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "skv-ftr-seam-h",
-                  "props": {
-                    "level": "h3",
+                    "layout": "flex",
                     "link": "",
-                    "target": "",
-                    "text": "Lifetime Seam Guarantee",
-                    "ts": "cardtitle"
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "heading"
+                  "type": "box"
                 },
                 {
                   "adv": {
@@ -233,83 +399,185 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "18px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#14533C",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "18px",
+                              "width": "18px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr3-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "lock",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#D6E7DF",
+                          "border-radius": "9px",
+                          "color": "#14533C",
+                          "display": "flex",
+                          "flex-shrink": "0",
+                          "height": "38px",
+                          "justify-content": "center",
+                          "width": "38px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr3-ic-wrap",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#0E1512",
+                              "font-size": "15px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr3-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Encrypted Checkout",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "13px",
+                              "line-height": "1.4",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr3-p",
+                          "props": {
+                            "html": "<p>Protected payments & 30-day field trial</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex": "1 1 0%",
+                          "flex-direction": "column",
+                          "gap": "2px",
+                          "min-width": "0px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr3-copy",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#A6B5AE",
-                      "font-size": "13.5px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "row",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-ftr-seam-p",
+                  "id": "skv-ftr-pr3",
                   "props": {
-                    "html": "<p>Free ultrasonic re-taping<br>5-day workshop turnaround<br>Prepaid European &amp; Nordic post</p>",
-                    "ts": "body"
-                  },
-                  "type": "text"
-                }
-              ],
-              "cls": [],
-              "css": {
-                "d": {
-                  "display": "flex",
-                  "flex-direction": "column",
-                  "flex-wrap": "nowrap",
-                  "gap": "6px"
-                },
-                "m": {},
-                "t": {}
-              },
-              "hide": {},
-              "id": "skv-ftr-c3",
-              "props": {
-                "layout": "flex",
-                "link": "",
-                "tag": "div",
-                "target": ""
-              },
-              "type": "box"
-            },
-            {
-              "adv": {
-                "cls": "",
-                "css": "",
-                "htmlId": ""
-              },
-              "children": [
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "color": "#F4F7F5",
-                      "font-size": "16px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "skv-ftr-disp-h",
-                  "props": {
-                    "level": "h3",
+                    "layout": "flex",
                     "link": "",
-                    "target": "",
-                    "text": "Expedition Dispatch",
-                    "ts": "cardtitle"
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "heading"
+                  "type": "box"
                 },
                 {
                   "adv": {
@@ -317,42 +585,211 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--icon-size": "18px",
+                              "--icon-stroke": "1.75",
+                              "align-self": "center",
+                              "color": "#14533C",
+                              "display": "block",
+                              "flex-shrink": "0",
+                              "height": "18px",
+                              "width": "18px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr4-ic",
+                          "props": {
+                            "label": "",
+                            "link": "",
+                            "name": "chat",
+                            "target": ""
+                          },
+                          "type": "icon"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#D6E7DF",
+                          "border-radius": "9px",
+                          "color": "#14533C",
+                          "display": "flex",
+                          "flex-shrink": "0",
+                          "height": "38px",
+                          "justify-content": "center",
+                          "width": "38px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr4-ic-wrap",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#0E1512",
+                              "font-size": "15px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr4-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Bench Support",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "13px",
+                              "line-height": "1.4",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pr4-p",
+                          "props": {
+                            "html": "<p>Answered directly by our Norwegian makers</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex": "1 1 0%",
+                          "flex-direction": "column",
+                          "gap": "2px",
+                          "min-width": "0px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pr4-copy",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#A6B5AE",
-                      "font-size": "13.5px",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "row",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-ftr-disp-p",
+                  "id": "skv-ftr-pr4",
                   "props": {
-                    "html": "<p>Direct hut &amp; basecamp shipping<br>30-day wet-weather trial<br>desk@skarven-alpine.no</p>",
-                    "ts": "body"
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "text"
+                  "type": "box"
                 }
               ],
               "cls": [],
               "css": {
                 "d": {
-                  "display": "flex",
-                  "flex-direction": "column",
-                  "flex-wrap": "nowrap",
-                  "gap": "6px"
+                  "display": "grid",
+                  "gap": "20px",
+                  "grid-template-columns": "repeat(4, minmax(0, 1fr))",
+                  "margin-left": "auto",
+                  "margin-right": "auto",
+                  "max-width": "1240px",
+                  "width": "100%"
                 },
-                "m": {},
-                "t": {}
+                "m": {
+                  "gap": "14px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "18px",
+                  "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                }
               },
               "hide": {},
-              "id": "skv-ftr-c4",
+              "id": "skv-ftr-promises",
               "props": {
-                "layout": "flex",
+                "layout": "grid",
                 "link": "",
                 "tag": "div",
                 "target": ""
@@ -363,24 +800,31 @@
           "cls": [],
           "css": {
             "d": {
-              "display": "grid",
-              "gap": "32px",
-              "grid-template-columns": "1.35fr 1fr 1fr 1fr",
-              "padding-bottom": "28px"
+              "background-color": "#EEF2EC",
+              "border-bottom": "1px solid #DDE3DC",
+              "padding-bottom": "26px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "26px",
+              "width": "100%"
             },
             "m": {
-              "gap": "20px",
-              "grid-template-columns": "1fr"
+              "padding-bottom": "20px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "20px"
             },
             "t": {
-              "gap": "24px",
-              "grid-template-columns": "1fr 1fr"
+              "padding-bottom": "22px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "22px"
             }
           },
           "hide": {},
-          "id": "skv-ftr-grid",
+          "id": "skv-ftr-promises-band",
           "props": {
-            "layout": "grid",
+            "layout": "block",
             "link": "",
             "tag": "div",
             "target": ""
@@ -407,55 +851,87 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#0E1512",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "line-height": "1.3",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col1-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Shells & Packs",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--link": "#1E2823",
+                          "color": "#4A5952",
+                          "font-size": "13.5px",
+                          "line-height": "2.0",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col1-l",
+                      "props": {
+                        "html": "<p><a href=\"index.html\">Home Overview</a></p><p><a href=\"shells.html\">Shell System</a></p><p><a href=\"shells.html#lab-table\">Hydrostatic Lab Data</a></p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "--nav-gap": "18px",
-                      "--nav-hover": "#F4F7F5",
-                      "--nav-panel": "var(--c-bg)",
-                      "align-self": "flex-start",
-                      "color": "#F4F7F5",
-                      "font-size": "13px",
-                      "font-weight": "500",
-                      "justify-content": "flex-start",
-                      "width": "auto"
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "10px",
+                      "min-width": "0px"
                     },
-                    "m": {
-                      "--nav-gap": "12px"
-                    },
+                    "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-footer-nav",
+                  "id": "skv-ftr-col1",
                   "props": {
-                    "aria": "Footer navigation",
-                    "collapse": "never",
-                    "items": [
-                      {
-                        "href": "index.html",
-                        "id": "skv-nav-home",
-                        "label": "Home"
-                      },
-                      {
-                        "href": "shells.html",
-                        "id": "skv-nav-shells",
-                        "label": "Shell System"
-                      },
-                      {
-                        "href": "repairs.html",
-                        "id": "skv-nav-repairs",
-                        "label": "Repair Lab"
-                      },
-                      {
-                        "href": "stockists.html",
-                        "id": "skv-nav-stockists",
-                        "label": "Stockists"
-                      }
-                    ],
-                    "mobileMenu": "dropdown"
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "nav"
+                  "type": "box"
                 },
                 {
                   "adv": {
@@ -463,45 +939,287 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#0E1512",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "line-height": "1.3",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col2-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Repair & Care",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--link": "#1E2823",
+                          "color": "#4A5952",
+                          "font-size": "13.5px",
+                          "line-height": "2.0",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col2-l",
+                      "props": {
+                        "html": "<p><a href=\"repairs.html\">Tromsø Ultrasonic Bench</a></p><p><a href=\"repairs.html#repair-desk\">Log Seam Repair</a></p><p><a href=\"repairs.html\">Care & Seam Guarantee</a></p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#A6B5AE",
-                      "font-size": "13px",
-                      "line-height": "1.45",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "10px",
+                      "min-width": "0px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-footer-copy",
+                  "id": "skv-ftr-col2",
                   "props": {
-                    "html": "<p>Batch-numbered in Tromsø · Fluorocarbon-free C0 DWR across every garment</p>",
-                    "ts": "body"
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "text"
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#0E1512",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "line-height": "1.3",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col3-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Workshop",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--link": "#1E2823",
+                          "color": "#4A5952",
+                          "font-size": "13.5px",
+                          "line-height": "2.0",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col3-l",
+                      "props": {
+                        "html": "<p><a href=\"index.html\">150-Unit Dye Batches</a></p><p><a href=\"shells.html\">Material Specifications</a></p><p><a href=\"repairs.html\">C0 DWR Standard</a></p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "10px",
+                      "min-width": "0px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-ftr-col3",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#0E1512",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "line-height": "1.3",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col4-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Outposts",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--link": "#1E2823",
+                          "color": "#4A5952",
+                          "font-size": "13.5px",
+                          "line-height": "2.0",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-col4-l",
+                      "props": {
+                        "html": "<p><a href=\"stockists.html\">Tromsø · Storgata 114</a></p><p><a href=\"stockists.html\">Narvik & Bergen Labs</a></p><p><a href=\"stockists.html\">Chamonix Outpost</a></p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "10px",
+                      "min-width": "0px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-ftr-col4",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
                 }
               ],
               "cls": [],
               "css": {
                 "d": {
-                  "display": "flex",
-                  "flex-direction": "column",
-                  "gap": "8px",
-                  "width": "auto"
-                },
-                "m": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "28px 24px",
+                  "grid-template-columns": "repeat(4, minmax(0, 1fr))",
                   "width": "100%"
                 },
-                "t": {}
+                "m": {
+                  "gap": "18px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "20px",
+                  "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                }
               },
               "hide": {},
-              "id": "skv-footer-left",
+              "id": "skv-ftr-nav-grid",
               "props": {
-                "layout": "flex",
+                "layout": "grid",
                 "link": "",
                 "tag": "div",
                 "target": ""
@@ -525,31 +1243,21 @@
                   "cls": [],
                   "css": {
                     "d": {
-                      "align-self": "center",
-                      "border-radius": "0px",
-                      "height": "20px",
-                      "max-width": "100%",
-                      "object-fit": "contain",
-                      "width": "20px"
+                      "color": "#4A5952",
+                      "font-size": "12.5px",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-bp-mark",
+                  "id": "skv-ftr-pay-lbl",
                   "props": {
-                    "alt": "",
-                    "caption": "",
-                    "decorative": 1,
-                    "h": "137",
-                    "label": "",
-                    "lazy": 0,
-                    "link": "",
-                    "src": "asset:bp-mark",
-                    "target": "",
-                    "w": "137"
+                    "html": "<p>Accepted expedition checkout</p>",
+                    "ts": "meta"
                   },
-                  "type": "image"
+                  "type": "text"
                 },
                 {
                   "adv": {
@@ -557,40 +1265,343 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pm-visa-t",
+                          "props": {
+                            "html": "<p>Visa</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#FFFFFF",
+                          "border": "1px solid #D5DDD6",
+                          "border-radius": "5px",
+                          "display": "inline-flex",
+                          "padding-bottom": "4px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pm-visa",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pm-mc-t",
+                          "props": {
+                            "html": "<p>Mastercard</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#FFFFFF",
+                          "border": "1px solid #D5DDD6",
+                          "border-radius": "5px",
+                          "display": "inline-flex",
+                          "padding-bottom": "4px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pm-mc",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pm-amex-t",
+                          "props": {
+                            "html": "<p>Amex</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#FFFFFF",
+                          "border": "1px solid #D5DDD6",
+                          "border-radius": "5px",
+                          "display": "inline-flex",
+                          "padding-bottom": "4px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pm-amex",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pm-apple-t",
+                          "props": {
+                            "html": "<p>Apple Pay</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#FFFFFF",
+                          "border": "1px solid #D5DDD6",
+                          "border-radius": "5px",
+                          "display": "inline-flex",
+                          "padding-bottom": "4px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pm-apple",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#4A5952",
+                              "font-size": "12px",
+                              "font-weight": "500",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-ftr-pm-klarna-t",
+                          "props": {
+                            "html": "<p>Klarna</p>",
+                            "ts": "meta"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "background-color": "#FFFFFF",
+                          "border": "1px solid #D5DDD6",
+                          "border-radius": "5px",
+                          "display": "inline-flex",
+                          "padding-bottom": "4px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "4px",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-ftr-pm-klarna",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "--pc-solid-fg": "var(--c-bg)",
-                      "align-self": "flex-start",
-                      "background-color": "transparent",
-                      "border-color": "transparent",
-                      "border-radius": "0px",
-                      "border-width": "0px",
-                      "color": "#A6B5AE",
-                      "font-size": "13px",
-                      "font-weight": "500",
-                      "padding-bottom": "2px",
-                      "padding-left": "0px",
-                      "padding-right": "0px",
-                      "padding-top": "2px"
+                      "display": "flex",
+                      "flex-wrap": "wrap",
+                      "gap": "6px",
+                      "width": "auto"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "skv-creator-btn",
+                  "id": "skv-ftr-pay-pills",
                   "props": {
-                    "align": "flex-start",
-                    "icon": "none",
-                    "link": "https://braudyp.dev/",
-                    "target": "_blank",
-                    "text": "Created by braudyp.dev",
-                    "ts": "btn",
-                    "variant": "outline",
-                    "wrap": "inline-flex"
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "button"
+                  "type": "box"
                 }
               ],
               "cls": [],
@@ -598,18 +1609,276 @@
                 "d": {
                   "align-items": "center",
                   "display": "flex",
-                  "flex-wrap": "nowrap",
-                  "gap": "8px",
-                  "margin-left": "auto",
-                  "width": "auto"
+                  "flex-wrap": "wrap",
+                  "gap": "12px",
+                  "justify-content": "space-between"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "skv-ftr-pay-row",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--nav-gap": "18px",
+                          "--nav-hover": "#0E1512",
+                          "--nav-panel": "var(--c-bg)",
+                          "align-self": "flex-start",
+                          "color": "#0E1512",
+                          "font-size": "13px",
+                          "font-weight": "500",
+                          "justify-content": "flex-start",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "--nav-gap": "12px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-footer-nav",
+                      "props": {
+                        "aria": "Footer navigation",
+                        "collapse": "never",
+                        "items": [
+                          {
+                            "href": "index.html",
+                            "id": "skv-nav-home",
+                            "label": "Home"
+                          },
+                          {
+                            "href": "shells.html",
+                            "id": "skv-nav-shells",
+                            "label": "Shell System"
+                          },
+                          {
+                            "href": "repairs.html",
+                            "id": "skv-nav-repairs",
+                            "label": "Repair Lab"
+                          },
+                          {
+                            "href": "stockists.html",
+                            "id": "skv-nav-stockists",
+                            "label": "Stockists"
+                          }
+                        ],
+                        "mobileMenu": "dropdown"
+                      },
+                      "type": "nav"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#4A5952",
+                          "font-size": "13px",
+                          "line-height": "1.45",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-footer-copy",
+                      "props": {
+                        "html": "<p>SKARVEN · © 2026 Skarven Alpine Workshop AS · Tromsø</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "8px",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "width": "100%"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-footer-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "center",
+                          "border-radius": "0px",
+                          "height": "20px",
+                          "max-width": "100%",
+                          "object-fit": "contain",
+                          "width": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-bp-mark",
+                      "props": {
+                        "alt": "",
+                        "caption": "",
+                        "decorative": 1,
+                        "h": "137",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:bp-mark",
+                        "target": "",
+                        "w": "137"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--pc-solid-fg": "var(--c-bg)",
+                          "align-self": "flex-start",
+                          "background-color": "transparent",
+                          "border-color": "transparent",
+                          "border-radius": "0px",
+                          "border-width": "0px",
+                          "color": "#4A5952",
+                          "font-size": "13px",
+                          "font-weight": "500",
+                          "padding-bottom": "2px",
+                          "padding-left": "0px",
+                          "padding-right": "0px",
+                          "padding-top": "2px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-creator-btn",
+                      "props": {
+                        "align": "flex-start",
+                        "icon": "none",
+                        "link": "https://braudyp.dev/",
+                        "target": "_blank",
+                        "text": "Created by braudyp.dev",
+                        "ts": "btn",
+                        "variant": "outline",
+                        "wrap": "inline-flex"
+                      },
+                      "type": "button"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "display": "flex",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "margin-left": "auto",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "margin-left": "0px"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-creator-credit",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "border-top": "1px solid #DDE3DC",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "16px",
+                  "justify-content": "space-between",
+                  "padding-top": "18px",
+                  "width": "100%"
                 },
                 "m": {
-                  "margin-left": "0px"
+                  "align-items": "flex-start",
+                  "flex-direction": "column",
+                  "gap": "12px"
                 },
                 "t": {}
               },
               "hide": {},
-              "id": "skv-creator-credit",
+              "id": "skv-footer-bottom",
               "props": {
                 "layout": "flex",
                 "link": "",
@@ -622,24 +1891,35 @@
           "cls": [],
           "css": {
             "d": {
-              "align-items": "center",
-              "border-top": "1px solid #1E2823",
               "display": "flex",
-              "flex-wrap": "wrap",
-              "gap": "16px",
-              "justify-content": "space-between",
-              "padding-top": "18px",
+              "flex-direction": "column",
+              "gap": "32px",
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "max-width": "1240px",
+              "padding-bottom": "28px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "44px",
               "width": "100%"
             },
             "m": {
-              "align-items": "flex-start",
-              "flex-direction": "column",
-              "gap": "12px"
+              "gap": "22px",
+              "padding-bottom": "20px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "28px"
             },
-            "t": {}
+            "t": {
+              "gap": "26px",
+              "padding-bottom": "24px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "34px"
+            }
           },
           "hide": {},
-          "id": "skv-footer-bottom",
+          "id": "skv-ftr-body-wrap",
           "props": {
             "layout": "flex",
             "link": "",
@@ -652,25 +1932,25 @@
       "cls": [],
       "css": {
         "d": {
-          "background-color": "#0A0E0C",
-          "border-top": "1px solid #1E2823",
-          "color": "#E8EEEB",
-          "padding-bottom": "28px",
-          "padding-left": "40px",
-          "padding-right": "40px",
-          "padding-top": "40px"
+          "background-color": "#FAFAF8",
+          "border-top": "1px solid #DDE3DC",
+          "color": "#0E1512",
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         },
         "m": {
-          "padding-bottom": "22px",
-          "padding-left": "20px",
-          "padding-right": "20px",
-          "padding-top": "28px"
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         },
         "t": {
-          "padding-bottom": "26px",
-          "padding-left": "28px",
-          "padding-right": "28px",
-          "padding-top": "34px"
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         }
       },
       "hide": {},
@@ -679,7 +1959,7 @@
         "floating": 0,
         "inner": "",
         "tag": "section",
-        "width": "boxed"
+        "width": "full"
       },
       "type": "section"
     }
@@ -996,8 +2276,8 @@
     "collections": [],
     "css": "",
     "favicon": "asset:favicon",
-    "font": "'Public Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
-    "headFont": "'Oswald',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "font": "'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Archivo Black',system-ui,-apple-system,sans-serif",
     "headHtml": "",
     "lang": "en",
     "maxWidth": "1240px",
@@ -1048,17 +2328,17 @@
           "css": {
             "d": {
               "color": "var(--c-ink)",
-              "font-size": "52px",
-              "font-weight": "600",
-              "letter-spacing": "-0.01em",
+              "font-size": "46px",
+              "font-weight": "400",
+              "letter-spacing": "-0.015em",
               "line-height": "1.08"
             },
             "m": {
-              "font-size": "32px",
+              "font-size": "30px",
               "line-height": "1.12"
             },
             "t": {
-              "font-size": "42px"
+              "font-size": "38px"
             }
           },
           "id": "display",
@@ -1069,17 +2349,17 @@
           "css": {
             "d": {
               "color": "var(--c-ink)",
-              "font-size": "36px",
-              "font-weight": "600",
-              "letter-spacing": "-0.01em",
-              "line-height": "1.14"
+              "font-size": "31px",
+              "font-weight": "400",
+              "letter-spacing": "-0.015em",
+              "line-height": "1.16"
             },
             "m": {
-              "font-size": "26px",
-              "line-height": "1.18"
+              "font-size": "22px",
+              "line-height": "1.2"
             },
             "t": {
-              "font-size": "30px"
+              "font-size": "26px"
             }
           },
           "id": "title",
@@ -1090,13 +2370,13 @@
           "css": {
             "d": {
               "color": "var(--c-ink)",
-              "font-size": "22px",
-              "font-weight": "600",
-              "line-height": "1.24"
+              "font-size": "20px",
+              "font-weight": "400",
+              "line-height": "1.26"
             },
             "m": {
-              "font-size": "19px",
-              "line-height": "1.28"
+              "font-size": "18px",
+              "line-height": "1.3"
             },
             "t": {}
           },
@@ -1108,12 +2388,12 @@
           "css": {
             "d": {
               "color": "var(--c-ink)",
-              "font-size": "18px",
-              "font-weight": "600",
+              "font-size": "17.5px",
+              "font-weight": "400",
               "line-height": "1.3"
             },
             "m": {
-              "font-size": "17px"
+              "font-size": "16.5px"
             },
             "t": {}
           },
@@ -1301,16 +2581,17 @@
                           "css": {
                             "d": {
                               "color": "#F4F7F5",
-                              "font-size": "38px",
+                              "font-size": "33px",
+                              "line-height": "1.14",
                               "margin-bottom": "0px",
                               "max-width": "26ch",
                               "text-align": "left"
                             },
                             "m": {
-                              "font-size": "27px"
+                              "font-size": "24px"
                             },
                             "t": {
-                              "font-size": "32px"
+                              "font-size": "28px"
                             }
                           },
                           "hide": {},
@@ -2503,6 +3784,758 @@
           },
           "hide": {},
           "id": "skv-home-steps-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-ink)",
+                          "margin-bottom": "0px",
+                          "max-width": "24ch",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Tested above the Arctic Circle, repaired for life.",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "max-width": "58ch",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-lead",
+                      "props": {
+                        "html": "<p>Every shell returns to our Tromsø ultrasonic bench for free seam re-taping, cuff replacement, and GORE zipper servicing between expeditions.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "max-width": "640px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-home-field-stack",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "transparent",
+                      "border-color": "var(--c-line)",
+                      "border-radius": "999px",
+                      "border-style": "solid",
+                      "border-width": "1px",
+                      "color": "var(--c-brand)",
+                      "flex-shrink": "0",
+                      "min-height": "42px",
+                      "padding-bottom": "10px",
+                      "padding-left": "18px",
+                      "padding-right": "18px",
+                      "padding-top": "10px",
+                      "transition": "background-color 160ms ease, transform 160ms ease",
+                      "white-space": "nowrap"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-home-field-cta",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "repairs.html",
+                    "target": "",
+                    "text": "Book Seam Repair →",
+                    "ts": "btn",
+                    "variant": "outline",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "flex-end",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "20px",
+                  "justify-content": "space-between",
+                  "margin-bottom": "34px"
+                },
+                "m": {
+                  "align-items": "flex-start",
+                  "flex-direction": "column",
+                  "margin-bottom": "26px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "skv-home-field-row",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "12px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-img",
+                      "props": {
+                        "alt": "SKARVEN Tromsø harbour seam-welding workshop and alpine kit bench",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:outpost-tromso",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#145C3E",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s1-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "28,000 mm",
+                                "ts": "cardtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s1-l",
+                              "props": {
+                                "html": "<p>Hydrostatic head</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-hf-s1",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#145C3E",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s2-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "385 g",
+                                "ts": "cardtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s2-l",
+                              "props": {
+                                "html": "<p>Storm shell weight</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-hf-s2",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#145C3E",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s3-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "48 h",
+                                "ts": "cardtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "skv-hf-s3-l",
+                              "props": {
+                                "html": "<p>Tromsø seam turnaround</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-hf-s3",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#F2F4F1",
+                          "border": "1px solid #D4DCD7",
+                          "border-radius": "12px",
+                          "display": "grid",
+                          "gap": "12px",
+                          "grid-template-columns": "repeat(3, minmax(0, 1fr))",
+                          "padding-bottom": "16px",
+                          "padding-left": "18px",
+                          "padding-right": "18px",
+                          "padding-top": "16px"
+                        },
+                        "m": {
+                          "gap": "10px",
+                          "grid-template-columns": "1fr"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-stats",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-home-field-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "flex-start",
+                              "border-left-color": "#145C3E",
+                              "border-left-width": "3px",
+                              "color": "var(--c-ink)",
+                              "font-size": "24px",
+                              "line-height": "1.45",
+                              "max-width": "34ch",
+                              "padding-left": "16px"
+                            },
+                            "m": {
+                              "font-size": "20px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-field-q1",
+                          "props": {
+                            "by": "Halvor Solberg",
+                            "source": "IFMGA Mountain Guide · Svolvær",
+                            "text": "Fourteen sleet squalls along the Lofoten traverse without wetting out once. When a crampon nicked the left gaiter cuff, Tromsø ultrasonically welded a matching panel and returned it in two days.",
+                            "ts": "lead"
+                          },
+                          "type": "quote"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#F2F4F1",
+                          "border": "1px solid #D4DCD7",
+                          "border-radius": "12px",
+                          "padding-bottom": "22px",
+                          "padding-left": "22px",
+                          "padding-right": "22px",
+                          "padding-top": "22px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-q1-box",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "flex-start",
+                              "border-left-color": "#145C3E",
+                              "border-left-width": "3px",
+                              "color": "var(--c-ink)",
+                              "font-size": "24px",
+                              "line-height": "1.45",
+                              "max-width": "34ch",
+                              "padding-left": "16px"
+                            },
+                            "m": {
+                              "font-size": "20px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "skv-field-q2",
+                          "props": {
+                            "by": "Ingrid Nyström",
+                            "source": "Ski Mountaineer · Lyngen Alps",
+                            "text": "The Dyneema® hauler rides zero sway on freezing couloir bootpacks, and the 3L Petrol shell hood rotates cleanly over a ski helmet in 50-knot ridge gusts.",
+                            "ts": "lead"
+                          },
+                          "type": "quote"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#F2F4F1",
+                          "border": "1px solid #D4DCD7",
+                          "border-radius": "12px",
+                          "padding-bottom": "22px",
+                          "padding-left": "22px",
+                          "padding-right": "22px",
+                          "padding-top": "22px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "skv-home-field-q2-box",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "18px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "skv-home-field-quotes",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "28px",
+                  "grid-template-columns": "1.02fr 0.98fr"
+                },
+                "m": {
+                  "gap": "18px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "22px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "skv-home-field-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-surface)",
+              "border-bottom": "1px solid var(--c-line)",
+              "border-top": "1px solid var(--c-line)",
+              "color": "var(--c-ink)",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "skv-home-field-sec",
           "props": {
             "floating": 0,
             "inner": "",

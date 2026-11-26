@@ -25,21 +25,27 @@
               "css": {
                 "d": {
                   "align-self": "flex-start",
-                  "aspect-ratio": "16 / 10",
-                  "border-radius": "10px",
+                  "border-radius": "0px",
                   "display": "block",
-                  "height": "auto",
+                  "height": "100%",
                   "max-width": "100%",
+                  "min-height": "460px",
                   "object-fit": "cover",
                   "width": "100%"
                 },
-                "m": {},
-                "t": {}
+                "m": {
+                  "height": "280px",
+                  "min-height": "260px"
+                },
+                "t": {
+                  "height": "340px",
+                  "min-height": "320px"
+                }
               },
               "hide": {},
-              "id": "sh-ftr-venue-img",
+              "id": "sh-ftr-split-img",
               "props": {
-                "alt": "Vaulted concrete turbine hall with ultraviolet acoustic horn arrays",
+                "alt": "SUBBASS HALLE Turbine Hall B2 acoustic chamber and custom horn stacks",
                 "caption": "",
                 "decorative": 0,
                 "h": "480",
@@ -76,32 +82,30 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "align-self": "flex-start",
-                          "border-radius": "0px",
-                          "display": "block",
-                          "height": "30px",
-                          "max-width": "100%",
-                          "object-fit": "contain",
-                          "width": "auto"
+                          "color": "#F5F5FA",
+                          "font-size": "36px",
+                          "letter-spacing": "-0.03em",
+                          "line-height": "1.06",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
                         },
-                        "m": {},
-                        "t": {}
+                        "m": {
+                          "font-size": "26px"
+                        },
+                        "t": {
+                          "font-size": "30px"
+                        }
                       },
                       "hide": {},
-                      "id": "sh-ftr-logo",
+                      "id": "sh-ftr-news-h",
                       "props": {
-                        "alt": "SUBBASS HALLE",
-                        "caption": "",
-                        "decorative": 0,
-                        "h": "40",
-                        "label": "",
-                        "lazy": 1,
-                        "link": "index.html",
-                        "src": "asset:logo",
+                        "level": "h2",
+                        "link": "",
                         "target": "",
-                        "w": "248"
+                        "text": "First access to late nights & pressings",
+                        "ts": "title"
                       },
-                      "type": "image"
+                      "type": "heading"
                     },
                     {
                       "adv": {
@@ -113,22 +117,67 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B8B8CA",
-                          "font-size": "14px",
+                          "color": "#A7A7BC",
+                          "font-size": "14.5px",
+                          "line-height": "1.55",
                           "margin-bottom": "0px",
-                          "max-width": "36ch",
                           "text-align": "left"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "sh-ftr-note",
+                      "id": "sh-ftr-news-p",
                       "props": {
-                        "html": "<p>Eight-stack horn-loaded sub-bass architecture, deep listening nights, and direct-to-lacquer 45 RPM vinyl pressings inside former Turbine Hall B2.</p>",
+                        "html": "<p>Programme announcements, SH-series white labels, and B2 sound checks. No more than twice a month.</p>",
                         "ts": "body"
                       },
                       "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--f-bg": "#1C1C27",
+                          "--f-border": "#323246",
+                          "--f-btn-bg": "#9D6BFF",
+                          "--f-btn-fg": "#0D0D10",
+                          "--f-gap": "12px",
+                          "--f-label": "#C4C4D6",
+                          "--f-pad": "11px 13px",
+                          "--f-radius": "10px",
+                          "--f-text": "#F5F5FA",
+                          "font-size": "15px",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-ftr-form",
+                      "props": {
+                        "action": "",
+                        "aria": "SUBBASS HALLE pressing and programme newsletter",
+                        "fields": [
+                          {
+                            "label": "Email address",
+                            "name": "email",
+                            "ph": "listener@berlin.example",
+                            "required": 1,
+                            "type": "email"
+                          }
+                        ],
+                        "method": "post",
+                        "mode": "external",
+                        "submit": "Join the list"
+                      },
+                      "type": "form"
                     }
                   ],
                   "cls": [],
@@ -136,14 +185,14 @@
                     "d": {
                       "display": "flex",
                       "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "10px"
+                      "gap": "12px",
+                      "max-width": "460px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "sh-ftr-brand-col",
+                  "id": "sh-ftr-news-box",
                   "props": {
                     "layout": "flex",
                     "link": "",
@@ -165,28 +214,87 @@
                         "css": "",
                         "htmlId": ""
                       },
-                      "children": [],
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#A7A7BC",
+                              "font-size": "13px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d1-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Programme",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--link": "#E2E2F0",
+                              "color": "#F5F5FA",
+                              "font-size": "13.5px",
+                              "line-height": "2.0",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d1-p",
+                          "props": {
+                            "html": "<p><a href=\"index.html\">Monthly Showbill</a><br><a href=\"venue.html#passes\">Substation Passes</a></p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#F5F5FA",
-                          "font-size": "16px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "min-width": "0px"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "sh-ftr-hall-h",
+                      "id": "sh-ftr-d1",
                       "props": {
-                        "level": "h3",
+                        "layout": "flex",
                         "link": "",
-                        "target": "",
-                        "text": "Turbine Hall B2",
-                        "ts": "cardtitle"
+                        "tag": "div",
+                        "target": ""
                       },
-                      "type": "heading"
+                      "type": "box"
                     },
                     {
                       "adv": {
@@ -194,258 +302,206 @@
                         "css": "",
                         "htmlId": ""
                       },
-                      "children": [],
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#A7A7BC",
+                              "font-size": "13px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d2-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Imprint",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--link": "#E2E2F0",
+                              "color": "#F5F5FA",
+                              "font-size": "13.5px",
+                              "line-height": "2.0",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d2-p",
+                          "props": {
+                            "html": "<p><a href=\"vinyl.html\">Lathe Editions</a><br><a href=\"vinyl.html\">Pressing Catalogue</a></p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B8B8CA",
-                          "font-size": "13.5px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "min-width": "0px"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "sh-ftr-hall-p",
+                      "id": "sh-ftr-d2",
                       "props": {
-                        "html": "<p>Köpenicker Str. 70b, 10179 Berlin<br>Mitte · Former Substation<br>Doors Fri &amp; Sat 23:00 – 07:00</p>",
-                        "ts": "body"
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
                       },
-                      "type": "text"
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#A7A7BC",
+                              "font-size": "13px",
+                              "font-weight": "600",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d3-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Hall",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--link": "#E2E2F0",
+                              "color": "#F5F5FA",
+                              "font-size": "13.5px",
+                              "line-height": "2.0",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-ftr-d3-p",
+                          "props": {
+                            "html": "<p><a href=\"sound-system.html\">Horn Architecture</a><br><a href=\"venue.html\">Turbine Hall B2</a></p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "min-width": "0px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-ftr-d3",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
                     }
                   ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "display": "flex",
-                      "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "sh-ftr-hall-col",
-                  "props": {
-                    "layout": "flex",
-                    "link": "",
-                    "tag": "div",
-                    "target": ""
-                  },
-                  "type": "box"
-                },
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [
-                    {
-                      "adv": {
-                        "cls": "",
-                        "css": "",
-                        "htmlId": ""
-                      },
-                      "children": [],
-                      "cls": [],
-                      "css": {
-                        "d": {
-                          "color": "#F5F5FA",
-                          "font-size": "16px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
-                        },
-                        "m": {},
-                        "t": {}
-                      },
-                      "hide": {},
-                      "id": "sh-ftr-desk-h",
-                      "props": {
-                        "level": "h3",
-                        "link": "",
-                        "target": "",
-                        "text": "Mastering & Bookings",
-                        "ts": "cardtitle"
-                      },
-                      "type": "heading"
-                    },
-                    {
-                      "adv": {
-                        "cls": "",
-                        "css": "",
-                        "htmlId": ""
-                      },
-                      "children": [],
-                      "cls": [],
-                      "css": {
-                        "d": {
-                          "color": "#B8B8CA",
-                          "font-size": "13.5px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
-                        },
-                        "m": {},
-                        "t": {}
-                      },
-                      "hide": {},
-                      "id": "sh-ftr-desk-p",
-                      "props": {
-                        "html": "<p>Strict no-camera floor policy<br>Sub-30Hz Hearing Care Desk<br>vault@subbasshalle.de</p>",
-                        "ts": "body"
-                      },
-                      "type": "text"
-                    }
-                  ],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "display": "flex",
-                      "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "sh-ftr-desk-col",
-                  "props": {
-                    "layout": "flex",
-                    "link": "",
-                    "tag": "div",
-                    "target": ""
-                  },
-                  "type": "box"
-                }
-              ],
-              "cls": [],
-              "css": {
-                "d": {
-                  "align-items": "start",
-                  "display": "grid",
-                  "gap": "26px",
-                  "grid-template-columns": "1.25fr 1fr 1fr"
-                },
-                "m": {
-                  "gap": "18px",
-                  "grid-template-columns": "1fr"
-                },
-                "t": {
-                  "gap": "20px",
-                  "grid-template-columns": "1fr 1fr"
-                }
-              },
-              "hide": {},
-              "id": "sh-ftr-info",
-              "props": {
-                "layout": "grid",
-                "link": "",
-                "tag": "div",
-                "target": ""
-              },
-              "type": "box"
-            }
-          ],
-          "cls": [],
-          "css": {
-            "d": {
-              "align-items": "center",
-              "display": "grid",
-              "gap": "36px",
-              "grid-template-columns": "280px minmax(0, 1fr)",
-              "padding-bottom": "26px"
-            },
-            "m": {
-              "gap": "20px",
-              "grid-template-columns": "1fr"
-            },
-            "t": {
-              "gap": "24px",
-              "grid-template-columns": "220px minmax(0, 1fr)"
-            }
-          },
-          "hide": {},
-          "id": "sh-ftr-split",
-          "props": {
-            "layout": "grid",
-            "link": "",
-            "tag": "div",
-            "target": ""
-          },
-          "type": "box"
-        },
-        {
-          "adv": {
-            "cls": "",
-            "css": "",
-            "htmlId": ""
-          },
-          "children": [
-            {
-              "adv": {
-                "cls": "",
-                "css": "",
-                "htmlId": ""
-              },
-              "children": [
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "--nav-gap": "18px",
-                      "--nav-hover": "#F5F5FA",
-                      "--nav-panel": "var(--c-bg)",
-                      "align-self": "flex-start",
-                      "color": "#F5F5FA",
-                      "font-size": "13px",
-                      "font-weight": "500",
-                      "justify-content": "flex-start",
-                      "width": "auto"
+                      "align-items": "start",
+                      "border-top": "1px solid #262636",
+                      "display": "grid",
+                      "gap": "20px",
+                      "grid-template-columns": "repeat(3, minmax(0, 1fr))",
+                      "padding-top": "24px",
+                      "width": "100%"
                     },
                     "m": {
-                      "--nav-gap": "12px"
+                      "gap": "16px",
+                      "grid-template-columns": "repeat(2, minmax(0, 1fr))"
                     },
-                    "t": {}
+                    "t": {
+                      "gap": "18px",
+                      "grid-template-columns": "repeat(3, minmax(0, 1fr))"
+                    }
                   },
                   "hide": {},
-                  "id": "sh-footer-nav",
+                  "id": "sh-ftr-dir-grid",
                   "props": {
-                    "aria": "Footer navigation",
-                    "collapse": "never",
-                    "items": [
-                      {
-                        "href": "index.html",
-                        "id": "sh-nav-program",
-                        "label": "Program"
-                      },
-                      {
-                        "href": "sound-system.html",
-                        "id": "sh-nav-sound",
-                        "label": "Sound System"
-                      },
-                      {
-                        "href": "vinyl.html",
-                        "id": "sh-nav-vinyl",
-                        "label": "Vinyl Releases"
-                      },
-                      {
-                        "href": "venue.html",
-                        "id": "sh-nav-venue",
-                        "label": "Venue Info"
-                      }
-                    ],
-                    "mobileMenu": "dropdown"
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "nav"
+                  "type": "box"
                 },
                 {
                   "adv": {
@@ -453,26 +509,260 @@
                     "css": "",
                     "htmlId": ""
                   },
-                  "children": [],
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--nav-gap": "18px",
+                              "--nav-hover": "#E2E2F0",
+                              "--nav-panel": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "color": "#E2E2F0",
+                              "font-size": "13px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "width": "auto"
+                            },
+                            "m": {
+                              "--nav-gap": "12px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-footer-nav",
+                          "props": {
+                            "aria": "Footer navigation",
+                            "collapse": "never",
+                            "items": [
+                              {
+                                "href": "index.html",
+                                "id": "sh-nav-program",
+                                "label": "Program"
+                              },
+                              {
+                                "href": "sound-system.html",
+                                "id": "sh-nav-sound",
+                                "label": "Sound System"
+                              },
+                              {
+                                "href": "vinyl.html",
+                                "id": "sh-nav-vinyl",
+                                "label": "Vinyl Releases"
+                              },
+                              {
+                                "href": "venue.html",
+                                "id": "sh-nav-venue",
+                                "label": "Venue Info"
+                              }
+                            ],
+                            "mobileMenu": "dropdown"
+                          },
+                          "type": "nav"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#A7A7BC",
+                              "font-size": "13px",
+                              "line-height": "1.45",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-footer-copy",
+                          "props": {
+                            "html": "<p>© 2026 SUBBASS HALLE · Kraftwerk-Ost, Berlin</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "width": "100%"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-footer-left",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "center",
+                              "border-radius": "0px",
+                              "height": "20px",
+                              "max-width": "100%",
+                              "object-fit": "contain",
+                              "width": "20px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-bp-mark",
+                          "props": {
+                            "alt": "",
+                            "caption": "",
+                            "decorative": 1,
+                            "h": "137",
+                            "label": "",
+                            "lazy": 0,
+                            "link": "",
+                            "src": "asset:bp-mark",
+                            "target": "",
+                            "w": "137"
+                          },
+                          "type": "image"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "0px",
+                              "border-width": "0px",
+                              "color": "#A7A7BC",
+                              "font-size": "13px",
+                              "font-weight": "500",
+                              "padding-bottom": "2px",
+                              "padding-left": "0px",
+                              "padding-right": "0px",
+                              "padding-top": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-creator-btn",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "https://braudyp.dev/",
+                            "target": "_blank",
+                            "text": "Created by braudyp.dev",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "type": "button"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "display": "flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "8px",
+                          "margin-left": "auto",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "margin-left": "0px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-creator-credit",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#B8B8CA",
-                      "font-size": "13px",
-                      "line-height": "1.45",
-                      "margin-bottom": "0px",
-                      "text-align": "left"
+                      "align-items": "center",
+                      "border-top": "1px solid #262636",
+                      "display": "flex",
+                      "flex-wrap": "wrap",
+                      "gap": "16px",
+                      "justify-content": "space-between",
+                      "padding-top": "18px",
+                      "width": "100%"
                     },
-                    "m": {},
+                    "m": {
+                      "align-items": "flex-start",
+                      "flex-direction": "column",
+                      "gap": "12px"
+                    },
                     "t": {}
                   },
                   "hide": {},
-                  "id": "sh-footer-copy",
+                  "id": "sh-footer-bottom",
                   "props": {
-                    "html": "<p>Eight-stack exponential horn system · Zero-compression analog vinyl mastering</p>",
-                    "ts": "body"
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
                   },
-                  "type": "text"
+                  "type": "box"
                 }
               ],
               "cls": [],
@@ -480,126 +770,29 @@
                 "d": {
                   "display": "flex",
                   "flex-direction": "column",
-                  "gap": "8px",
-                  "width": "auto"
+                  "gap": "32px",
+                  "justify-content": "space-between",
+                  "min-width": "0px",
+                  "padding-bottom": "28px",
+                  "padding-left": "56px",
+                  "padding-right": "56px",
+                  "padding-top": "48px"
                 },
                 "m": {
-                  "width": "100%"
+                  "padding-bottom": "24px",
+                  "padding-left": "20px",
+                  "padding-right": "20px",
+                  "padding-top": "32px"
                 },
-                "t": {}
-              },
-              "hide": {},
-              "id": "sh-footer-left",
-              "props": {
-                "layout": "flex",
-                "link": "",
-                "tag": "div",
-                "target": ""
-              },
-              "type": "box"
-            },
-            {
-              "adv": {
-                "cls": "",
-                "css": "",
-                "htmlId": ""
-              },
-              "children": [
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "align-self": "center",
-                      "border-radius": "0px",
-                      "height": "20px",
-                      "max-width": "100%",
-                      "object-fit": "contain",
-                      "width": "20px"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "sh-bp-mark",
-                  "props": {
-                    "alt": "",
-                    "caption": "",
-                    "decorative": 1,
-                    "h": "137",
-                    "label": "",
-                    "lazy": 0,
-                    "link": "",
-                    "src": "asset:bp-mark",
-                    "target": "",
-                    "w": "137"
-                  },
-                  "type": "image"
-                },
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "--pc-solid-fg": "var(--c-bg)",
-                      "align-self": "flex-start",
-                      "background-color": "transparent",
-                      "border-color": "transparent",
-                      "border-radius": "0px",
-                      "border-width": "0px",
-                      "color": "#B8B8CA",
-                      "font-size": "13px",
-                      "font-weight": "500",
-                      "padding-bottom": "2px",
-                      "padding-left": "0px",
-                      "padding-right": "0px",
-                      "padding-top": "2px"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "sh-creator-btn",
-                  "props": {
-                    "align": "flex-start",
-                    "icon": "none",
-                    "link": "https://braudyp.dev/",
-                    "target": "_blank",
-                    "text": "Created by braudyp.dev",
-                    "ts": "btn",
-                    "variant": "outline",
-                    "wrap": "inline-flex"
-                  },
-                  "type": "button"
+                "t": {
+                  "padding-bottom": "24px",
+                  "padding-left": "32px",
+                  "padding-right": "32px",
+                  "padding-top": "36px"
                 }
-              ],
-              "cls": [],
-              "css": {
-                "d": {
-                  "align-items": "center",
-                  "display": "flex",
-                  "flex-wrap": "nowrap",
-                  "gap": "8px",
-                  "margin-left": "auto",
-                  "width": "auto"
-                },
-                "m": {
-                  "margin-left": "0px"
-                },
-                "t": {}
               },
               "hide": {},
-              "id": "sh-creator-credit",
+              "id": "sh-ftr-split-body",
               "props": {
                 "layout": "flex",
                 "link": "",
@@ -612,26 +805,23 @@
           "cls": [],
           "css": {
             "d": {
-              "align-items": "center",
-              "border-top": "1px solid #282834",
-              "display": "flex",
-              "flex-wrap": "wrap",
-              "gap": "16px",
-              "justify-content": "space-between",
-              "padding-top": "18px",
+              "align-items": "stretch",
+              "display": "grid",
+              "gap": "0px",
+              "grid-template-columns": "1fr 1fr",
               "width": "100%"
             },
             "m": {
-              "align-items": "flex-start",
-              "flex-direction": "column",
-              "gap": "12px"
+              "grid-template-columns": "1fr"
             },
-            "t": {}
+            "t": {
+              "grid-template-columns": "1fr"
+            }
           },
           "hide": {},
-          "id": "sh-footer-bottom",
+          "id": "sh-ftr-split-grid",
           "props": {
-            "layout": "flex",
+            "layout": "grid",
             "link": "",
             "tag": "div",
             "target": ""
@@ -642,25 +832,25 @@
       "cls": [],
       "css": {
         "d": {
-          "background-color": "#09090C",
-          "border-top": "1px solid #282834",
+          "background-color": "#13131A",
+          "border-top": "1px solid #262636",
           "color": "#F5F5FA",
-          "padding-bottom": "30px",
-          "padding-left": "40px",
-          "padding-right": "40px",
-          "padding-top": "38px"
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         },
         "m": {
-          "padding-bottom": "20px",
-          "padding-left": "20px",
-          "padding-right": "20px",
-          "padding-top": "26px"
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         },
         "t": {
-          "padding-bottom": "24px",
-          "padding-left": "28px",
-          "padding-right": "28px",
-          "padding-top": "32px"
+          "padding-bottom": "1px",
+          "padding-left": "0px",
+          "padding-right": "0px",
+          "padding-top": "1px"
         }
       },
       "hide": {},
@@ -669,7 +859,7 @@
         "floating": 0,
         "inner": "",
         "tag": "section",
-        "width": "boxed"
+        "width": "full"
       },
       "type": "section"
     }
@@ -907,7 +1097,7 @@
     "collections": [],
     "css": "",
     "favicon": "asset:favicon",
-    "font": "'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "font": "'Epilogue',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
     "headFont": "'Bebas Neue',system-ui,-apple-system,sans-serif",
     "headHtml": "",
     "lang": "en",
@@ -2075,6 +2265,1554 @@
           },
           "hide": {},
           "id": "sh-home-rig-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F5F5FA",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-vinyl-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Cut direct to lacquer inside the substation",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#B8B8CA",
+                          "margin-bottom": "0px",
+                          "max-width": "58ch",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-vinyl-lead",
+                      "props": {
+                        "html": "<p>Small-run 180-gram dubplates and spatial electronics sleeves mastered straight from the main hall acoustic calibration chain.</p>",
+                        "ts": "lead"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "flex-wrap": "nowrap",
+                      "gap": "12px",
+                      "max-width": "640px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-home-vinyl-stack",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "transparent",
+                      "border-color": "rgba(200, 173, 255, 0.48)",
+                      "border-radius": "6px",
+                      "border-style": "solid",
+                      "border-width": "1px",
+                      "color": "#C8ADFF",
+                      "flex-shrink": "0",
+                      "min-height": "42px",
+                      "padding-bottom": "10px",
+                      "padding-left": "18px",
+                      "padding-right": "18px",
+                      "padding-top": "10px",
+                      "transition": "background-color 160ms ease, transform 160ms ease",
+                      "white-space": "nowrap"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-home-vinyl-cta",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "vinyl.html",
+                    "target": "",
+                    "text": "Browse Vinyl Imprint →",
+                    "ts": "btn",
+                    "variant": "outline",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "flex-end",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "20px",
+                  "justify-content": "space-between",
+                  "margin-bottom": "34px"
+                },
+                "m": {
+                  "align-items": "flex-start",
+                  "flex-direction": "column",
+                  "margin-bottom": "26px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "sh-home-vinyl-row",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c1-img",
+                      "props": {
+                        "alt": "Neumann lathe diamond stylus cutting SH-014 lacquer master inside SUBBASS HALLE",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1000",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:masonry-lathe",
+                        "target": "",
+                        "w": "800"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F5F5FA",
+                              "font-size": "22px",
+                              "line-height": "1.15",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c1-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "SH-014 · Kaltstrom — Subharmonic Study",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c1-p",
+                          "props": {
+                            "html": "<p>180g · 45 RPM · 300 numbered copies. Pure analog sub-bass study cut at +4 dBu straight from Studer half-inch tape.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c1-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "10px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-vinyl-c1",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c2-img",
+                      "props": {
+                        "alt": "Close macro study of deep modulated microgrooves on SH-015 180g pressing",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "900",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:masonry-grooves",
+                        "target": "",
+                        "w": "900"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F5F5FA",
+                              "font-size": "22px",
+                              "line-height": "1.15",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c2-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "SH-015 · Nora Veld — Concrete Pressure",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c2-p",
+                          "props": {
+                            "html": "<p>180g · 45 RPM · 300 numbered copies. Recorded live after hours across Turbine Hall B2 concrete impulse diffusers.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c2-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "10px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-vinyl-c2",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c3-img",
+                      "props": {
+                        "alt": "Quarter-inch magnetic tape reel feeding Turbine Dubs pressing chain",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "800",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:masonry-reel",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F5F5FA",
+                              "font-size": "22px",
+                              "line-height": "1.15",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c3-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "SH-016 · Tomasz K. — Turbine Dubs",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-vinyl-c3-p",
+                          "props": {
+                            "html": "<p>180g · 45 RPM · 300 numbered copies. Deep dub electronics etched for long-throw horn translation.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-vinyl-c3-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "10px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-vinyl-c3",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "gap": "20px",
+                  "grid-template-columns": "repeat(3, minmax(0, 1fr))"
+                },
+                "m": {
+                  "gap": "16px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "18px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "sh-home-vinyl-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-bg)",
+              "border-bottom": "1px solid var(--c-line)",
+              "color": "var(--c-ink)",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "sh-home-vinyl-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "3 / 2",
+                          "border-radius": "10px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-img",
+                      "props": {
+                        "alt": "SUBBASS HALLE Main Turbine Floor B2 concrete acoustic diffusers and calibrated horn stacks",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1000",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:masonry-room",
+                        "target": "",
+                        "w": "800"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F5F5FA",
+                                  "font-size": "24px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m1-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "28 Hz",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m1-l",
+                              "props": {
+                                "html": "<p>Clean sub floor</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-hr-m1",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F5F5FA",
+                                  "font-size": "24px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m2-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "112 dB",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m2-l",
+                              "props": {
+                                "html": "<p>Zero-clip ceiling</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-hr-m2",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F5F5FA",
+                                  "font-size": "24px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m3-v",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "0.62 s",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-hr-m3-l",
+                              "props": {
+                                "html": "<p>Measured RT60</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-hr-m3",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#0D0D10",
+                          "border": "1px solid #282834",
+                          "border-radius": "10px",
+                          "display": "grid",
+                          "gap": "12px",
+                          "grid-template-columns": "repeat(3, minmax(0, 1fr))",
+                          "padding-bottom": "16px",
+                          "padding-left": "18px",
+                          "padding-right": "18px",
+                          "padding-top": "16px"
+                        },
+                        "m": {
+                          "gap": "10px",
+                          "grid-template-columns": "1fr"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-metrics",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-home-room-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F5F5FA",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Engineered for chest-level clarity, never ear fatigue",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-p",
+                      "props": {
+                        "html": "<p>Suspended birch Helmholtz resonators tame upper-mid reflections across Turbine Hall B2 so all-night sets stay effortless on the ear.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "align-self": "flex-start",
+                                  "aspect-ratio": "3 / 2",
+                                  "border-radius": "6px",
+                                  "display": "block",
+                                  "height": "auto",
+                                  "max-width": "100%",
+                                  "object-fit": "cover",
+                                  "width": "100%"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng1-img",
+                              "props": {
+                                "alt": "Lukas Weber, Chief Acoustic Engineer at SUBBASS HALLE",
+                                "caption": "",
+                                "decorative": 0,
+                                "h": "1200",
+                                "label": "",
+                                "lazy": 1,
+                                "link": "",
+                                "src": "asset:eng-lukas",
+                                "target": "",
+                                "w": "960"
+                              },
+                              "type": "image"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F5F5FA",
+                                  "font-size": "19px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng1-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Lukas Weber",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng1-p",
+                              "props": {
+                                "html": "<p>Chief Acoustic Engineer</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "background-color": "#0D0D10",
+                              "border": "1px solid #282834",
+                              "border-radius": "10px",
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "10px",
+                              "padding-bottom": "12px",
+                              "padding-left": "12px",
+                              "padding-right": "12px",
+                              "padding-top": "12px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-room-eng-1",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "align-self": "flex-start",
+                                  "aspect-ratio": "3 / 2",
+                                  "border-radius": "6px",
+                                  "display": "block",
+                                  "height": "auto",
+                                  "max-width": "100%",
+                                  "object-fit": "cover",
+                                  "width": "100%"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng2-img",
+                              "props": {
+                                "alt": "Priya Nair, Mastering & DSP Lead at SUBBASS HALLE",
+                                "caption": "",
+                                "decorative": 0,
+                                "h": "1200",
+                                "label": "",
+                                "lazy": 1,
+                                "link": "",
+                                "src": "asset:eng-priya",
+                                "target": "",
+                                "w": "960"
+                              },
+                              "type": "image"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F5F5FA",
+                                  "font-size": "19px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng2-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Priya Nair",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "13px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "sh-room-eng2-p",
+                              "props": {
+                                "html": "<p>Mastering & DSP Lead</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "background-color": "#0D0D10",
+                              "border": "1px solid #282834",
+                              "border-radius": "10px",
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "10px",
+                              "padding-bottom": "12px",
+                              "padding-left": "12px",
+                              "padding-right": "12px",
+                              "padding-top": "12px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "sh-room-eng-2",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "grid",
+                          "gap": "14px",
+                          "grid-template-columns": "1fr 1fr",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "grid-template-columns": "1fr"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-team",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--pc-solid-fg": "var(--c-bg)",
+                          "align-self": "flex-start",
+                          "background-color": "transparent",
+                          "border-color": "rgba(200, 173, 255, 0.48)",
+                          "border-radius": "6px",
+                          "border-style": "solid",
+                          "border-width": "1px",
+                          "color": "#C8ADFF",
+                          "min-height": "46px",
+                          "padding-bottom": "13px",
+                          "padding-left": "20px",
+                          "padding-right": "20px",
+                          "padding-top": "13px",
+                          "transition": "background-color 160ms ease, transform 160ms ease"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "sh-home-room-cta",
+                      "props": {
+                        "align": "flex-start",
+                        "icon": "none",
+                        "link": "sound-system.html",
+                        "target": "",
+                        "text": "Inspect Sound System →",
+                        "ts": "btn",
+                        "variant": "outline",
+                        "wrap": "inline-flex"
+                      },
+                      "type": "button"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "sh-home-room-right",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "grid",
+                  "gap": "34px",
+                  "grid-template-columns": "1.12fr 0.88fr"
+                },
+                "m": {
+                  "gap": "20px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "24px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "sh-home-room-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-surface)",
+              "border-bottom": "1px solid var(--c-line)",
+              "color": "var(--c-ink)",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "sh-home-room-sec",
           "props": {
             "floating": 0,
             "inner": "",

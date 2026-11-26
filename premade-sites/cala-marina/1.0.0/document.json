@@ -25,8 +25,8 @@
               "css": {
                 "d": {
                   "align-self": "flex-start",
-                  "aspect-ratio": "16 / 10",
-                  "border-radius": "10px",
+                  "aspect-ratio": "4 / 3",
+                  "border-radius": "24px",
                   "display": "block",
                   "height": "auto",
                   "max-width": "100%",
@@ -39,7 +39,7 @@
               "hide": {},
               "id": "cmr-ftr-quay-img",
               "props": {
-                "alt": "Dusk plunge deck overlooking calm Aegean water",
+                "alt": "Dusk plunge deck overlooking calm Aegean water and limestone berths",
                 "caption": "",
                 "decorative": 0,
                 "h": "480",
@@ -65,6 +65,68 @@
                     "css": "",
                     "htmlId": ""
                   },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "#FFF8EC",
+                      "font-size": "42px",
+                      "letter-spacing": "-0.02em",
+                      "line-height": "1.05",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {
+                      "font-size": "30px"
+                    },
+                    "t": {
+                      "font-size": "34px"
+                    }
+                  },
+                  "hide": {},
+                  "id": "cmr-ftr-signoff-h",
+                  "props": {
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "text": "See you on the terrace.",
+                    "ts": "title"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "#F4F7FC",
+                      "font-size": "16px",
+                      "line-height": "1.5",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-ftr-hours",
+                  "props": {
+                    "html": "<p><strong>Open May to October</strong><br>08:00 to 23:30 daily — sunset berth arrivals until 22:00</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
                   "children": [
                     {
                       "adv": {
@@ -72,36 +134,93 @@
                         "css": "",
                         "htmlId": ""
                       },
-                      "children": [],
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#FFF8EC",
+                              "font-size": "15px",
+                              "font-weight": "700",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-ftr-card-1-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Cliffside Villas",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F4F7FC",
+                              "font-size": "13.5px",
+                              "line-height": "1.45",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-ftr-card-1-addr",
+                          "props": {
+                            "html": "<p>Faros Ridge, 840 03 Sifnos, Cyclades</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
                       "cls": [],
                       "css": {
                         "d": {
-                          "align-self": "flex-start",
-                          "border-radius": "0px",
-                          "display": "block",
-                          "height": "30px",
-                          "max-width": "100%",
-                          "object-fit": "contain",
-                          "width": "auto"
+                          "background-color": "#265D9C",
+                          "border": "1px solid rgba(255, 248, 236, 0.26)",
+                          "border-radius": "14px",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px",
+                          "min-width": "0px",
+                          "padding-bottom": "14px",
+                          "padding-left": "16px",
+                          "padding-right": "16px",
+                          "padding-top": "14px"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "cmr-ftr-logo",
+                      "id": "cmr-ftr-card-1",
                       "props": {
-                        "alt": "CALA MARINA",
-                        "caption": "",
-                        "decorative": 0,
-                        "h": "40",
-                        "label": "",
-                        "lazy": 1,
-                        "link": "index.html",
-                        "src": "asset:logo",
-                        "target": "",
-                        "w": "242"
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
                       },
-                      "type": "image"
+                      "type": "box"
                     },
                     {
                       "adv": {
@@ -109,43 +228,111 @@
                         "css": "",
                         "htmlId": ""
                       },
-                      "children": [],
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#FFF8EC",
+                              "font-size": "15px",
+                              "font-weight": "700",
+                              "line-height": "1.3",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-ftr-card-2-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Private Quay",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F4F7FC",
+                              "font-size": "13.5px",
+                              "line-height": "1.45",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-ftr-card-2-addr",
+                          "props": {
+                            "html": "<p>Vathi Cove Berth 01–12 · VHF Ch. 72</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#B6C5DC",
-                          "font-size": "14px",
-                          "margin-bottom": "0px",
-                          "max-width": "36ch",
-                          "text-align": "left"
+                          "background-color": "#265D9C",
+                          "border": "1px solid rgba(255, 248, 236, 0.26)",
+                          "border-radius": "14px",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px",
+                          "min-width": "0px",
+                          "padding-bottom": "14px",
+                          "padding-left": "16px",
+                          "padding-right": "16px",
+                          "padding-top": "14px"
                         },
                         "m": {},
                         "t": {}
                       },
                       "hide": {},
-                      "id": "cmr-ftr-note",
+                      "id": "cmr-ftr-card-2",
                       "props": {
-                        "html": "<p>Twelve cliffside limewash residences, an olive-wood sea table, and six sheltered stern-to berths on the western shelf of Sifnos.</p>",
-                        "ts": "body"
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
                       },
-                      "type": "text"
+                      "type": "box"
                     }
                   ],
                   "cls": [],
                   "css": {
                     "d": {
-                      "display": "flex",
-                      "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "10px"
+                      "display": "grid",
+                      "gap": "14px",
+                      "grid-template-columns": "repeat(2, minmax(0, 1fr))"
                     },
-                    "m": {},
+                    "m": {
+                      "grid-template-columns": "1fr"
+                    },
                     "t": {}
                   },
                   "hide": {},
-                  "id": "cmr-ftr-brand-col",
+                  "id": "cmr-ftr-shops-grid",
                   "props": {
-                    "layout": "flex",
+                    "layout": "grid",
                     "link": "",
                     "tag": "div",
                     "target": ""
@@ -169,8 +356,11 @@
                       "cls": [],
                       "css": {
                         "d": {
-                          "color": "#F4F7FC",
-                          "font-size": "16px",
+                          "--link": "#FFF8EC",
+                          "color": "#FFF8EC",
+                          "font-size": "14.5px",
+                          "font-weight": "600",
+                          "line-height": "1.8",
                           "margin-bottom": "0px",
                           "text-align": "left"
                         },
@@ -178,38 +368,9 @@
                         "t": {}
                       },
                       "hide": {},
-                      "id": "cmr-ftr-cove-h",
+                      "id": "cmr-ftr-links-txt",
                       "props": {
-                        "level": "h3",
-                        "link": "",
-                        "target": "",
-                        "text": "Poulati West Shelf",
-                        "ts": "cardtitle"
-                      },
-                      "type": "heading"
-                    },
-                    {
-                      "adv": {
-                        "cls": "",
-                        "css": "",
-                        "htmlId": ""
-                      },
-                      "children": [],
-                      "cls": [],
-                      "css": {
-                        "d": {
-                          "color": "#B6C5DC",
-                          "font-size": "13.5px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
-                        },
-                        "m": {},
-                        "t": {}
-                      },
-                      "hide": {},
-                      "id": "cmr-ftr-cove-p",
-                      "props": {
-                        "html": "<p>840 03 Apollonia, Sifnos<br>Cyclades · Greece<br>+30 2284 033 410</p>",
+                        "html": "<p><a href=\"villas.html\">Cliffside Villas</a> &nbsp;·&nbsp; <a href=\"dining.html\">Table &amp; Cellar</a> &nbsp;·&nbsp; <a href=\"moorings.html\">Yacht Moorings</a> &nbsp;·&nbsp; <a href=\"villas.html#stay-request\">Request Stay</a></p>",
                         "ts": "body"
                       },
                       "type": "text"
@@ -218,100 +379,17 @@
                   "cls": [],
                   "css": {
                     "d": {
+                      "border-top": "1px solid rgba(255, 248, 236, 0.24)",
                       "display": "flex",
-                      "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
+                      "flex-wrap": "wrap",
+                      "gap": "8px 22px",
+                      "padding-top": "16px"
                     },
                     "m": {},
                     "t": {}
                   },
                   "hide": {},
-                  "id": "cmr-ftr-cove-col",
-                  "props": {
-                    "layout": "flex",
-                    "link": "",
-                    "tag": "div",
-                    "target": ""
-                  },
-                  "type": "box"
-                },
-                {
-                  "adv": {
-                    "cls": "",
-                    "css": "",
-                    "htmlId": ""
-                  },
-                  "children": [
-                    {
-                      "adv": {
-                        "cls": "",
-                        "css": "",
-                        "htmlId": ""
-                      },
-                      "children": [],
-                      "cls": [],
-                      "css": {
-                        "d": {
-                          "color": "#F4F7FC",
-                          "font-size": "16px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
-                        },
-                        "m": {},
-                        "t": {}
-                      },
-                      "hide": {},
-                      "id": "cmr-ftr-quay-h",
-                      "props": {
-                        "level": "h3",
-                        "link": "",
-                        "target": "",
-                        "text": "Harbourmaster & Table",
-                        "ts": "cardtitle"
-                      },
-                      "type": "heading"
-                    },
-                    {
-                      "adv": {
-                        "cls": "",
-                        "css": "",
-                        "htmlId": ""
-                      },
-                      "children": [],
-                      "cls": [],
-                      "css": {
-                        "d": {
-                          "color": "#B6C5DC",
-                          "font-size": "13.5px",
-                          "margin-bottom": "0px",
-                          "text-align": "left"
-                        },
-                        "m": {},
-                        "t": {}
-                      },
-                      "hide": {},
-                      "id": "cmr-ftr-quay-p",
-                      "props": {
-                        "html": "<p>36°58′N 24°43′E · VHF Ch 72<br>Dinner 18:30 – 23:00 Tue–Sun<br>concierge@calamarina.gr</p>",
-                        "ts": "body"
-                      },
-                      "type": "text"
-                    }
-                  ],
-                  "cls": [],
-                  "css": {
-                    "d": {
-                      "display": "flex",
-                      "flex-direction": "column",
-                      "flex-wrap": "nowrap",
-                      "gap": "6px"
-                    },
-                    "m": {},
-                    "t": {}
-                  },
-                  "hide": {},
-                  "id": "cmr-ftr-quay-col",
+                  "id": "cmr-ftr-links-row",
                   "props": {
                     "layout": "flex",
                     "link": "",
@@ -324,24 +402,18 @@
               "cls": [],
               "css": {
                 "d": {
-                  "align-items": "start",
-                  "display": "grid",
-                  "gap": "26px",
-                  "grid-template-columns": "1.25fr 1fr 1fr"
-                },
-                "m": {
-                  "gap": "18px",
-                  "grid-template-columns": "1fr"
-                },
-                "t": {
+                  "display": "flex",
+                  "flex-direction": "column",
                   "gap": "20px",
-                  "grid-template-columns": "1fr 1fr"
-                }
+                  "min-width": "0px"
+                },
+                "m": {},
+                "t": {}
               },
               "hide": {},
-              "id": "cmr-ftr-info",
+              "id": "cmr-ftr-shop-content",
               "props": {
-                "layout": "grid",
+                "layout": "flex",
                 "link": "",
                 "tag": "div",
                 "target": ""
@@ -354,21 +426,21 @@
             "d": {
               "align-items": "center",
               "display": "grid",
-              "gap": "36px",
-              "grid-template-columns": "280px minmax(0, 1fr)",
-              "padding-bottom": "26px"
+              "gap": "48px",
+              "grid-template-columns": "minmax(0, 5fr) minmax(0, 7fr)",
+              "margin-bottom": "28px"
             },
             "m": {
-              "gap": "20px",
+              "gap": "24px",
               "grid-template-columns": "1fr"
             },
             "t": {
-              "gap": "24px",
-              "grid-template-columns": "220px minmax(0, 1fr)"
+              "gap": "28px",
+              "grid-template-columns": "1fr"
             }
           },
           "hide": {},
-          "id": "cmr-ftr-split",
+          "id": "cmr-ftr-shop-split",
           "props": {
             "layout": "grid",
             "link": "",
@@ -402,10 +474,10 @@
                   "css": {
                     "d": {
                       "--nav-gap": "18px",
-                      "--nav-hover": "#F4F7FC",
+                      "--nav-hover": "#FFF8EC",
                       "--nav-panel": "var(--c-bg)",
                       "align-self": "flex-start",
-                      "color": "#F4F7FC",
+                      "color": "#FFF8EC",
                       "font-size": "13px",
                       "font-weight": "500",
                       "justify-content": "flex-start",
@@ -457,7 +529,7 @@
                   "cls": [],
                   "css": {
                     "d": {
-                      "color": "#B6C5DC",
+                      "color": "#DCE8F8",
                       "font-size": "13px",
                       "line-height": "1.45",
                       "margin-bottom": "0px",
@@ -469,7 +541,7 @@
                   "hide": {},
                   "id": "cmr-footer-copy",
                   "props": {
-                    "html": "<p>Seasonal opening April through November · 100% solar desalination & cistern water recovery</p>",
+                    "html": "<p>© 2026 CALA MARINA Sifnos · Aegean Sanctuary</p>",
                     "ts": "body"
                   },
                   "type": "text"
@@ -557,7 +629,7 @@
                       "border-color": "transparent",
                       "border-radius": "0px",
                       "border-width": "0px",
-                      "color": "#B6C5DC",
+                      "color": "#DCE8F8",
                       "font-size": "13px",
                       "font-weight": "500",
                       "padding-bottom": "2px",
@@ -613,7 +685,7 @@
           "css": {
             "d": {
               "align-items": "center",
-              "border-top": "1px solid #1E314D",
+              "border-top": "1px solid rgba(255, 248, 236, 0.24)",
               "display": "flex",
               "flex-wrap": "wrap",
               "gap": "16px",
@@ -642,25 +714,24 @@
       "cls": [],
       "css": {
         "d": {
-          "background-color": "#0D192B",
-          "border-top": "1px solid #1E314D",
+          "background-color": "#1456A0",
           "color": "#F4F7FC",
-          "padding-bottom": "30px",
+          "padding-bottom": "32px",
           "padding-left": "40px",
           "padding-right": "40px",
-          "padding-top": "38px"
+          "padding-top": "40px"
         },
         "m": {
-          "padding-bottom": "20px",
+          "padding-bottom": "24px",
           "padding-left": "20px",
           "padding-right": "20px",
-          "padding-top": "26px"
+          "padding-top": "32px"
         },
         "t": {
-          "padding-bottom": "24px",
+          "padding-bottom": "28px",
           "padding-left": "28px",
           "padding-right": "28px",
-          "padding-top": "32px"
+          "padding-top": "36px"
         }
       },
       "hide": {},
@@ -907,8 +978,8 @@
     "collections": [],
     "css": "",
     "favicon": "asset:favicon",
-    "font": "'Mulish',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
-    "headFont": "'Source Serif 4',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "font": "'Raleway',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Playfair Display',Georgia,'Times New Roman',serif",
     "headHtml": "",
     "lang": "en",
     "maxWidth": "1240px",
@@ -3077,6 +3148,938 @@
           },
           "hide": {},
           "id": "cmr-home-bento-sec",
+          "props": {
+            "floating": 0,
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "margin-bottom": "0px",
+                      "text-align": "center"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-home-rhythm-h2",
+                  "props": {
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "text": "From dawn cove swim to dusk sea table",
+                    "ts": "title"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-muted)",
+                      "margin-bottom": "0px",
+                      "text-align": "center"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-home-rhythm-sub",
+                  "props": {
+                    "html": "<p>Every villa day moves at the Aegean tide line, connecting morning water excursions with oak-fired dinners on the cliff terrace.</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "10px",
+                  "margin-bottom": "32px",
+                  "margin-left": "auto",
+                  "margin-right": "auto",
+                  "max-width": "620px",
+                  "text-align": "center"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "cmr-home-rhythm-hd",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-brand)",
+                          "font-weight": "700",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "text-transform": "uppercase"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c1-t",
+                      "props": {
+                        "html": "<p>Morning · 07:30</p>",
+                        "ts": "meta"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c1-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Plunge & Cove Swim",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c1-p",
+                      "props": {
+                        "html": "<p>Private stone steps lead straight into calm morning water before warm sourdough, thyme honey, and orchard figs reach your terrace.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "8px",
+                      "padding-bottom": "22px",
+                      "padding-left": "22px",
+                      "padding-right": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-rhythm-c1",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-brand)",
+                          "font-weight": "700",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "text-transform": "uppercase"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c2-t",
+                      "props": {
+                        "html": "<p>Midday · 13:00</p>",
+                        "ts": "meta"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c2-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Shaded Quay & Mooring",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c2-p",
+                      "props": {
+                        "html": "<p>Return beneath pergola reeds as arriving yachts take sheltered stern-to lazy-lines and chill volcanic Assyrtiko below deck.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "8px",
+                      "padding-bottom": "22px",
+                      "padding-left": "22px",
+                      "padding-right": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-rhythm-c2",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-brand)",
+                          "font-weight": "700",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "text-transform": "uppercase"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c3-t",
+                      "props": {
+                        "html": "<p>Evening · 20:00</p>",
+                        "ts": "meta"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c3-h",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Wood-Fired Sea Table",
+                        "ts": "cardtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-c3-p",
+                      "props": {
+                        "html": "<p>Day-boat red mullet, ember-charred octopodes, and unfiltered island vintages served under low lantern light above the bay.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "8px",
+                      "padding-bottom": "22px",
+                      "padding-left": "22px",
+                      "padding-right": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-rhythm-c3",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "gap": "20px",
+                  "grid-template-columns": "repeat(3, minmax(0, 1fr))",
+                  "margin-bottom": "28px"
+                },
+                "m": {
+                  "gap": "14px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "16px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "cmr-home-rhythm-cards",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "16 / 10",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-d1-img",
+                      "props": {
+                        "alt": "Chef Nikos grilling line-caught Aegean sea bream over holm-oak embers",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1200",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:chef-nikos",
+                        "target": "",
+                        "w": "960"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d1-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Chef Nikos Papanikolaou · Hearth Kitchen",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d1-p",
+                          "props": {
+                            "html": "<p>Line-caught Cycladic fish, wild caper leaves, and dry-farmed cherry tomatoes roasted over holm-oak embers nightly.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "#1456A0",
+                              "border-radius": "999px",
+                              "color": "#FFFFFF",
+                              "margin-top": "4px",
+                              "min-height": "46px",
+                              "padding-bottom": "13px",
+                              "padding-left": "20px",
+                              "padding-right": "20px",
+                              "padding-top": "13px",
+                              "transition": "background-color 160ms ease, transform 160ms ease"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d1-cta",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "dining.html",
+                            "target": "",
+                            "text": "Explore Dining & Cellar →",
+                            "ts": "btn",
+                            "variant": "primary",
+                            "wrap": "inline-flex"
+                          },
+                          "type": "button"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "flex-start",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "22px",
+                          "padding-right": "22px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-d1-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-rhythm-d1",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "aspect-ratio": "16 / 10",
+                          "border-radius": "0px",
+                          "display": "block",
+                          "height": "auto",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-d2-img",
+                      "props": {
+                        "alt": "Moored sailing yachts tied stern-to along the limestone quay at dusk",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "848",
+                        "label": "",
+                        "lazy": 1,
+                        "link": "",
+                        "src": "asset:yacht-quay",
+                        "target": "",
+                        "w": "1264"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d2-h",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Limestone Quay & Private Skipper Berths",
+                            "ts": "cardtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d2-p",
+                          "props": {
+                            "html": "<p>Step directly from our sheltered limestone quay to tender departures across Milos, Kimolos, and Sikinos.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "var(--c-line)",
+                              "border-radius": "999px",
+                              "border-style": "solid",
+                              "border-width": "1px",
+                              "color": "var(--c-brand)",
+                              "margin-top": "4px",
+                              "min-height": "46px",
+                              "padding-bottom": "13px",
+                              "padding-left": "20px",
+                              "padding-right": "20px",
+                              "padding-top": "13px",
+                              "transition": "background-color 160ms ease, transform 160ms ease"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "cmr-rhythm-d2-cta",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "moorings.html",
+                            "target": "",
+                            "text": "Inspect Mooring Berths →",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "type": "button"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "flex-start",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "20px",
+                          "padding-left": "22px",
+                          "padding-right": "22px",
+                          "padding-top": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "cmr-rhythm-d2-body",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "overflow": "hidden"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "cmr-rhythm-d2",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "24px",
+                  "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                },
+                "m": {
+                  "gap": "18px",
+                  "grid-template-columns": "1fr"
+                },
+                "t": {
+                  "gap": "20px",
+                  "grid-template-columns": "1fr"
+                }
+              },
+              "hide": {},
+              "id": "cmr-home-rhythm-duo",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-bg)",
+              "border-bottom": "1px solid var(--c-line)",
+              "border-top": "1px solid var(--c-line)",
+              "color": "var(--c-ink)",
+              "padding-bottom": "84px",
+              "padding-left": "40px",
+              "padding-right": "40px",
+              "padding-top": "84px"
+            },
+            "m": {
+              "padding-bottom": "52px",
+              "padding-left": "20px",
+              "padding-right": "20px",
+              "padding-top": "52px"
+            },
+            "t": {
+              "padding-bottom": "68px",
+              "padding-left": "28px",
+              "padding-right": "28px",
+              "padding-top": "68px"
+            }
+          },
+          "hide": {},
+          "id": "cmr-home-rhythm-sec",
           "props": {
             "floating": 0,
             "inner": "",

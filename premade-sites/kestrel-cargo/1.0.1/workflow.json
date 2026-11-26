@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "kestrel-cargo",
+  "version": "1.0.1",
+  "sampleName": "KESTREL — Urban Cargo EV Engineering",
+  "packageSha256": "61ef1199810462bdf231164a3a960458f9b3df0d35a95df54f731ef191e51841",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

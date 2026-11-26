@@ -3,7 +3,7 @@
   "id": "kanaal-living",
   "version": "1.0.0",
   "sampleName": "KANAAL LIVING — Converted 1894 Canal Warehouse Lofts in Amsterdam East",
-  "packageSha256": "3192f14e3910292c2785c593de4fef1c08fb1b74e782f17d9478887d116b3c39",
+  "packageSha256": "fbd95329136dc9f2b9fc2a8f0c246928d843ec215e415683f6978374e07a5fb5",
   "customCssPolicy": "native-only",
   "gates": {
     "packageValidation": "passed",

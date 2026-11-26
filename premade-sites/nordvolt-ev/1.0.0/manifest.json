@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "nordvolt-ev",
+  "version": "1.0.0",
+  "name": "NORDVOLT · 800V Electric Shooting Brakes",
+  "sampleName": "NORDVOLT — 800-Volt Nordic Electric Shooting Brakes",
+  "description": "Four-page 800-volt electric shooting brake platform designed for sub-zero Nordic corridors, featuring a 100dvh studio fastback hero with bottom telemetry strip, simultaneous cash vs. lease trim switch (financeswitch), interactive winter highway range simulator (rangeslider), horizontal craft snap rail, 800V skateboard hotspot chassis diagram, thermal recovery progress gauges, 320 kW charging curve & corridor table, bi-directional V2H accordion, OTA telemetry FAQ, and 48-hour unaccompanied test drive flow.",
+  "categories": [
+    "Hardware & Mobility",
+    "Electric Vehicles"
+  ],
+  "pages": [
+    {
+      "id": "nv-page-index",
+      "name": "Vehicles",
+      "slug": "index"
+    },
+    {
+      "id": "nv-page-range",
+      "name": "Range & Cold Weather",
+      "slug": "range"
+    },
+    {
+      "id": "nv-page-charging",
+      "name": "Charging",
+      "slug": "charging"
+    },
+    {
+      "id": "nv-page-test-drive",
+      "name": "Test Drive",
+      "slug": "test-drive"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "cfa883565b4f47ec0ef90613091ce25faf87c2e7b7dbefcdbe71fdce93f422ec",
+  "previewPage": "index.html",
+  "assetCount": 20,
+  "assetBytes": 1492535
+}

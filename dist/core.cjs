@@ -81,6 +81,8 @@ __export(index_exports, {
   FILTER_CSS: () => FILTER_CSS,
   FILTER_JS: () => FILTER_JS,
   FILTER_OPS: () => FILTER_OPS,
+  FINANCESWITCH_CSS: () => FINANCESWITCH_CSS,
+  FINANCESWITCH_JS: () => FINANCESWITCH_JS,
   FLOATING_SECTION_CSS: () => FLOATING_SECTION_CSS,
   FONT_BASE: () => FONT_BASE,
   FONT_SUBSETS: () => FONT_SUBSETS,
@@ -125,6 +127,8 @@ __export(index_exports, {
   QAPILLS_CSS: () => QAPILLS_CSS,
   QAPILLS_JS: () => QAPILLS_JS,
   QUICK_SIDES: () => QUICK_SIDES,
+  RANGESLIDER_CSS: () => RANGESLIDER_CSS,
+  RANGESLIDER_JS: () => RANGESLIDER_JS,
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
   ROICALC_CSS: () => ROICALC_CSS,
@@ -760,7 +764,9 @@ var IC = {
   showbill: '<rect x="3.5" y="4" width="5" height="6.5" rx="1.2"/><path d="M11 6h9.5M11 9h7"/><rect x="3.5" y="13.5" width="5" height="6.5" rx="1.2"/><path d="M11 15.5h9.5M11 18.5h7"/>',
   masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>',
   maplist: '<rect x="3" y="4.5" width="7.5" height="4" rx="1"/><rect x="3" y="10" width="7.5" height="4" rx="1"/><rect x="3" y="15.5" width="7.5" height="4" rx="1"/><rect x="12.5" y="4.5" width="8.5" height="15" rx="1.8"/><circle cx="16.75" cy="10.5" r="1.6"/>',
-  thumbviewer: '<rect x="3" y="3.5" width="18" height="11" rx="2"/><rect x="3" y="16.5" width="4.8" height="4" rx="1"/><rect x="9.6" y="16.5" width="4.8" height="4" rx="1"/><rect x="16.2" y="16.5" width="4.8" height="4" rx="1"/>'
+  thumbviewer: '<rect x="3" y="3.5" width="18" height="11" rx="2"/><rect x="3" y="16.5" width="4.8" height="4" rx="1"/><rect x="9.6" y="16.5" width="4.8" height="4" rx="1"/><rect x="16.2" y="16.5" width="4.8" height="4" rx="1"/>',
+  financeswitch: '<rect x="6" y="4" width="12" height="5" rx="2.5"/><circle cx="8.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/><rect x="3" y="12" width="8" height="8" rx="1.6"/><rect x="13" y="12" width="8" height="8" rx="1.6"/>',
+  rangeslider: '<path d="M3 7h18"/><circle cx="15" cy="7" r="2.5"/><rect x="3" y="13.5" width="18" height="6" rx="2"/><rect x="4.5" y="15" width="10" height="3" rx="1" fill="currentColor" stroke="none"/>'
 };
 var IC_VIEW = "1 1 22 22";
 var icStroke = (size) => size < 16 ? 2 : 1.75;
@@ -2404,6 +2410,8 @@ var KIND = {
   masonry: "masonry archive",
   maplist: "map listings",
   thumbviewer: "thumbnail viewer",
+  financeswitch: "finance switch",
+  rangeslider: "range slider",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -4792,12 +4800,12 @@ var MASONRY_JS = `<script>
 var MAPLIST_CSS = `
 .pagecraft-maplist{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr);gap:24px;align-items:stretch;width:100%;color:var(--ml-ink,#17231E)}
 .pagecraft-maplist-list{display:flex;flex-direction:column;gap:12px;min-width:0}
-.pagecraft-maplist-card{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);color:inherit;font:inherit;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.pagecraft-maplist-card{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:124px minmax(0,1fr);gap:0;align-items:stretch;padding:0;overflow:hidden;border:1px solid var(--ml-line,#D2DCD6);border-radius:var(--ml-radius,12px);background:var(--ml-surface,#FFFFFF);color:inherit;font:inherit;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
 .pagecraft-maplist-card:hover{border-color:var(--ml-accent,#136B52)}
 .pagecraft-maplist-card[data-selected="1"]{border-color:var(--ml-accent,#136B52);box-shadow:0 0 0 2px color-mix(in srgb,var(--ml-accent,#136B52) 22%,transparent),0 10px 24px rgba(16,26,22,.08)}
 .pagecraft-maplist-card:focus-visible,.pagecraft-maplist-pin:focus-visible,.pagecraft-maplist-cta:focus-visible{outline:2px solid var(--ml-accent,#136B52);outline-offset:2px}
-.pagecraft-maplist-thumb{width:88px;height:72px;object-fit:cover;border-radius:calc(var(--ml-radius,12px) * .65);display:block}
-.pagecraft-maplist-body{min-width:0;display:flex;flex-direction:column;gap:3px}
+.pagecraft-maplist-thumb{width:100%;height:100%;min-height:112px;object-fit:cover;border-radius:0;display:block}
+.pagecraft-maplist-body{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:14px 16px}
 .pagecraft-maplist-price{font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--ml-accent,#136B52);font-variant-numeric:tabular-nums}
 .pagecraft-maplist-title{margin:0;font-size:16.5px;font-weight:700;line-height:1.22;color:var(--ml-ink,#17231E)}
 .pagecraft-maplist-meta{margin:0;font-size:13px;font-weight:600;color:var(--ml-muted,#4E6058)}
@@ -4818,6 +4826,10 @@ var MAPLIST_CSS = `
 @media(max-width:899px){
   .pagecraft-maplist{grid-template-columns:1fr}
   .pagecraft-maplist-stage{min-height:280px}
+}
+@media(max-width:479px){
+  .pagecraft-maplist-card{grid-template-columns:104px minmax(0,1fr)}
+  .pagecraft-maplist-body{padding:12px}
 }
 `;
 var MAPLIST_JS = `<script>
@@ -4958,6 +4970,166 @@ var THUMBVIEWER_JS = `<script>
 })();
 </script>
 `;
+var FINANCESWITCH_CSS = `
+.pagecraft-financeswitch{display:flex;flex-direction:column;gap:22px;width:100%;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-bar{display:inline-flex;align-self:center;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--fs-line,#1F2A3A);border-radius:var(--fs-radius,12px);background:var(--fs-surface,#121923)}
+.pagecraft-fs-mode{appearance:none;min-height:40px;padding:0 18px;border:0;border-radius:calc(var(--fs-radius,12px) * .67);background:transparent;color:var(--fs-muted,#9AA8BD);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color .16s ease,color .16s ease}
+.pagecraft-fs-mode[aria-pressed="true"]{background:var(--fs-accent,#36CFE6);color:var(--fs-on,#0A0E14)}
+.pagecraft-fs-mode:focus-visible,.pagecraft-fs-cta:focus-visible{outline:2px solid var(--fs-accent,#36CFE6);outline-offset:2px}
+.pagecraft-fs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.pagecraft-fs-card{display:flex;flex-direction:column;border:1px solid var(--fs-line,#1F2A3A);border-radius:var(--fs-radius,12px);background:var(--fs-surface,#121923);overflow:hidden}
+.pagecraft-fs-media{aspect-ratio:16 / 10;background:var(--fs-bg,#0A0E14);overflow:hidden}
+.pagecraft-fs-img{width:100%;height:100%;object-fit:cover;display:block}
+.pagecraft-fs-body{display:flex;flex-direction:column;flex:1 1 auto;gap:12px;padding:22px}
+.pagecraft-fs-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pagecraft-fs-title{margin:0;font-size:20px;font-weight:700;line-height:1.25;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-badge{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--fs-accent,#36CFE6)}
+.pagecraft-fs-specs{margin:0;font-size:13.5px;line-height:1.5;color:var(--fs-muted,#9AA8BD)}
+.pagecraft-fs-pricing{margin-top:auto;padding-top:14px;border-top:1px solid var(--fs-line,#1F2A3A);display:flex;flex-direction:column;gap:4px}
+.pagecraft-fs-price{font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--fs-ink,#F4F7FB)}
+.pagecraft-fs-note{font-size:13px;line-height:1.4;color:var(--fs-muted,#9AA8BD)}
+.pagecraft-fs-cta{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:4px;padding:0 16px;border-radius:calc(var(--fs-radius,12px) * .67);background:var(--fs-accent,#36CFE6);color:var(--fs-on,#0A0E14);font-size:14px;font-weight:600;text-decoration:none;box-sizing:border-box;transition:opacity .16s ease}
+.pagecraft-fs-cta:hover{opacity:.9}
+@media(prefers-reduced-motion:reduce){.pagecraft-fs-mode,.pagecraft-fs-cta{transition:none}}
+@media(max-width:960px){.pagecraft-fs-grid{grid-template-columns:1fr}}
+`;
+var FINANCESWITCH_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-financeswitch]').forEach(function(root){
+    if(root.hasAttribute('data-pc-fs-ready'))return;
+    root.setAttribute('data-pc-fs-ready','');
+    var btns=[].slice.call(root.querySelectorAll('[data-fs-mode]'));
+    var prices=[].slice.call(root.querySelectorAll('[data-fs-price]'));
+    var notes=[].slice.call(root.querySelectorAll('[data-fs-note]'));
+    function setMode(mode){
+      root.setAttribute('data-fs-active',mode);
+      btns.forEach(function(btn){
+        btn.setAttribute('aria-pressed',btn.getAttribute('data-fs-mode')===mode?'true':'false');
+      });
+      prices.forEach(function(el){
+        var next=el.getAttribute(mode==='cash'?'data-cash-price':'data-lease-price');
+        if(next!==null)el.textContent=next;
+      });
+      notes.forEach(function(el){
+        var next=el.getAttribute(mode==='cash'?'data-cash-note':'data-lease-note');
+        if(next!==null)el.textContent=next;
+      });
+    }
+    var offs=[];
+    btns.forEach(function(btn){
+      function onClick(){setMode(btn.getAttribute('data-fs-mode')||'lease');}
+      btn.addEventListener('click',onClick);
+      offs.push(function(){btn.removeEventListener('click',onClick);});
+    });
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-fs-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
+var RANGESLIDER_CSS = `
+.pagecraft-rangeslider{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:24px;align-items:stretch;width:100%;padding:28px;border:1px solid var(--rs-line,#D7E0EC);border-radius:var(--rs-radius,12px);background:var(--rs-surface,#FFFFFF);color:var(--rs-ink,#0A0E14);box-sizing:border-box}
+.pagecraft-rs-ctrl{display:flex;flex-direction:column;justify-content:center;gap:18px;min-width:0}
+.pagecraft-rs-h{margin:0;font-size:24px;font-weight:700;line-height:1.2;color:var(--rs-ink,#0A0E14)}
+.pagecraft-rs-sub{margin:0;font-size:15px;line-height:1.55;color:var(--rs-muted,#475569)}
+.pagecraft-rs-field{display:flex;flex-direction:column;gap:10px}
+.pagecraft-rs-lbl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;font-weight:600;color:var(--rs-ink,#0A0E14)}
+.pagecraft-rs-lbl output{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--rs-accent,#0B6E7D)}
+.pagecraft-rs-range{width:100%;height:8px;margin:0;accent-color:var(--rs-accent,#0B6E7D);cursor:pointer}
+.pagecraft-rs-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--rs-muted,#475569);font-variant-numeric:tabular-nums}
+.pagecraft-rs-wheels{display:flex;flex-wrap:wrap;gap:8px}
+.pagecraft-rs-wbtn{appearance:none;min-height:38px;padding:0 14px;border:1px solid var(--rs-line,#D7E0EC);border-radius:calc(var(--rs-radius,12px) * .67);background:transparent;color:var(--rs-ink,#0A0E14);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .16s ease,border-color .16s ease,color .16s ease}
+.pagecraft-rs-wbtn[aria-pressed="true"]{background:var(--rs-ink,#0A0E14);border-color:var(--rs-ink,#0A0E14);color:var(--rs-on,#FFFFFF)}
+.pagecraft-rs-wbtn:focus-visible,.pagecraft-rs-range:focus-visible,.pagecraft-rs-cta:focus-visible{outline:2px solid var(--rs-accent,#0B6E7D);outline-offset:2px}
+.pagecraft-rs-readout{display:flex;flex-direction:column;justify-content:space-between;gap:18px;padding:24px;border-radius:calc(var(--rs-radius,12px) * .85);background:var(--rs-bg,#0A0E14);color:#F4F7FB;min-width:0}
+.pagecraft-rs-rhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pagecraft-rs-rtag{font-size:12.5px;font-weight:600;color:#9AA8BD}
+.pagecraft-rs-speed{font-size:12.5px;font-weight:600;color:#36CFE6;font-variant-numeric:tabular-nums}
+.pagecraft-rs-km{margin:0;font-size:clamp(36px,4.5vw,50px);font-weight:700;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#F4F7FB}
+.pagecraft-rs-track{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.pagecraft-rs-fill{height:100%;border-radius:999px;background:#36CFE6;transition:width .18s ease}
+.pagecraft-rs-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+.pagecraft-rs-stat{display:flex;flex-direction:column;gap:3px}
+.pagecraft-rs-slbl{font-size:12px;color:#9AA8BD}
+.pagecraft-rs-sval{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:#F4F7FB}
+.pagecraft-rs-cta{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:0 18px;border-radius:calc(var(--rs-radius,12px) * .67);background:#36CFE6;color:#0A0E14;font-size:14px;font-weight:600;text-decoration:none;box-sizing:border-box;transition:opacity .16s ease}
+.pagecraft-rs-cta:hover{opacity:.9}
+.pagecraft-rs-note{margin:0;font-size:12px;line-height:1.45;color:#9AA8BD}
+@media(prefers-reduced-motion:reduce){.pagecraft-rs-fill,.pagecraft-rs-wbtn,.pagecraft-rs-cta{transition:none}}
+@media(max-width:860px){.pagecraft-rangeslider{grid-template-columns:1fr;padding:20px}}
+`;
+var RANGESLIDER_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('[data-rangeslider]').forEach(function(root){
+    if(root.hasAttribute('data-pc-rs-ready'))return;
+    root.setAttribute('data-pc-rs-ready','');
+    var baseKm=parseFloat(root.getAttribute('data-rs-base-range')||'640')||640;
+    var input=root.querySelector('[data-rs-temp]');
+    var tempOut=root.querySelector('[data-rs-temp-out]');
+    var rangeOut=root.querySelector('[data-rs-range]');
+    var bar=root.querySelector('[data-rs-bar]');
+    var chargeOut=root.querySelector('[data-rs-charge]');
+    var heatOut=root.querySelector('[data-rs-heat]');
+    var wheelBtns=[].slice.call(root.querySelectorAll('[data-rs-wheel]'));
+    var wheelDelta=0;
+    wheelBtns.forEach(function(btn){
+      if(btn.getAttribute('aria-pressed')==='true'){
+        wheelDelta=parseFloat(btn.getAttribute('data-rs-delta')||'0')||0;
+      }
+    });
+    function formatTemp(t){return (t>0?'+':'')+String(t)+'\xB0C';}
+    function update(){
+      var temp=input?parseFloat(input.value):-10;
+      if(!isFinite(temp))temp=-10;
+      var ret=temp>=15?Math.max(.96,1-Math.max(0,temp-22)*.002):Math.max(.55,1-(15-temp)*.0062);
+      var km=Math.max(220,Math.round(baseKm*ret+wheelDelta));
+      var pct=Math.max(20,Math.min(100,Math.round((km/baseKm)*100)));
+      var chg=17+(temp<0?Math.min(6,Math.ceil((-temp)/6)):0);
+      var heat=Math.max(0,Math.round((15-Math.min(15,temp))*1.65));
+      if(tempOut)tempOut.textContent=formatTemp(temp);
+      if(rangeOut)rangeOut.textContent=String(km)+' km';
+      if(bar)bar.style.width=pct+'%';
+      if(chargeOut)chargeOut.textContent=String(chg)+' min';
+      if(heatOut)heatOut.textContent=(heat>0?'+'+heat:'0')+' km recovered';
+    }
+    var offs=[];
+    if(input){
+      input.addEventListener('input',update);
+      input.addEventListener('change',update);
+      offs.push(function(){input.removeEventListener('input',update);input.removeEventListener('change',update);});
+    }
+    wheelBtns.forEach(function(btn){
+      function onWheel(){
+        wheelDelta=parseFloat(btn.getAttribute('data-rs-delta')||'0')||0;
+        wheelBtns.forEach(function(b){b.setAttribute('aria-pressed',b===btn?'true':'false');});
+        update();
+      }
+      btn.addEventListener('click',onWheel);
+      offs.push(function(){btn.removeEventListener('click',onWheel);});
+    });
+    update();
+    disposers.push(function(){
+      offs.forEach(function(fn){fn();});
+      root.removeAttribute('data-pc-rs-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){
+      disposers.forEach(function(dispose){dispose();});
+    });
+  }
+})();
+</script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -4988,7 +5160,7 @@ function mediaReferences(document) {
     const props = node.props;
     const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : node.type === "audio" ? ["src", "artwork"] : node.type === "compare" ? ["beforeSrc", "afterSrc"] : node.type === "hotspot" ? ["src"] : node.type === "typemask" ? ["maskSrc"] : node.type === "maplist" ? ["mapSrc"] : [];
     fields.forEach((key) => scan(props[key], [...base, "props", key], where));
-    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches" || node.type === "masonry" || node.type === "maplist" || node.type === "thumbviewer") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    if ((node.type === "gallery" || node.type === "strips" || node.type === "switcher" || node.type === "exhibit" || node.type === "scrolly" || node.type === "clocks" || node.type === "roster" || node.type === "arches" || node.type === "masonry" || node.type === "maplist" || node.type === "thumbviewer" || node.type === "financeswitch") && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
     if (node.type === "chapters" && Array.isArray(props.chapters)) props.chapters.forEach((item, j) => scan(item?.src, [...base, "props", "chapters", j, "src"], where));
     if (node.type === "fullmenu" && Array.isArray(props.menuItems)) props.menuItems.forEach((item, j) => scan(item?.src, [...base, "props", "menuItems", j, "src"], where));
     if (node.type === "swatchshop" && Array.isArray(props.products)) props.products.forEach((item, j) => {
@@ -5055,7 +5227,7 @@ function replaceMediaReferences(document, sourceId, replacementId) {
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs" || node.type === "exhibit" || node.type === "clocks" || node.type === "roster" || node.type === "tiers" || node.type === "qapills";
+var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs" || node.type === "exhibit" || node.type === "clocks" || node.type === "roster" || node.type === "tiers" || node.type === "qapills" || node.type === "financeswitch";
 var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
 var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
 var BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -8474,6 +8646,178 @@ var DEF = {
         { t: "unit", c: "--tv-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
+  },
+  financeswitch: {
+    label: "Finance switch",
+    icon: "financeswitch",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        leaseLabel: "Monthly lease (36 mo)",
+        cashLabel: "Cash purchase",
+        defaultMode: "lease",
+        items: [
+          {
+            title: "NV-01 Single Motor",
+            badge: "590 km WLTP",
+            specs: "220 kW rear drive \xB7 800V LFP \xB7 18 min fast charge",
+            leasePrice: "\u20AC549 / mo",
+            cashPrice: "\u20AC56,900",
+            leaseNote: "36 months \xB7 15,000 km/yr \xB7 \u20AC0 down",
+            cashNote: "Direct factory price \xB7 8-year battery warranty",
+            ctaLabel: "Book 48h Test Drive",
+            href: "test-drive.html#book",
+            src: "",
+            alt: "NV-01 Single Motor studio view"
+          },
+          {
+            title: "NV-02 AWD Shooting Brake",
+            badge: "640 km WLTP",
+            specs: "360 kW dual SiC \xB7 1,820 L load bay \xB7 CO\u2082 heat pump",
+            leasePrice: "\u20AC649 / mo",
+            cashPrice: "\u20AC64,900",
+            leaseNote: "36 months \xB7 15,000 km/yr \xB7 \u20AC0 down",
+            cashNote: "Direct factory price \xB7 8-year battery warranty",
+            ctaLabel: "Book 48h Test Drive",
+            href: "test-drive.html#book",
+            src: "",
+            alt: "NV-02 AWD Shooting Brake studio view"
+          },
+          {
+            title: "NV-03 Track Pack",
+            badge: "610 km WLTP",
+            specs: "440 kW torque-vectoring AWD \xB7 Brembo 6-piston \xB7 \xD6hlins",
+            leasePrice: "\u20AC769 / mo",
+            cashPrice: "\u20AC74,900",
+            leaseNote: "36 months \xB7 15,000 km/yr \xB7 \u20AC0 down",
+            cashNote: "Direct factory price \xB7 8-year battery warranty",
+            ctaLabel: "Book 48h Test Drive",
+            href: "test-drive.html#book",
+            src: "",
+            alt: "NV-03 Track Pack studio view"
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--fs-surface": cvar("surface"),
+          "--fs-bg": cvar("bg"),
+          "--fs-ink": cvar("ink"),
+          "--fs-muted": cvar("muted"),
+          "--fs-accent": cvar("brand"),
+          "--fs-on": "#0A0E14",
+          "--fs-line": cvar("line"),
+          "--fs-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "leaseLabel", label: "Lease button label", ph: "Monthly lease (36 mo)" },
+        { t: "text", k: "cashLabel", label: "Cash button label", ph: "Cash purchase" },
+        { t: "select", k: "defaultMode", label: "Initial mode", opts: [["lease", "Lease"], ["cash", "Cash"]] },
+        {
+          t: "qa",
+          k: "items",
+          label: "Vehicle or plan cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "title", label: "Trim / plan title", ph: "NV-02 AWD Shooting Brake", def: "New trim" },
+            { k: "badge", label: "Top highlight", ph: "640 km WLTP", def: "" },
+            { k: "specs", label: "Specifications", ph: "360 kW dual SiC \xB7 1,820 L", def: "" },
+            { k: "leasePrice", label: "Lease price", ph: "\u20AC649 / mo", def: "\u20AC599 / mo" },
+            { k: "cashPrice", label: "Cash price", ph: "\u20AC64,900", def: "\u20AC59,900" },
+            { k: "leaseNote", label: "Lease note", ph: "36 months \xB7 \u20AC0 down", def: "" },
+            { k: "cashNote", label: "Cash note", ph: "Direct price \xB7 warranty", def: "" },
+            { k: "src", label: "Vehicle image", ph: "asset:trim", def: "", img: 1 },
+            { k: "alt", label: "Image alt text", ph: "Describe trim view", def: "" },
+            { k: "ctaLabel", label: "Button label", ph: "Book 48h Test Drive", def: "Book 48h Test Drive" },
+            { k: "href", label: "Button link", ph: "test-drive.html#book", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "color", c: "--fs-surface", label: "Card surface", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-bg", label: "Image frame fill", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-ink", label: "Heading colour", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-muted", label: "Secondary copy", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-accent", label: "Toggle & CTA accent", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-on", label: "Text on accent", r: 1, layout: "inline" },
+        { t: "color", c: "--fs-line", label: "Border rule", r: 1, layout: "inline" },
+        { t: "unit", c: "--fs-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
+  },
+  rangeslider: {
+    label: "Range slider",
+    icon: "rangeslider",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        heading: "Estimate cold-weather highway range",
+        summary: "Scrub outside temperature and tyre package to see verified Arjeplog telemetry for 110 km/h Nordic cruising.",
+        tempLabel: "Ambient winter temperature",
+        minTemp: "-25",
+        maxTemp: "25",
+        defaultTemp: "-10",
+        baseRangeKm: "640",
+        wheelOptions: '19" Aero Winter:0|20" Touring:-28|21" Track:-54',
+        speedLabel: "110 km/h highway telemetry",
+        chargeLabel: "10\u201380% DC fast charge",
+        heatLabel: "CO\u2082 heat-pump recovery",
+        ctaLabel: "Explore 800V Thermal Specs",
+        href: "range.html#thermal",
+        note: "Based on 102 kWh net pack, preconditioned departure, and 21\xB0C cabin setpoint."
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--rs-surface": "#FFFFFF",
+          "--rs-bg": "#0A0E14",
+          "--rs-ink": "#0A0E14",
+          "--rs-muted": "#475569",
+          "--rs-accent": "#0B6E7D",
+          "--rs-on": "#FFFFFF",
+          "--rs-line": "#D7E0EC",
+          "--rs-radius": "12px"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "heading", label: "Heading", ph: "Estimate winter range" },
+        { t: "area", k: "summary", label: "Summary", ph: "Adjust temperature and tyres." },
+        { t: "text", k: "tempLabel", label: "Temperature label", ph: "Ambient temperature" },
+        { t: "unit", k: "minTemp", label: "Min temp (\xB0C)", integer: 1, units: [""] },
+        { t: "unit", k: "maxTemp", label: "Max temp (\xB0C)", integer: 1, units: [""] },
+        { t: "unit", k: "defaultTemp", label: "Default temp (\xB0C)", integer: 1, units: [""] },
+        { t: "unit", k: "baseRangeKm", label: "Base WLTP (km)", integer: 1, units: [""] },
+        { t: "text", k: "wheelOptions", label: "Wheel presets", ph: '19" Aero Winter:0|20" Touring:-28' },
+        { t: "text", k: "speedLabel", label: "Speed telemetry badge", ph: "110 km/h cruise" },
+        { t: "text", k: "chargeLabel", label: "Charge label", ph: "10\u201380% DC fast charge" },
+        { t: "text", k: "heatLabel", label: "Heat-pump label", ph: "CO\u2082 heat-pump recovery" },
+        { t: "text", k: "ctaLabel", label: "Button label", ph: "Explore 800V Specs" },
+        { t: "text", k: "href", label: "Button link", ph: "range.html#thermal" },
+        { t: "text", k: "note", label: "Methodology note", ph: "102 kWh net pack." }
+      ],
+      style: [
+        { t: "color", c: "--rs-surface", label: "Control panel fill", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-bg", label: "Readout panel fill", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-ink", label: "Control text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-muted", label: "Muted text", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-accent", label: "Slider accent", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-on", label: "Selected wheel text", r: 1, layout: "inline" },
+        { t: "color", c: "--rs-line", label: "Border rule", r: 1, layout: "inline" },
+        { t: "unit", c: "--rs-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius }
+      ]
+    }
   }
 };
 function collectionIndex(colId) {
@@ -8987,6 +9331,8 @@ var nameOf = (n) => {
   if (n.type === "masonry") return `Masonry \xB7 ${(n.props.items || []).length} plate${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "maplist") return `Map listings \xB7 ${(n.props.items || []).length} unit${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "thumbviewer") return `Thumbnail viewer \xB7 ${(n.props.items || []).length} view${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "financeswitch") return `Finance switch \xB7 ${(n.props.items || []).length} trim${(n.props.items || []).length === 1 ? "" : "s"}`;
+  if (n.type === "rangeslider") return `Range slider \xB7 ${n.props.baseRangeKm || "640"} km`;
   return d.label;
 };
 var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
@@ -11682,7 +12028,9 @@ var TEXT_SLOTS = {
   showbill: ["allLabel", ["shows", "dayNum", "month", "title", "artists", "room", "doors", "price", "ctaLabel"]],
   masonry: [["items", "alt", "title", "meta"]],
   maplist: ["mapAlt", ["items", "pinLabel", "price", "title", "meta", "detail", "ctaLabel", "alt"]],
-  thumbviewer: [["items", "alt", "label", "title", "meta"]]
+  thumbviewer: [["items", "alt", "label", "title", "meta"]],
+  financeswitch: ["leaseLabel", "cashLabel", ["items", "title", "badge", "specs", "leasePrice", "cashPrice", "leaseNote", "cashNote", "ctaLabel", "alt"]],
+  rangeslider: ["heading", "summary", "tempLabel", "speedLabel", "chargeLabel", "heatLabel", "ctaLabel", "note"]
 };
 var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
@@ -15749,7 +16097,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false, financeswitch = false, rangeslider = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -15786,9 +16134,11 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "masonry") masonry = true;
     else if (node.type === "maplist") maplist = true;
     else if (node.type === "thumbviewer") thumbviewer = true;
+    else if (node.type === "financeswitch") financeswitch = true;
+    else if (node.type === "rangeslider") rangeslider = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer, financeswitch, rangeslider };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -15825,7 +16175,9 @@ ${STACKCARDS_CSS}` : "") + (used.showbill ? `
 ${SHOWBILL_CSS}` : "") + (used.masonry ? `
 ${MASONRY_CSS}` : "") + (used.maplist ? `
 ${MAPLIST_CSS}` : "") + (used.thumbviewer ? `
-${THUMBVIEWER_CSS}` : "") + (used.videoLightbox ? `
+${THUMBVIEWER_CSS}` : "") + (used.financeswitch ? `
+${FINANCESWITCH_CSS}` : "") + (used.rangeslider ? `
+${RANGESLIDER_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -17702,6 +18054,64 @@ function renderNode(n, o) {
       const mainDim = first.w && first.h ? ` width="${parseInt(String(first.w), 10)}" height="${parseInt(String(first.h), 10)}"` : "";
       return `<div ${at()} ${cx("pagecraft-thumbviewer")} data-thumbviewer style="--tv-ratio:${esc(ratio)}"><div class="pagecraft-thumbviewer-stage"><img class="pagecraft-thumbviewer-main" data-tv-img src="${mainSrc}" alt="${mainAlt}"${mainDim} decoding="async"></div><div class="pagecraft-thumbviewer-bar"><div class="pagecraft-thumbviewer-info"><span class="pagecraft-thumbviewer-count" data-tv-count>${countText}</span><strong class="pagecraft-thumbviewer-title" data-tv-title>${esc(String(first.title || ""))}</strong><span class="pagecraft-thumbviewer-meta" data-tv-meta>${esc(String(first.meta || ""))}</span></div><div class="pagecraft-thumbviewer-nav"><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-prev>Prev</button><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-next>Next</button></div></div><div class="pagecraft-thumbviewer-strip">${thumbs}</div></div>`;
     }
+    case "financeswitch": {
+      const items = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const leaseLbl = String(p.leaseLabel || "Monthly lease (36 mo)");
+      const cashLbl = String(p.cashLabel || "Cash purchase");
+      const mode = String(p.defaultMode || "lease").toLowerCase() === "cash" ? "cash" : "lease";
+      const cards = items.map((it, i) => {
+        const title = String(it.title || `Trim ${i + 1}`);
+        const badge = String(it.badge || "").trim();
+        const specs = String(it.specs || "").trim();
+        const leasePrice = String(it.leasePrice || "\u20AC549 / mo");
+        const cashPrice = String(it.cashPrice || "\u20AC56,900");
+        const leaseNote = String(it.leaseNote || "");
+        const cashNote = String(it.cashNote || "");
+        const shownPrice = mode === "cash" ? cashPrice : leasePrice;
+        const shownNote = mode === "cash" ? cashNote : leaseNote;
+        const cta = String(it.ctaLabel || "Book 48h Test Drive");
+        const rawHref = safeUrl(String(it.href || "").trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        return `<article class="pagecraft-fs-card"><div class="pagecraft-fs-media"><img class="pagecraft-fs-img" src="${src}" alt="${alt}"${dim} decoding="async"></div><div class="pagecraft-fs-body"><div class="pagecraft-fs-top"><h3 class="pagecraft-fs-title">${esc(title)}</h3>${badge ? `<span class="pagecraft-fs-badge">${esc(badge)}</span>` : ""}</div>` + (specs ? `<p class="pagecraft-fs-specs">${esc(specs)}</p>` : "") + `<div class="pagecraft-fs-pricing"><span class="pagecraft-fs-price" data-fs-price data-lease-price="${esc(leasePrice)}" data-cash-price="${esc(cashPrice)}">${esc(shownPrice)}</span><span class="pagecraft-fs-note" data-fs-note data-lease-note="${esc(leaseNote)}" data-cash-note="${esc(cashNote)}">${esc(shownNote)}</span></div>` + (cta && link ? `<a class="pagecraft-fs-cta" href="${esc(link)}">${esc(cta)}</a>` : cta && o.edit ? `<span class="pagecraft-fs-cta">${esc(cta)}</span>` : "") + `</div></article>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-financeswitch")} data-financeswitch data-fs-active="${mode}"><div class="pagecraft-fs-bar" role="group" aria-label="Financing mode"><button type="button" class="pagecraft-fs-mode" data-fs-mode="lease" aria-pressed="${mode === "lease" ? "true" : "false"}">${esc(leaseLbl)}</button><button type="button" class="pagecraft-fs-mode" data-fs-mode="cash" aria-pressed="${mode === "cash" ? "true" : "false"}">${esc(cashLbl)}</button></div><div class="pagecraft-fs-grid">${cards}</div></div>`;
+    }
+    case "rangeslider": {
+      const heading = String(p.heading || "").trim();
+      const summary = String(p.summary || "").trim();
+      const tempLbl = String(p.tempLabel || "Ambient winter temperature");
+      const minT = Math.round(parseFloat(String(p.minTemp ?? "-25"))) || -25;
+      const maxT = Math.max(minT + 10, Math.round(parseFloat(String(p.maxTemp ?? "25"))) || 25);
+      const defT = Math.min(maxT, Math.max(minT, Number.isFinite(parseFloat(String(p.defaultTemp ?? "-10"))) ? parseFloat(String(p.defaultTemp ?? "-10")) : -10));
+      const baseKm = Math.max(200, Math.round(parseFloat(String(p.baseRangeKm ?? "640"))) || 640);
+      const speedLbl = String(p.speedLabel || "110 km/h highway telemetry");
+      const chargeLbl = String(p.chargeLabel || "10\u201380% DC fast charge");
+      const heatLbl = String(p.heatLabel || "CO\u2082 heat-pump recovery");
+      const ctaLbl = String(p.ctaLabel || "").trim();
+      const rawHref = safeUrl(String(p.href || "").trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : "";
+      const note = String(p.note || "").trim();
+      const wheelsRaw = String(p.wheelOptions || '19" Aero Winter:0|20" Touring:-28|21" Track:-54');
+      const wheels = wheelsRaw.split("|").map((part) => {
+        const [lbl, d2] = part.split(":");
+        return { label: String(lbl || "").trim(), delta: parseFloat(String(d2 ?? "0")) || 0 };
+      }).filter((w) => w.label);
+      const firstDelta = wheels[0]?.delta || 0;
+      const ret = defT >= 15 ? Math.max(0.96, 1 - Math.max(0, defT - 22) * 2e-3) : Math.max(0.55, 1 - (15 - defT) * 62e-4);
+      const initKm = Math.max(220, Math.round(baseKm * ret + firstDelta));
+      const initPct = Math.max(20, Math.min(100, Math.round(initKm / baseKm * 100)));
+      const initChg = 17 + (defT < 0 ? Math.min(6, Math.ceil(-defT / 6)) : 0);
+      const initHeat = Math.max(0, Math.round((15 - Math.min(15, defT)) * 1.65));
+      const fmtT = (t) => `${t > 0 ? "+" : ""}${t}\xB0C`;
+      const baseId = domId();
+      const wheelBtns = wheels.map(
+        (w, i) => `<button type="button" class="pagecraft-rs-wbtn" data-rs-wheel data-rs-delta="${w.delta}" aria-pressed="${i === 0 ? "true" : "false"}">${esc(w.label)}</button>`
+      ).join("");
+      return `<div ${at()} ${cx("pagecraft-rangeslider")} data-rangeslider data-rs-base-range="${baseKm}"><div class="pagecraft-rs-ctrl">` + (heading ? `<h3 class="pagecraft-rs-h">${esc(heading)}</h3>` : "") + (summary ? `<p class="pagecraft-rs-sub">${esc(summary)}</p>` : "") + `<div class="pagecraft-rs-field"><label class="pagecraft-rs-lbl" for="${baseId}-temp"><span>${esc(tempLbl)}</span><output data-rs-temp-out>${esc(fmtT(defT))}</output></label><input class="pagecraft-rs-range" id="${baseId}-temp" type="range" min="${minT}" max="${maxT}" step="5" value="${defT}" data-rs-temp><div class="pagecraft-rs-scale"><span>${esc(fmtT(minT))}</span><span>0\xB0C</span><span>${esc(fmtT(maxT))}</span></div></div>` + (wheelBtns ? `<div class="pagecraft-rs-wheels" role="group" aria-label="Wheel and tyre package">${wheelBtns}</div>` : "") + `</div><div class="pagecraft-rs-readout"><div class="pagecraft-rs-rhead"><span class="pagecraft-rs-rtag">Projected Nordic highway range</span><span class="pagecraft-rs-speed">${esc(speedLbl)}</span></div><p class="pagecraft-rs-km" data-rs-range>${initKm} km</p><div class="pagecraft-rs-track"><div class="pagecraft-rs-fill" data-rs-bar style="width:${initPct}%"></div></div><div class="pagecraft-rs-stats"><div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(chargeLbl)}</span><strong class="pagecraft-rs-sval" data-rs-charge>${initChg} min</strong></div><div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(heatLbl)}</span><strong class="pagecraft-rs-sval" data-rs-heat>${initHeat > 0 ? `+${initHeat}` : "0"} km recovered</strong></div></div>` + (ctaLbl && link ? `<a class="pagecraft-rs-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : ctaLbl && o.edit ? `<span class="pagecraft-rs-cta">${esc(ctaLbl)}</span>` : "") + (note ? `<p class="pagecraft-rs-note">${esc(note)}</p>` : "") + `</div></div>`;
+    }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
@@ -18216,7 +18626,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${/data-roicalc/.test(body) ? ROICALC_JS : ""}${/data-showbill/.test(body) ? SHOWBILL_JS : ""}${/data-masonry/.test(body) ? MASONRY_JS : ""}${/data-maplist/.test(body) ? MAPLIST_JS : ""}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-fullmenu/.test(body) ? FULLMENU_JS : ""}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ""}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ""}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ""}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ""}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ""}${/data-roicalc/.test(body) ? ROICALC_JS : ""}${/data-showbill/.test(body) ? SHOWBILL_JS : ""}${/data-masonry/.test(body) ? MASONRY_JS : ""}${/data-maplist/.test(body) ? MAPLIST_JS : ""}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ""}${/data-financeswitch/.test(body) ? FINANCESWITCH_JS : ""}${/data-rangeslider/.test(body) ? RANGESLIDER_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 </script>
 ` : ""}</body>
@@ -18734,6 +19144,8 @@ function proposalApply(changes, proposalId = "", options) {
   FILTER_CSS,
   FILTER_JS,
   FILTER_OPS,
+  FINANCESWITCH_CSS,
+  FINANCESWITCH_JS,
   FLOATING_SECTION_CSS,
   FONT_BASE,
   FONT_SUBSETS,
@@ -18778,6 +19190,8 @@ function proposalApply(changes, proposalId = "", options) {
   QAPILLS_CSS,
   QAPILLS_JS,
   QUICK_SIDES,
+  RANGESLIDER_CSS,
+  RANGESLIDER_JS,
   REF_DEPTH,
   RESERVED,
   ROICALC_CSS,

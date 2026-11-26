@@ -992,5 +992,36 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(tvWin.document.querySelector('[data-tv-title]')?.textContent).toContain('Kitchen');
     tvDispose!();
     tvDom.window.close();
+
+    const fsDom = domFor(C.renderNode(C.N('financeswitch'), { edit: false }));
+    const fsWin = fsDom.window as any;
+    let fsDispose: (() => void) | null = null;
+    fsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { fsDispose = fn; };
+    fsWin.eval(scriptBody(C.FINANCESWITCH_JS));
+    expect(fsWin.document.querySelector('[data-fs-price]')?.textContent).toContain('/ mo');
+    (fsWin.document.querySelector('[data-fs-mode="cash"]') as HTMLElement).click();
+    expect(fsWin.document.querySelector('[data-financeswitch]')?.getAttribute('data-fs-active')).toBe('cash');
+    expect(fsWin.document.querySelector('[data-fs-mode="cash"]')?.getAttribute('aria-pressed')).toBe('true');
+    expect(fsWin.document.querySelector('[data-fs-price]')?.textContent).toBe('€56,900');
+    fsDispose!();
+    fsDom.window.close();
+
+    const rsDom = domFor(C.renderNode(C.N('rangeslider'), { edit: false }));
+    const rsWin = rsDom.window as any;
+    let rsDispose: (() => void) | null = null;
+    rsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rsDispose = fn; };
+    rsWin.eval(scriptBody(C.RANGESLIDER_JS));
+    const rsRangeBefore = rsWin.document.querySelector('[data-rs-range]')?.textContent;
+    const rsInput = rsWin.document.querySelector('[data-rs-temp]') as HTMLInputElement;
+    rsInput.value = '-25';
+    rsInput.dispatchEvent(new rsWin.Event('input', { bubbles: true }));
+    expect(rsWin.document.querySelector('[data-rs-temp-out]')?.textContent).toBe('-25°C');
+    const rsAfterCold = parseInt(rsWin.document.querySelector('[data-rs-range]')?.textContent || '0', 10);
+    expect(rsAfterCold).toBeLessThan(parseInt(rsRangeBefore || '0', 10));
+    const wheels = rsWin.document.querySelectorAll('[data-rs-wheel]');
+    (wheels[2] as HTMLElement).click();
+    expect(parseInt(rsWin.document.querySelector('[data-rs-range]')?.textContent || '0', 10)).toBeLessThan(rsAfterCold);
+    rsDispose!();
+    rsDom.window.close();
   });
 });
