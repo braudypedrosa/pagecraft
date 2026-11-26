@@ -5,7 +5,7 @@ import { bodyLimit } from 'hono/body-limit';
 import type { Store } from './store.ts';
 import type { User, Role } from './auth.ts';
 import type { HostedPublicationStore } from './publications.ts';
-import { FileSubmissionStore, type Submission, siteForms, submissionValues, submissionOutcome, submissionsCsv } from './submissions.ts';
+import { FileSubmissionStore, type Submission, siteForms, submissionValues, submissionOutcome, sortSubmissions, submissionsCsv } from './submissions.ts';
 import { siteSubmissionsPage } from './account-pages.ts';
 import { throttle } from './mail.ts';
 import { esc } from '../../app/src/core/index.ts';
@@ -81,16 +81,16 @@ export function submissionRoutes(app: Hono, o: {
       const siteId = c.req.param('id')!;
       const store = o.submissions;
       const metadata = (await store.overview(siteId)).filter(e => e.formId === form && (!status || submissionOutcome(e) === status));
-      const pages = Math.ceil(metadata.length / 25);
-      const labels = new Set<string>();
-      for (let page=1;page<=pages;page++) for (const entry of (await store.page(siteId,metadata,form,status || '',page,c.req.query('order'))).items) for (const value of entry.values) labels.add(value.label);
+      const rows = sortSubmissions(metadata, c.req.query('order'));
+      const labels = [...new Set(rows.flatMap(row => row.labels))];
       c.header('Content-Type', 'text/csv; charset=utf-8');
       c.header('Content-Disposition', 'attachment; filename="submissions.csv"');
       return stream(c, async output => {
-        await output.write(submissionsCsv([], [...labels]));
-        for (let page=1;page<=pages;page++) {
+        await output.write(submissionsCsv([], labels));
+        for (let offset = 0; offset < rows.length; offset += 25) {
           if (output.aborted) break;
-          await output.write(submissionsCsv((await store.page(siteId,metadata,form,status || '',page,c.req.query('order'))).items, [...labels], false));
+          const batch = await store.readEntries(siteId, rows.slice(offset, offset + 25));
+          await output.write(submissionsCsv(batch, labels, false));
         }
       });
     } catch { return c.text('Export failed. Try again.', 503); }

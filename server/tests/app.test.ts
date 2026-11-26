@@ -40,6 +40,10 @@ const rig = async (
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
+    hostClaims: {
+      challenge: host => ({ type: 'dns_txt', name: `_pagecraft.${host}`, value: 'pagecraft-verification=test' }),
+      verify: async host => host === 'moved.test',
+    },
     componentGallery,
     submissions: nativeForms ? new FileSubmissionStore(join(tmpdir(), `pagecraft-app-test-${randomUUID()}`)) : undefined,
     optimizeAsset: hostedPublications

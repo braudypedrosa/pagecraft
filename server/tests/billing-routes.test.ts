@@ -10,7 +10,7 @@ import {
 import type { AccountPlanStatus } from '../src/plan-grants.ts';
 import { createApp } from '../src/app.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
-import { MemoryStore } from '../src/store.ts';
+import { MemoryStore, validSlug } from '../src/store.ts';
 
 const SECRET = 'pdl_ntfset_test_secret';
 const env = {
@@ -53,6 +53,12 @@ const subscriptionEvent = (patch: Record<string, unknown> = {}) => JSON.stringif
     current_billing_period: { starts_at: '2026-11-19T01:00:00Z', ends_at: '2027-11-19T01:00:00Z' }, scheduled_change: null,
     ...patch,
   },
+});
+
+test('every mounted billing route reserves its top-level site slug', () => {
+  const { app } = rig();
+  a.ok(app.routes.some(route => route.path.startsWith('/billing/')));
+  for (const route of app.routes) a.equal(validSlug(route.path.split('/')[1]), null);
 });
 
 test('configuration maps only trusted prices and keeps billing off when unset', () => {

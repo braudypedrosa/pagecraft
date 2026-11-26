@@ -9,7 +9,8 @@ import { test } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
 import { createApp } from '../src/app.ts';
-import { MemoryStore, validHost } from '../src/store.ts';
+import { MemoryStore, claimableHost, validHost } from '../src/store.ts';
+import { dnsHostClaims } from '../src/host-claims.ts';
 import { MemoryAuthStore, type Role } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
@@ -28,6 +29,10 @@ const rig = async (role: Role = 'owner') => {
   let sent = '';
   const app = createApp({
     store, auth, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
+    hostClaims: {
+      challenge: host => ({ type: 'dns_txt', name: `_pagecraft.${host}`, value: 'pagecraft-verification=test' }),
+      verify: async host => host === 'acme.com' || host === 'taken.com',
+    },
     sendLink: (_t, url) => { sent = url; }
   });
   const site = await store.create({ host: 'acme.test', name: 'Acme', doc: demo() });
@@ -82,6 +87,27 @@ test('a localhost name is allowed, because development happens', () => {
   a.equal(validHost('site.localhost'), 'site.localhost');
 });
 
+test('customer claims exclude platform and local-only names', () => {
+  for (const host of [
+    'itspagecraft.com', 'build.itspagecraft.com', 'admin.test', 'sites.admin.test',
+    'localhost', 'site.localhost', 'printer.local', 'service.internal',
+  ]) a.equal(claimableHost(host, 'admin.test'), null, host);
+  a.equal(claimableHost('acme.com', 'admin.test'), 'acme.com');
+});
+
+test('DNS ownership requires the TXT value bound to both hostname and signed-in actor', async () => {
+  const records: Record<string, string[][]> = {};
+  const claims = dnsHostClaims('host-claim-test-secret-with-32-bytes-minimum', async name => {
+    if (!records[name]) throw new Error('not found');
+    return records[name];
+  });
+  const challenge = claims.challenge('owned.example', 'actor-one');
+  records[challenge.name] = [[challenge.value]];
+  a.equal(await claims.verify('owned.example', 'actor-one'), true);
+  a.equal(await claims.verify('owned.example', 'actor-two'), false, 'another profile cannot reuse the TXT record');
+  a.equal(await claims.verify('elsewhere.example', 'actor-one'), false, 'another hostname has another challenge');
+});
+
 /* ------------------------------------------------------------ moving a site */
 
 test('an owner moves a site to a domain, and it answers there', async () => {
@@ -104,6 +130,30 @@ test('a domain another site holds is refused rather than taken', async () => {
   const res = await setHost('taken.com');
   a.equal(res.status, 409);
   a.match((await res.json() as { error: string }).error, /already answers/);
+});
+
+test('a domain must point to this deployment before a site moves', async () => {
+  const { setHost } = await rig();
+  const res = await setHost('elsewhere.example');
+  a.equal(res.status, 422);
+  const body = await res.json() as { error: string; verification: { name: string; value: string } };
+  a.equal(body.error, 'domain_not_verified');
+  a.equal(body.verification.name, '_pagecraft.elsewhere.example');
+  a.equal(body.verification.value, 'pagecraft-verification=test');
+});
+
+test('site creation returns the actor-scoped DNS record before accepting a custom hostname', async () => {
+  const { req, cookie } = await rig();
+  const res = await req('/api/sites', {
+    method: 'POST', body: JSON.stringify({ host: 'new.example', name: 'New site', doc: demo() }),
+  }, cookie);
+  a.equal(res.status, 422);
+  const body = await res.json() as { error: string; verification: { type: string; name: string; value: string } };
+  a.deepEqual(body, {
+    error: 'domain_not_verified',
+    detail: 'Add the DNS TXT record below, point this domain to Pagecraft, wait for DNS to update, then try again.',
+    verification: { type: 'dns_txt', name: '_pagecraft.new.example', value: 'pagecraft-verification=test' },
+  });
 });
 
 test('a URL pasted into the field is explained rather than accepted', async () => {

@@ -30,7 +30,11 @@ const rig = async () => {
   let sent = '';
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
-    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }
+    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; },
+    hostClaims: {
+      challenge: host => ({ type: 'dns_txt', name: `_pagecraft.${host}`, value: 'pagecraft-verification=test' }),
+      verify: async host => host === 'new.test',
+    },
   });
   const site = await store.create({ host: 'acme.test', name: 'Acme', doc: demo() });
   const req = (path: string, init: RequestInit = {}, cookie?: string) =>

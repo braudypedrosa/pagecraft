@@ -3,8 +3,9 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const LOGO = 'https://itspagecraft.com/images/email/pagecraft-logo.png';
-const CONFIRM = '{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type={{ .EmailActionType }}';
-const RECOVER = '{{ .RedirectTo }}&token_hash={{ .TokenHash }}';
+const confirm = (type) => `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&amp;type=${type}`;
+// Pagecraft supplies the invite and recovery types in the redirect. Email changes carry next.
+const withToken = '{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}';
 
 const font = "font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 
@@ -53,8 +54,8 @@ const templates = {
       preheader: 'One click to finish setting up your Pagecraft account.',
       heading: 'Confirm your email',
       body: ['Welcome to Pagecraft. Confirm <strong style="color:#111311">{{ .Email }}</strong> to finish creating your account and start building.'],
-      cta: { href: CONFIRM, label: 'Confirm email' },
-      link: CONFIRM,
+      cta: { href: confirm('signup'), label: 'Confirm email' },
+      link: confirm('signup'),
       note: 'This link expires soon and can be used once. If you didn’t create a Pagecraft account, you can ignore this email.'
     })
   },
@@ -64,8 +65,8 @@ const templates = {
       preheader: 'Accept your invitation and set a password.',
       heading: 'You’ve been invited',
       body: ['You’ve been invited to join Pagecraft as <strong style="color:#111311">{{ .Email }}</strong>. Accept the invitation to set your password and get started.'],
-      cta: { href: CONFIRM, label: 'Accept invitation' },
-      link: CONFIRM,
+      cta: { href: withToken, label: 'Accept invitation' },
+      link: withToken,
       note: 'This invitation link can be used once. If you weren’t expecting it, you can ignore this email.'
     })
   },
@@ -75,8 +76,8 @@ const templates = {
       preheader: 'Use this link to sign in to Pagecraft.',
       heading: 'Sign in to Pagecraft',
       body: ['Use the button below to sign in as <strong style="color:#111311">{{ .Email }}</strong>.'],
-      cta: { href: CONFIRM, label: 'Sign in' },
-      link: CONFIRM,
+      cta: { href: confirm('magiclink'), label: 'Sign in' },
+      link: confirm('magiclink'),
       note: 'This link expires soon and can be used once. If you didn’t ask to sign in, you can ignore this email — your account is safe.'
     })
   },
@@ -86,8 +87,8 @@ const templates = {
       preheader: 'Confirm the change to your Pagecraft sign-in email.',
       heading: 'Confirm your new email',
       body: ['You asked to change your Pagecraft sign-in email from <strong style="color:#111311">{{ .Email }}</strong> to <strong style="color:#111311">{{ .NewEmail }}</strong>.'],
-      cta: { href: CONFIRM, label: 'Confirm new email' },
-      link: CONFIRM,
+      cta: { href: withToken + '&amp;type=email_change', label: 'Confirm new email' },
+      link: withToken + '&amp;type=email_change',
       note: 'If you didn’t request this change, don’t click the link and change your password from Account settings.'
     })
   },
@@ -97,8 +98,8 @@ const templates = {
       preheader: 'Choose a new password for your Pagecraft account.',
       heading: 'Reset your password',
       body: ['We received a request to reset the password for <strong style="color:#111311">{{ .Email }}</strong>. Choose a new one with the button below.'],
-      cta: { href: RECOVER, label: 'Choose a new password' },
-      link: RECOVER,
+      cta: { href: withToken, label: 'Choose a new password' },
+      link: withToken,
       note: 'This link expires soon and can be used once. If you didn’t ask for a reset, you can ignore this email — your password stays the same.'
     })
   },

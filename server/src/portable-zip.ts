@@ -189,7 +189,7 @@ export function extractPortableZip(archive: Uint8Array): Map<string, Uint8Array>
     if (localPath !== path) throw new Error(`portable package local path disagrees: ${path}`);
     const packed = archive.subarray(dataStart, dataEnd);
     let bytes: Uint8Array;
-    try { bytes = method === 8 ? new Uint8Array(inflateRawSync(packed)) : new Uint8Array(packed); }
+    try { bytes = method === 8 ? new Uint8Array(inflateRawSync(packed, { maxOutputLength: Math.max(1, size) })) : new Uint8Array(packed); }
     catch { throw new Error(`portable package entry could not be expanded: ${path}`); }
     if (bytes.byteLength !== size || crc32(bytes) !== crc) {
       throw new Error(`portable package entry failed integrity verification: ${path}`);

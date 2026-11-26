@@ -161,19 +161,60 @@ test('the map does not grow without limit', () => {
   a.ok(t.size() < 100, `expected a sweep, still holding ${t.size()}`);
 });
 
-test('active attacker-controlled keys are capped too, by forgetting the stalest rather than refusing newcomers', () => {
+test('active attacker-controlled keys stay limited while newcomers use the shared allowance', () => {
   /* Refusing every new key once the map is full would let one caller with many addresses lock
-     everybody else out of signing in. */
+     everybody else out of signing in, but eviction must not reset an active address budget. */
   const t = throttle(1, 60_000, 3);
   a.equal(t.take('one', 1), true);
   a.equal(t.take('two', 2), true);
   a.equal(t.take('three', 3), true);
-  a.equal(t.take('two', 4), false, 'still limited, and now the most recently seen');
+  a.equal(t.take('two', 4), false, 'still limited');
   a.equal(t.take('four', 5), true, 'a new key is answered normally');
   a.equal(t.size(), 3);
-  a.equal(t.limited('one', 6), false, 'the stalest key was the one forgotten');
-  a.equal(t.limited('two', 6), true, 'an active limit survives the eviction');
+  a.equal(t.limited('one', 6), true, 'the stalest active key is not forgotten');
+  a.equal(t.limited('two', 6), true, 'the active limit is retained');
   a.equal(t.limited('three', 6), true);
+});
+
+test('saturation preserves active limits and uses a shared allowance for newcomers', () => {
+  const t = throttle(2, 60_000, 3);
+  a.equal(t.take('limited', 1), true);
+  a.equal(t.take('limited', 2), true);
+  a.equal(t.take('older', 3), true);
+  a.equal(t.take('recent', 4), true);
+  a.equal(t.limited('new', 5), false, '`limited` matches the first shared allowance');
+  a.equal(t.take('new', 5), true, 'a newcomer receives the shared allowance');
+  a.equal(t.limited('limited', 6), true, 'the existing active limit remains enforced');
+  a.equal(t.limited('older', 6), false, 'unfilled retained keys are unchanged');
+  a.equal(t.take('limited', 6), false, '`limited` agrees with `take` for the retained key');
+});
+
+test('when every retained key is limited, saturation never resets an active budget', () => {
+  const t = throttle(1, 60_000, 3);
+  a.equal(t.take('one', 1), true);
+  a.equal(t.take('two', 2), true);
+  a.equal(t.take('three', 3), true);
+  a.equal(t.limited('four', 4), false);
+  a.equal(t.take('four', 4), true, 'newcomers still get a bounded fallback path');
+  a.equal(t.limited('one', 5), true);
+  a.equal(t.limited('two', 5), true);
+  a.equal(t.limited('three', 5), true);
+  a.equal(t.limited('four', 5), true);
+  a.equal(t.take('four', 5), false, '`limited` agrees with `take` for an unknown key under saturation');
+  a.equal(t.take('two', 5), false, 'retained active keys remain limited');
+});
+
+test('partial budgets and the shared window survive turnover in a full table', () => {
+  const t = throttle(2, 10, 1);
+  a.equal(t.take('first', 1), true);
+  a.equal(t.take('second', 7), true);
+  a.equal(t.take('first', 8), true);
+  a.equal(t.limited('first', 9), true);
+  a.equal(t.take('second', 12), true);
+  a.equal(t.limited('second', 13), true);
+  // The exact slot expires at 18. The later shared send at 12 still counts.
+  a.equal(t.take('second', 18), true);
+  a.equal(t.limited('second', 19), true);
 });
 
 test('the public login body and address have hard limits', async () => {

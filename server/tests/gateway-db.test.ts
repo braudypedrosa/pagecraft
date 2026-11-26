@@ -25,8 +25,11 @@ const harness = vi.hoisted(() => ({
   statements: [] as string[],
   failWhen: null as RegExp | null,
   failOnceWhen: null as RegExp | null,
+  afterQuery: null as null | ((text: string) => Promise<void>),
   postgresOptions: null as null | Record<string, unknown>,
   files: new Map<string, Uint8Array>(),
+  removeError: null as null | { message: string },
+  removeCalls: [] as string[][],
   deletedAuthUsers: [] as string[],
   deleteUserError: null as null | { message: string },
   afterUpload: null as null | ((path: string) => Promise<void> | void),
@@ -63,6 +66,8 @@ vi.mock('npm:@supabase/supabase-js@2.112.4', () => ({
             : { data: { path }, error: null };
         },
         remove: async (paths: string[]) => {
+          harness.removeCalls.push(paths);
+          if (harness.removeError) return { data: null, error: harness.removeError };
           for (const path of paths) harness.files.delete(path);
           return { data: [], error: null };
         },
@@ -116,7 +121,10 @@ function postgresShape(query: Query): unknown {
         code: '40001', detail: 'Key (secret_column)=(private-value) is locked.',
       }));
     }
-    return query(text, params).then(result => result.rows, error => { throw asPostgresError(error); });
+    return query(text, params).then(async result => {
+      await harness.afterQuery?.(text);
+      return result.rows;
+    }, error => { throw asPostgresError(error); });
   };
   return Object.assign(tag, {
     json: (value: unknown) => ({ json: value }),
@@ -731,6 +739,45 @@ test('account deletion reports a profile whose Auth user could not be removed', 
   a.equal(await count('select * from users where id=$1', [user]), 0);
 });
 
+test('account deletion durably retries owned library object cleanup after Storage recovers', async () => {
+  const user = 'gw-library-leaver', library = randomUUID();
+  const path = `libraries/${library}/${H(7)}.webp`;
+  await db.query(`insert into users (id, email) values ($1, $2)`, [user, 'gw-library-leaver@example.test']);
+  await db.query(`insert into libraries (id, owner_id, name) values ($1, $2, 'Owned kit')`, [library, user]);
+  await db.query(`insert into library_assets
+    (library_id, id, name, type, w, h, storage_path, stored_bytes)
+    values ($1, $2, 'Cover', 'image/webp', 1, 1, $3, 3)`, [library, H(7), path]);
+  harness.files.set(path, new Uint8Array([1, 2, 3]));
+  harness.removeError = { message: 'Storage unavailable' };
+  try {
+    a.equal((await operation('auth.deleteAccount', { userId: user })).body.status, 'deleted');
+  } finally {
+    harness.removeError = null;
+  }
+  a.equal(await count(`select * from libraries where id=$1`, [library]), 0, 'database rows cascade');
+  a.equal(await count(`select * from storage_deletion_outbox where path=$1`, [path]), 1, 'object path survives for retry');
+  a.equal(harness.files.has(path), true, 'failed Storage removal is not reported as complete');
+  const queued = (await db.query<{ attempts: number; last_error: string }>(
+    `select attempts, last_error from storage_deletion_outbox where path=$1`, [path],
+  )).rows[0];
+  a.deepEqual(queued, { attempts: 1, last_error: 'Storage unavailable' });
+  for (const role of ['anon', 'authenticated']) {
+    const permission = await db.query<{ allowed: boolean }>(
+      `select has_table_privilege($1, 'storage_deletion_outbox', 'SELECT') as allowed`, [role],
+    );
+    a.equal(permission.rows[0].allowed, false, `${role} cannot read cleanup paths`);
+  }
+  a.equal((await db.query<{ enabled: boolean }>(
+    `select relrowsecurity as enabled from pg_class where oid='storage_deletion_outbox'::regclass`,
+  )).rows[0].enabled, true);
+
+  await db.query(`update storage_deletion_outbox set next_attempt_at=now() where path=$1`, [path]);
+  const retried = await operation('storage.drainDeletionOutbox', { worker: 'gateway-test-retry', limit: 10 });
+  a.deepEqual(retried.body, { processed: 1, deleted: 1, pending: 0 });
+  a.equal(harness.files.has(path), false);
+  a.equal(await count(`select * from storage_deletion_outbox where path=$1`, [path]), 0);
+});
+
 test('a client running against the gateway reaches the deletion actions', async () => {
   const user = 'gw-client-leaver';
   await db.query('insert into users (id, email, auth_user_id) values ($1, $2, $3)', [user, 'gw-client@example.test', 'auth-gw-client']);
@@ -797,6 +844,35 @@ test('plan grants refuse invalid input and unknown accounts', async () => {
   a.equal(missing.status, 404);
   a.equal((await call('plan.revokeGrant', { grantId: randomUUID(), revokedBy: 'founder' })).status, 404);
   a.equal(await count(`select * from plan_grants where user_id='nobody'`), 0);
+});
+
+test('stale plan recompute paginates every paid account and skips a concurrently deleted row', async () => {
+  await db.exec(`
+    insert into users (id, email, plan, plan_source)
+    select 'page-' || lpad(n::text, 4, '0'), 'page-' || n || '@billing.test', 'launch', 'grant'
+    from generate_series(0, 1000) n;
+  `);
+  const paged = await operation('plan.recomputeStale', {});
+  a.equal(paged.status, 200, JSON.stringify(paged.body));
+  a.ok(Number(paged.body.checked) >= 1001);
+  a.equal(await count(`select * from users where id like 'page-%' and plan <> 'free'`), 0);
+
+  await db.exec(`
+    insert into users (id, email, plan, plan_source) values
+      ('zz-stale-a', 'zz-stale-a@billing.test', 'launch', 'grant'),
+      ('zz-stale-delete', 'zz-stale-delete@billing.test', 'launch', 'grant'),
+      ('zz-stale-z', 'zz-stale-z@billing.test', 'launch', 'grant');
+  `);
+  harness.afterQuery = async text => {
+    if (!/select id from users\s+where plan <> 'free'/.test(text)) return;
+    harness.afterQuery = null;
+    await db.query(`delete from users where id='zz-stale-delete'`);
+  };
+  const concurrent = await operation('plan.recomputeStale', {});
+  harness.afterQuery = null;
+  a.equal(concurrent.status, 200, JSON.stringify(concurrent.body));
+  a.equal(await count(`select * from users where id in ('zz-stale-a','zz-stale-z') and plan <> 'free'`), 0,
+    'the deleted row does not abandon later accounts');
 });
 
 test('billing and plan tables are inaccessible to client roles', async () => {
@@ -868,11 +944,12 @@ test('the contacts file is imported once and kept as a backup', async () => {
 
 test('Paddle subscription events apply once, in order, to the account their checkout named', async () => {
   const userId = randomUUID(), other = randomUUID();
+  const clock = Date.now(), at = (hours: number) => new Date(clock + hours * 60 * 60 * 1000).toISOString();
   await db.query(`insert into users (id, email, name) values ($1, 'Payer@Billing.test', 'Pat Payer'), ($2, 'other@billing.test', '')`, [userId, other]);
   const event = (patch: Record<string, unknown> = {}) => ({
     environment: 'sandbox', eventId: `evt_${randomUUID().replace(/-/g, '').slice(0, 26)}`, eventType: 'subscription.created',
-    occurredAt: '2026-11-19T01:00:00.000Z', subscriptionId: 'sub_01billingtest0001', customerId: 'ctm_01billingtest0001',
-    userId, priceId: 'pri_01launchmonthly01', plan: 'launch', status: 'active', currentPeriodEnd: '2026-12-19T01:00:00.000Z',
+    occurredAt: at(-4), subscriptionId: 'sub_01billingtest0001', customerId: 'ctm_01billingtest0001',
+    userId, priceId: 'pri_01launchmonthly01', plan: 'launch', status: 'active', currentPeriodEnd: at(24 * 30),
     scheduledChange: null, ...patch,
   });
   const plan = async (id = userId) => (await db.query<{ plan: string; plan_source: string }>(`select plan, plan_source from users where id=$1`, [id])).rows[0];
@@ -886,26 +963,26 @@ test('Paddle subscription events apply once, in order, to the account their chec
   a.deepEqual(contact, [{ stage: 'customer', email: 'payer@billing.test', account_id: userId }], 'a paying account becomes a CRM customer');
 
   a.equal((await operation('billing.applySubscription', first)).body.outcome, 'duplicate');
-  const older = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T00:00:00.000Z', status: 'canceled' }));
+  const older = await operation('billing.applySubscription', event({ occurredAt: at(-5), status: 'canceled' }));
   a.equal(older.body.outcome, 'stale', 'an older event never overwrites newer state');
   a.equal((await plan()).plan, 'launch');
 
-  const moved = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T02:00:00.000Z', userId: other }));
+  const moved = await operation('billing.applySubscription', event({ occurredAt: at(-3), userId: other }));
   a.equal(moved.body.outcome, 'refused', 'custom data cannot move a subscription to another account');
   a.equal((await plan(other)).plan, 'free');
-  const stolenCustomer = await operation('billing.applySubscription', event({ subscriptionId: 'sub_01billingtest0002', userId: other, occurredAt: '2026-11-19T02:30:00.000Z' }));
+  const stolenCustomer = await operation('billing.applySubscription', event({ subscriptionId: 'sub_01billingtest0002', userId: other, occurredAt: at(-2), }));
   a.equal(stolenCustomer.body.outcome, 'refused', 'a customer stays with its first account');
   const nobody = await operation('billing.applySubscription', event({ subscriptionId: 'sub_01billingtest0003', customerId: 'ctm_01billingtest0003', userId: null }));
   a.equal(nobody.body.outcome, 'refused');
 
-  await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T03:00:00.000Z', status: 'past_due' }));
+  await operation('billing.applySubscription', event({ occurredAt: at(-1), status: 'past_due' }));
   a.equal((await plan()).plan, 'launch', 'past due keeps the plan during the grace window');
   await db.query(`update billing_subscriptions set status_changed_at = now() - interval '8 days' where paddle_subscription_id='sub_01billingtest0001'`);
   const stale = await operation('plan.recomputeStale', {});
   a.ok(stale.body.changed >= 1);
   a.deepEqual(await plan(), { plan: 'free', plan_source: 'free' }, 'the periodic recompute ends the grace window');
 
-  const canceled = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T04:00:00.000Z', status: 'canceled' }));
+  const canceled = await operation('billing.applySubscription', event({ occurredAt: at(0), status: 'canceled' }));
   a.equal(canceled.body.outcome, 'applied');
   a.equal((await plan()).plan, 'free');
   a.equal(await count(`select * from billing_events where error is not null`), 3);

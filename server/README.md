@@ -49,6 +49,7 @@ says so on boot and carries on in the mode that absence implies.
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | required server-side Supabase Auth configuration |
 | `TURNSTILE_SITE_KEY` | required account-form widget key; the secret is configured in Supabase Auth |
 | `PAGECRAFT_AUTH_TEST_MODE` | explicit local-only challenge mode; production rejects it |
+| `PAGECRAFT_HOST_CLAIM_SECRET` | optional dedicated secret for actor-scoped custom-domain TXT challenges. Otherwise the cookie or database-gateway secret is reused. Without any shared secret, custom-domain claims fail closed |
 | `DATABASE_URL` | Postgres. Absent: in-memory Pagecraft data stores |
 | `PAGECRAFT_PUBLICATION_ROOT` | Absolute directory for immutable hosted publications and atomic public pointers. Required in production |
 | `NODE_ENV` | `production` turns on `Secure` auth cookies and strict configuration checks |
@@ -199,15 +200,21 @@ deployment is.
 
 ## Custom domains
 
-1. The client points their domain at the box — an A record, or a CNAME to it.
-2. `PUT /api/sites/:id/host` with `{"host":"acme.com"}` claims it. Until a site claims it, the
-   next step says no.
-3. The first HTTPS request arrives, Caddy has no certificate, and asks the app
+1. The client points their domain at the box, using an A record or a CNAME.
+2. Submit `PUT /api/sites/:id/host` with `{"host":"acme.com"}` while signed in as an owner. A
+   `422 domain_not_verified` response includes a `verification` object. Add its exact TXT record,
+   for example name `_pagecraft.acme.com` and value `pagecraft-verification=...`. The value is
+   bound to that hostname and signed-in Pagecraft profile. A record created for another profile
+   or hostname cannot claim this one. Wait for DNS propagation, then repeat the same request.
+   Site creation with a custom `host` uses the same challenge and response.
+3. After verification, Pagecraft assigns the hostname. Until then it remains unclaimed and the
+   certificate check says no.
+4. The first HTTPS request arrives, Caddy has no certificate, and asks the app
    (`/internal/tls-check?domain=…`) whether this is a domain it serves. Without that question
    anybody who points a DNS record here can make this server request a certificate on their
    behalf, and a few thousand of those is a rate limit and a box that can no longer get
    certificates for its own clients.
-4. On a 200 Caddy issues and proxies. On anything else it declines and nothing is requested.
+5. On a 200 Caddy issues and proxies. On anything else it declines and nothing is requested.
 
 `www` redirects to the apex in the proxy rather than as an alias per site, so the app keeps
 exactly one host per site — which is what makes looking a site up a lookup rather than a search.

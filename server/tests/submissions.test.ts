@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest';
+import { test, expect, vi } from 'vitest';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -39,6 +39,36 @@ test('discovery includes nested forms and used components, validation limits fie
   expect(submissionValues(forms[0], new URLSearchParams('email=qa@example.test&secret=ignored'))).toHaveLength(2);
   expect(() => submissionValues(forms[0], new URLSearchParams('email=a@b.test&email=c@d.test'))).toThrow();
 });
+test('hosted field names match the receiver and retain existing published answers', () => {
+  const doc = source();
+  doc.pages[0].tree[0].props.fields = [
+    { name: ' email ', label: 'Email', type: 'email', required: 1 },
+    { name: ' ', label: 'Phone', type: 'text' },
+    { name: 'phone', label: 'Alternate phone', type: 'text' },
+    { name: 'phone-1', label: 'Office', type: 'text' },
+  ];
+  const form = siteForms(doc)[0];
+  const html = renderSite(doc, [], 'https://editor.test/forms/site').files.get('index.html')!;
+  for (const key of ['email', 'phone-2', 'phone-3', 'phone-1']) expect(html).toContain('name="' + key + '"');
+  const modern = new URLSearchParams('email=one@example.test&phone-2=22&phone-3=33&phone-1=11');
+  const legacy = new URLSearchParams('email=one@example.test&phone=22&phone=33&phone-1=11');
+  const expected = ['one@example.test', '22', '33', '11'];
+  expect(submissionValues(form, modern).map(f => f.value)).toEqual(expected);
+  expect(submissionValues(form, legacy).map(f => f.value)).toEqual(expected);
+  legacy.append('phone-2', '44');
+  expect(() => submissionValues(form, legacy)).toThrow('Check phone');
+});
+
+test('a legacy unchecked checkbox leaves the adjacent same-name text answer intact', () => {
+  const form = siteForms(source())[0];
+  form.fields = [
+    { name: 'choice', label: 'Opt in', type: 'checkbox' },
+    { name: 'choice', label: 'Preference', type: 'text' },
+  ];
+  expect(submissionValues(form, new URLSearchParams('choice=blue')).map(f => f.value)).toEqual(['', 'blue']);
+  expect(submissionValues(form, new URLSearchParams('choice=on&choice=blue')).map(f => f.value)).toEqual(['on', 'blue']);
+});
+
 test('published receiver, private inbox and statuses enforce site scope and preserve entries across store instances', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pagecraft-submissions-'));
   try {
@@ -73,10 +103,14 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect(embeddedHtml).toContain('name="embedded" value="1"');
     const exportUrl = base + '/export.csv?form=qa-form&status=success';
     expect((await app.request(exportUrl)).status).toBe(403);
+    const reads = vi.spyOn(submissions, 'readEntries');
     const exported = await app.request(exportUrl,{headers:{cookie:'owner=1'}});
     expect(exported.headers.get('content-type')).toContain('text/csv');
     expect(exported.headers.get('content-disposition')).toBe('attachment; filename="submissions.csv"');
-    expect(await exported.text()).toContain('qa@example.test');
+    const csv = await exported.text();
+    expect(csv).toContain('"Email","Message"');
+    expect(csv).toContain('qa@example.test');
+    expect(reads.mock.calls.flatMap(([, batch]) => batch.map(row => row.id))).toEqual([entries[0].id]);
     expect((await app.request(base+'/'+entries[0].id+'/status',{method:'POST',headers:{cookie:'owner=1'},body:'status=read'})).status).toBe(404);
     const remove = (origin: string, body='confirmed=yes&embedded=1&form=qa-form') => app.request(base+'/'+entries[0].id+'/delete',{method:'POST',headers:{cookie:'owner=1',origin},body});
     expect((await remove('https://evil.test')).status).toBe(403);
