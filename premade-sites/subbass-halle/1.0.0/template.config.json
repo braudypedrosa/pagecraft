@@ -1,0 +1,173 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "subbass-halle",
+  "version": "1.0.0",
+  "name": "SUBBASS HALLE · Sound System & Vinyl Imprint",
+  "sampleName": "SUBBASS HALLE — Spatial Sound System, Club Program & Vinyl Imprint",
+  "description": "Four-page brutalist sound sanctuary and independent vinyl imprint featuring a 100dvh turbine-hall poster hero with live countdown, filterable date-block showbill schedule, dubplate calibration audio test, eight-stack horn hotspot diagram, mixed-aspect masonry vinyl archive with native lightbox, acoustic specification table, and season-pass booking.",
+  "categories": [
+    "Music & Culture",
+    "Events & Venues"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 248,
+      "height": 40
+    },
+    {
+      "id": "hero-hall-bg",
+      "file": "assets/hero-hall-bg.webp",
+      "name": "hero-hall-bg.webp",
+      "width": 1600,
+      "height": 960
+    },
+    {
+      "id": "closing-hall-bg",
+      "file": "assets/closing-hall-bg.webp",
+      "name": "closing-hall-bg.webp",
+      "width": 1600,
+      "height": 760
+    },
+    {
+      "id": "banner-sound",
+      "file": "assets/banner-sound.webp",
+      "name": "banner-sound.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-vinyl",
+      "file": "assets/banner-vinyl.webp",
+      "name": "banner-vinyl.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-venue",
+      "file": "assets/banner-venue.webp",
+      "name": "banner-venue.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "manifesto-rig",
+      "file": "assets/manifesto-rig.webp",
+      "name": "manifesto-rig.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "horn-array-map",
+      "file": "assets/horn-array-map.webp",
+      "name": "horn-array-map.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "dsp-workshop",
+      "file": "assets/dsp-workshop.webp",
+      "name": "dsp-workshop.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "masonry-lathe",
+      "file": "assets/masonry-lathe.webp",
+      "name": "masonry-lathe.webp",
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "id": "masonry-sl1200",
+      "file": "assets/masonry-sl1200.webp",
+      "name": "masonry-sl1200.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "masonry-grooves",
+      "file": "assets/masonry-grooves.webp",
+      "name": "masonry-grooves.webp",
+      "width": 900,
+      "height": 900
+    },
+    {
+      "id": "masonry-pitch",
+      "file": "assets/masonry-pitch.webp",
+      "name": "masonry-pitch.webp",
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "id": "masonry-reel",
+      "file": "assets/masonry-reel.webp",
+      "name": "masonry-reel.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "masonry-room",
+      "file": "assets/masonry-room.webp",
+      "name": "masonry-room.webp",
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "id": "footer-venue",
+      "file": "assets/footer-venue.webp",
+      "name": "footer-venue.webp",
+      "width": 720,
+      "height": 480
+    },
+    {
+      "id": "eng-lukas",
+      "file": "assets/eng-lukas.webp",
+      "name": "eng-lukas.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "eng-priya",
+      "file": "assets/eng-priya.webp",
+      "name": "eng-priya.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "eng-sora",
+      "file": "assets/eng-sora.webp",
+      "name": "eng-sora.webp",
+      "width": 960,
+      "height": 1200
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:subbass-halle:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "0c104911cf6bc87710e970d1179138a558a54dd45369550f05b0c8f9d9210a61"
+}

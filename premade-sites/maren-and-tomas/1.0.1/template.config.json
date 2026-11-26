@@ -1,0 +1,82 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "maren-and-tomas",
+  "version": "1.0.1",
+  "name": "Maren & Tomás",
+  "sampleName": "Maren & Tomás · Lisbon 2027",
+  "description": "Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.",
+  "categories": [
+    "Weddings & Celebrations",
+    "One Page"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "../1.0.0/assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "courtyard-hero",
+      "file": "../1.0.0/assets/courtyard-hero.webp",
+      "name": "courtyard-hero.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "dinner-table",
+      "file": "../1.0.0/assets/dinner-table.webp",
+      "name": "dinner-table.webp",
+      "width": 1200,
+      "height": 896
+    },
+    {
+      "id": "favicon",
+      "file": "../1.0.0/assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "../1.0.0/assets/logo.svg",
+      "name": "logo.svg",
+      "width": 240,
+      "height": 60
+    },
+    {
+      "id": "story-portrait-1",
+      "file": "../1.0.0/assets/story-portrait-1.webp",
+      "name": "story-portrait-1.webp",
+      "width": 896,
+      "height": 1200
+    },
+    {
+      "id": "story-portrait-2",
+      "file": "../1.0.0/assets/story-portrait-2.webp",
+      "name": "story-portrait-2.webp",
+      "width": 896,
+      "height": 1200
+    },
+    {
+      "id": "venue-map",
+      "file": "../1.0.0/assets/venue-map.svg",
+      "name": "venue-map.svg",
+      "width": 640,
+      "height": 360
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:maren-and-tomas:1.0.1",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "5b76be7e4444322734fa16aef1e35c24a2961f47551d256f220122ac844beaa3"
+}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">
+  <rect width="960" height="720" fill="#E8EEEA"/>
+  <g fill="#DFE7E2">
+    <rect x="44" y="42" width="196" height="118" rx="6"/><rect x="268" y="42" width="218" height="118" rx="6"/>
+    <rect x="524" y="42" width="210" height="118" rx="6"/><rect x="762" y="42" width="154" height="118" rx="6"/>
+    <rect x="44" y="544" width="246" height="132" rx="8"/><rect x="330" y="544" width="286" height="132" rx="8"/>
+  </g>
+  <rect x="650" y="528" width="266" height="148" rx="14" fill="#C7DACD"/>
+  <rect x="68" y="176" width="142" height="92" rx="12" fill="#C7DACD"/>
+  <path d="M0 320 Q 260 280, 490 342 T 960 306 L 960 440 Q 520 478, 280 416 T 0 448 Z" fill="#9EC6D8"/>
+  <path d="M0 320 Q 260 280, 490 342 T 960 306 M0 448 Q 280 416, 520 478 T 960 440" fill="none" stroke="#6B8E9C" stroke-width="2.5"/>
+  <path d="M470 250 L492 486 M156 266 L176 476 M792 246 L810 468" stroke="#C8D3CD" stroke-width="16" stroke-linecap="round"/>
+  <path d="M0 198 H960 M0 518 H960" stroke="#D3DDD7" stroke-width="14"/>
+  <g fill="#9B5B4A" stroke="#17231E" stroke-width="1.5">
+    <rect x="260" y="256" width="124" height="44" rx="4"/>
+    <rect x="540" y="220" width="136" height="46" rx="4"/>
+    <rect x="210" y="444" width="108" height="42" rx="4"/>
+    <rect x="456" y="468" width="138" height="46" rx="4"/>
+  </g>
+  <g fill="#C49A6C" stroke="#17231E" stroke-width="1.2">
+    <rect x="282" y="302" width="76" height="12" rx="2"/><rect x="572" y="268" width="74" height="12" rx="2"/>
+    <rect x="478" y="454" width="84" height="12" rx="2"/>
+  </g>
+  <text x="86" y="90" fill="#4E6058" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.8">AMSTERDAM EAST · ENTREPOTDOK</text>
+  <text x="676" y="610" fill="#2A4639" font-family="ui-monospace, monospace" font-size="12" font-weight="700" letter-spacing="1.4">ARTIS &amp; PLANTAGE GREEN</text>
+  <text x="114" y="388" fill="#1F4554" font-family="ui-monospace, monospace" font-size="12.5" font-weight="700" letter-spacing="2.2">ENTREPOTDOK BASIN</text>
+  <g transform="translate(866,86)">
+    <circle r="22" fill="#FFFFFF" stroke="#B7C5BE" stroke-width="1.5"/>
+    <polygon points="0,-13 5,5 0,1 -5,5" fill="#136B52"/>
+    <text y="34" text-anchor="middle" fill="#17231E" font-family="ui-monospace, monospace" font-size="10.5" font-weight="700">N</text>
+  </g>
+  <g transform="translate(48,660)">
+    <line x1="0" y1="0" x2="110" y2="0" stroke="#17231E" stroke-width="2.2"/>
+    <line x1="0" y1="-6" x2="0" y2="6" stroke="#17231E" stroke-width="2.2"/>
+    <line x1="110" y1="-6" x2="110" y2="6" stroke="#17231E" stroke-width="2.2"/>
+    <text x="55" y="-10" text-anchor="middle" fill="#17231E" font-family="ui-monospace, monospace" font-size="11" font-weight="700">100 M QUAY SCALE</text>
+  </g>
+</svg>

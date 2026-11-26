@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "maren-and-tomas",
+  "version": "1.0.1",
+  "sampleName": "Maren & Tomás · Lisbon 2027",
+  "packageSha256": "5b76be7e4444322734fa16aef1e35c24a2961f47551d256f220122ac844beaa3",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

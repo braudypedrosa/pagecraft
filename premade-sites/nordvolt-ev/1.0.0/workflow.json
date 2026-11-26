@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "nordvolt-ev",
+  "version": "1.0.0",
+  "sampleName": "NORDVOLT — 800-Volt Nordic Electric Shooting Brakes",
+  "packageSha256": "cfa883565b4f47ec0ef90613091ce25faf87c2e7b7dbefcdbe71fdce93f422ec",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

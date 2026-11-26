@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'typemask' | 'fullmenu' | 'swatchshop' | 'snaprail' | 'scrollsteps' | 'dragstrip' | 'stayfilter' | 'roicalc' | 'stackcards' | 'showbill' | 'masonry' | 'maplist' | 'thumbviewer' | 'financeswitch' | 'rangeslider'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -300,6 +300,51 @@ export interface SlotpickerProps extends FormBlockProps {
   serviceLabel?: string; guestLabel?: string; timeLabel?: string; totalLabel?: string; perGuestLabel?: string; fixedLabel?: string;
   passes?: SlotpickerItem[]; slots?: { time?: string }[];
 }
+export interface TypemaskProps { wordmark?: string; maskSrc?: string; maskAlt?: string }
+export interface FullmenuItem { label?: string; href?: string; meta?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface FullmenuProps { triggerLabel?: string; closeLabel?: string; menuNote?: string; menuItems?: FullmenuItem[] }
+export interface SwatchshopItem { prodName?: string; prodPrice?: string; prodSpec?: string; href?: string; ctaLabel?: string; c1Name?: string; c1Hex?: string; c1Src?: string; c2Name?: string; c2Hex?: string; c2Src?: string; c3Name?: string; c3Hex?: string; c3Src?: string; alt?: string; w?: string; h?: string }
+export interface SwatchshopProps { gridCols?: string; products?: SwatchshopItem[] }
+export interface SnaprailItem { cardTag?: string; title?: string; detail?: string; stat?: string; bgHex?: string; fgHex?: string }
+export interface SnaprailProps { prevLabel?: string; nextLabel?: string; railCards?: SnaprailItem[] }
+export interface ScrollstepsItem { title?: string; badge?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface ScrollstepsProps { steps?: ScrollstepsItem[] }
+export interface DragstripItem { title?: string; meta?: string; src?: string; alt?: string; href?: string; w?: string; h?: string }
+export interface DragstripProps { cardRatio?: string; ariaLabel?: string; slides?: DragstripItem[] }
+export interface StayfilterItem { stayName?: string; location?: string; summary?: string; sleeps?: string; tags?: string; lowRate?: string; midRate?: string; highRate?: string; ctaLabel?: string; href?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface StayfilterProps { currencySymbol?: string; defaultGuests?: string; maxGuests?: string; defaultSeason?: string; lowLabel?: string; midLabel?: string; highLabel?: string; guestsLabel?: string; singularLabel?: string; unitLabel?: string; perNightLabel?: string; emptyText?: string; stays?: StayfilterItem[] }
+export interface RoicalcProps {
+  heading?: string; summary?: string;
+  slider1Label?: string; slider1Min?: string; slider1Max?: string; slider1Step?: string; slider1Value?: string; slider1Unit?: string;
+  slider2Label?: string; slider2Min?: string; slider2Max?: string; slider2Step?: string; slider2Value?: string; slider2Unit?: string;
+  baseFactor?: string; savingsPct?: string; co2Factor?: string; currencySymbol?: string;
+  baselineLabel?: string; optimizedLabel?: string; savingsLabel?: string; co2Label?: string; ctaLabel?: string; href?: string;
+}
+export interface StackcardsItem { stepNum?: string; badge?: string; title?: string; detail?: string; stat?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface StackcardsProps { stickyOffset?: string; cards?: StackcardsItem[] }
+export interface ShowbillItem { dayNum?: string; month?: string; title?: string; artists?: string; room?: string; doors?: string; price?: string; ctaLabel?: string; href?: string }
+export interface ShowbillProps { allLabel?: string; shows?: ShowbillItem[] }
+export interface MasonryItem { src?: string; alt?: string; title?: string; meta?: string; ratio?: string; w?: string; h?: string }
+export interface MasonryProps { cols?: string; items?: MasonryItem[] }
+export interface MaplistItem {
+  pinLabel?: string; price?: string; title?: string; meta?: string; detail?: string;
+  x?: string; y?: string; src?: string; alt?: string; ctaLabel?: string; href?: string; w?: string; h?: string;
+}
+export interface MaplistProps { mapSrc?: string; mapAlt?: string; items?: MaplistItem[] }
+export interface ThumbviewerItem { src?: string; alt?: string; label?: string; title?: string; meta?: string; w?: string; h?: string }
+export interface ThumbviewerProps { ratio?: string; items?: ThumbviewerItem[] }
+export interface FinanceswitchItem {
+  title?: string; badge?: string; specs?: string;
+  leasePrice?: string; cashPrice?: string; leaseNote?: string; cashNote?: string;
+  ctaLabel?: string; href?: string; src?: string; alt?: string; w?: string; h?: string;
+}
+export interface FinanceswitchProps { leaseLabel?: string; cashLabel?: string; defaultMode?: string; items?: FinanceswitchItem[] }
+export interface RangesliderProps {
+  heading?: string; summary?: string; tempLabel?: string;
+  minTemp?: string; maxTemp?: string; defaultTemp?: string; baseRangeKm?: string;
+  wheelOptions?: string; speedLabel?: string; chargeLabel?: string; heatLabel?: string;
+  ctaLabel?: string; href?: string; note?: string;
+}
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -310,7 +355,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; typemask: TypemaskProps; fullmenu: FullmenuProps; swatchshop: SwatchshopProps; snaprail: SnaprailProps; scrollsteps: ScrollstepsProps; dragstrip: DragstripProps; stayfilter: StayfilterProps; roicalc: RoicalcProps; stackcards: StackcardsProps; showbill: ShowbillProps; masonry: MasonryProps; maplist: MaplistProps; thumbviewer: ThumbviewerProps; financeswitch: FinanceswitchProps; rangeslider: RangesliderProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

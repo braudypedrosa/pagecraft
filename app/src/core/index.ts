@@ -37,7 +37,11 @@ import {
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
-  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS,
+  TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS,
+  DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS,
+  SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS,
+  FINANCESWITCH_CSS, FINANCESWITCH_JS, RANGESLIDER_CSS, RANGESLIDER_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -47,7 +51,7 @@ const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').re
 /** Nav menu, manual Breadcrumb, and Exhibit index are the widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
-const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills';
+const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs' || node.type === 'exhibit' || node.type === 'clocks' || node.type === 'roster' || node.type === 'tiers' || node.type === 'qapills' || node.type === 'financeswitch';
 
 /** A WordPress-owned destination is stored in the editor as a typed, target-neutral
  * reference. It is not a browser URL: `pageHref` converts it to the exact signed
@@ -2205,6 +2209,804 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--sp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+  typemask: {
+    label: 'Masked wordmark', icon: 'typemask', level: 4,
+    caps: ['spacing', 'typography', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        wordmark: 'STUDIO',
+        maskSrc: '',
+        maskAlt: 'Display wordmark'
+      },
+      css: { d: { width: '100%' }, t: {}, m: {} }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'wordmark', label: 'Display wordmark', ph: 'STUDIO' },
+        { t: 'img', k: 'maskSrc', label: 'Fill image' },
+        { t: 'text', k: 'maskAlt', label: 'Accessible label', ph: 'Display wordmark' }
+      ],
+      style: []
+    }
+  },
+  fullmenu: {
+    label: 'Fullscreen menu', icon: 'fullmenu', level: 4,
+    caps: ['spacing', 'typography', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        triggerLabel: 'Menu',
+        closeLabel: 'Close',
+        menuNote: '',
+        menuItems: [
+          { label: 'Home', href: 'index.html', meta: '', src: '', alt: '' },
+          { label: 'Products', href: '#products', meta: '', src: '', alt: '' },
+          { label: 'About', href: '#about', meta: '', src: '', alt: '' },
+          { label: 'Contact', href: '#contact', meta: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          '--fm-bg': '#0A0E0C', '--fm-ink': '#F4F7F5', '--fm-muted': '#A6B5AE',
+          '--fm-accent': '#C9F24B', '--fm-btn-bg': 'rgba(244,247,245,0.08)',
+          '--fm-btn-fg': '#F4F7F5', '--fm-btn-border': 'rgba(244,247,245,0.26)'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'triggerLabel', label: 'Button label', ph: 'Menu' },
+        { t: 'text', k: 'closeLabel', label: 'Close label', ph: 'Close' },
+        { t: 'text', k: 'menuNote', label: 'Drawer header note', ph: 'Optional note' },
+        {
+          t: 'qa', k: 'menuItems', label: 'Navigation items', addLabel: 'Add link',
+          rowFields: [
+            { k: 'label', label: 'Link label', ph: 'Page name', def: 'New page' },
+            { k: 'href', label: 'Destination URL', ph: 'about.html', def: '#' },
+            { k: 'meta', label: 'Descriptor', ph: 'Optional subtitle', def: '' },
+            { k: 'src', label: 'Hover preview image', ph: 'asset:preview', def: '', img: 1 },
+            { k: 'alt', label: 'Preview alt text', ph: 'Describe image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--fm-bg', label: 'Drawer background', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-ink', label: 'Drawer text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-muted', label: 'Muted text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-accent', label: 'Hover accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-btn-bg', label: 'Trigger fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fm-btn-fg', label: 'Trigger text', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+  swatchshop: {
+    label: 'Product swatches', icon: 'swatchshop', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        gridCols: '4',
+        products: [
+          { prodName: 'First product', prodPrice: '$120', prodSpec: '', href: '', ctaLabel: 'View details', c1Name: 'Charcoal', c1Hex: '#1F2421', c1Src: '', c2Name: 'Forest', c2Hex: '#145C3E', c2Src: '', alt: '' },
+          { prodName: 'Second product', prodPrice: '$160', prodSpec: '', href: '', ctaLabel: 'View details', c1Name: 'Forest', c1Hex: '#145C3E', c1Src: '', c2Name: 'Rust', c2Hex: '#9E3D22', c2Src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--swp-surface': cvar('surface'), '--swp-media-bg': '#E7ECE9',
+          '--swp-ink': cvar('ink'), '--swp-muted': cvar('muted'), '--swp-line': cvar('line'),
+          '--swp-accent': cvar('brand'), '--swp-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'gridCols', label: 'Desktop columns', opts: [['2', '2 columns'], ['3', '3 columns'], ['4', '4 columns']] },
+        {
+          t: 'qa', k: 'products', label: 'Products', addLabel: 'Add product',
+          rowFields: [
+            { k: 'prodName', label: 'Product name', ph: 'Product name', def: 'New product' },
+            { k: 'prodPrice', label: 'Price', ph: '$120', def: '$120' },
+            { k: 'prodSpec', label: 'Subtitle / spec', ph: 'Optional detail', def: '' },
+            { k: 'href', label: 'Product link', ph: 'products.html', def: '' },
+            { k: 'ctaLabel', label: 'Link label', ph: 'View details', def: 'View details' },
+            { k: 'c1Name', label: 'Swatch 1 name', ph: 'Charcoal', def: 'Charcoal' },
+            { k: 'c1Hex', label: 'Swatch 1 hex', ph: '#1F2421', def: '#1F2421' },
+            { k: 'c1Src', label: 'Swatch 1 image', ph: 'asset:item-1', def: '', img: 1 },
+            { k: 'c2Name', label: 'Swatch 2 name', ph: 'Forest', def: '' },
+            { k: 'c2Hex', label: 'Swatch 2 hex', ph: '#145C3E', def: '#145C3E' },
+            { k: 'c2Src', label: 'Swatch 2 image', ph: 'asset:item-2', def: '', img: 1 },
+            { k: 'c3Name', label: 'Swatch 3 name', ph: 'Rust', def: '' },
+            { k: 'c3Hex', label: 'Swatch 3 hex', ph: '#9E3D22', def: '#9E3D22' },
+            { k: 'c3Src', label: 'Swatch 3 image', ph: 'asset:item-3', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe product', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--swp-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-media-bg', label: 'Image backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--swp-accent', label: 'Link accent', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--swp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  snaprail: {
+    label: 'Snap card rail', icon: 'snaprail', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        prevLabel: 'Previous card',
+        nextLabel: 'Next card',
+        railCards: [
+          { cardTag: '', title: 'First highlight', detail: 'Add a short point that stands on its own.', stat: 'Key figure', bgHex: '#14261F', fgHex: '#F2F6F3' },
+          { cardTag: '', title: 'Second highlight', detail: 'Visitors scroll or use the arrows to read across.', stat: 'Key figure', bgHex: '#1E272E', fgHex: '#F2F5F7' },
+          { cardTag: '', title: 'Third highlight', detail: 'Each card can carry its own background and text colour.', stat: 'Key figure', bgHex: '#E6ECE8', fgHex: '#0E1512' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sr-card-w': '340px', '--sr-card-h': '400px', '--sr-radius': '14px',
+          '--sr-btn-bg': cvar('surface'), '--sr-btn-ink': cvar('ink'), '--sr-btn-line': cvar('line')
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'prevLabel', label: 'Previous button label', ph: 'Previous card' },
+        { t: 'text', k: 'nextLabel', label: 'Next button label', ph: 'Next card' },
+        {
+          t: 'qa', k: 'railCards', label: 'Rail cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'title', label: 'Card heading', ph: 'Card heading', def: 'New card' },
+            { k: 'detail', label: 'Body copy', ph: 'Short description', def: '', area: 1 },
+            { k: 'stat', label: 'Bottom metric', ph: 'Optional figure', def: '' },
+            { k: 'bgHex', label: 'Card fill hex', ph: '#14261F', def: '#14261F' },
+            { k: 'fgHex', label: 'Card text hex', ph: '#F2F6F3', def: '#F2F6F3' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--sr-card-w', label: 'Card width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--sr-card-h', label: 'Card min height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--sr-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--sr-btn-bg', label: 'Arrow background', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sr-btn-ink', label: 'Arrow icon colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sr-btn-line', label: 'Arrow border', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+  scrollsteps: {
+    label: 'Scroll steps', icon: 'scrollsteps', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        steps: [
+          { title: 'First step', badge: '', detail: 'Explain what happens first.', src: '', alt: '' },
+          { title: 'Second step', badge: '', detail: 'The line beside the steps fills as visitors scroll.', src: '', alt: '' },
+          { title: 'Third step', badge: '', detail: 'Add an optional image to any step.', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ss-accent': cvar('brand'), '--ss-on': brandActionForeground(), '--ss-ink': cvar('ink'),
+          '--ss-muted': cvar('muted'), '--ss-line': cvar('line'),
+          '--ss-surface': cvar('surface'), '--ss-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'steps', label: 'Process steps', addLabel: 'Add step',
+          rowFields: [
+            { k: 'title', label: 'Step heading', ph: 'Step heading', def: 'New step' },
+            { k: 'badge', label: 'Badge (optional)', ph: 'Optional note', def: '' },
+            { k: 'detail', label: 'Description', ph: 'Step details', def: '', area: 1 },
+            { k: 'src', label: 'Step image', ph: 'asset:step', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ss-accent', label: 'Step line accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-on', label: 'Checkmark on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-surface', label: 'Step surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ss-line', label: 'Rule & spine colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ss-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  dragstrip: {
+    label: 'Draggable filmstrip', icon: 'dragstrip', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        cardRatio: '3 / 2',
+        ariaLabel: 'Scroll gallery',
+        slides: [
+          { title: 'First space', meta: 'Ground floor', src: '', alt: '', href: '' },
+          { title: 'Second space', meta: 'Courtyard wing', src: '', alt: '', href: '' },
+          { title: 'Third space', meta: 'Upper terrace', src: '', alt: '', href: '' },
+          { title: 'Fourth space', meta: 'Garden pavilion', src: '', alt: '', href: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ds-accent': cvar('brand'), '--ds-ink': cvar('ink'),
+          '--ds-muted': cvar('muted'), '--ds-line': cvar('line'),
+          '--ds-card-w': '440px', '--ds-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'cardRatio', label: 'Image ratio', opts: [['3 / 2', '3:2 landscape'], ['16 / 10', '16:10 wide'], ['4 / 3', '4:3 classic'], ['4 / 5', '4:5 portrait']] },
+        { t: 'text', k: 'ariaLabel', label: 'Accessible label', ph: 'Scroll gallery' },
+        {
+          t: 'qa', k: 'slides', label: 'Filmstrip frames', addLabel: 'Add frame',
+          rowFields: [
+            { k: 'title', label: 'Title', ph: 'Space or suite', def: 'New frame' },
+            { k: 'meta', label: 'Detail', ph: 'Optional note', def: '' },
+            { k: 'src', label: 'Image', ph: 'asset:frame', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'href', label: 'Optional link', ph: 'villas.html', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ds-accent', label: 'Scrollbar thumb', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ds-line', label: 'Scrollbar track', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ds-card-w', label: 'Frame max width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--ds-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  stayfilter: {
+    label: 'Stay finder', icon: 'stayfilter', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        currencySymbol: '$',
+        defaultGuests: '2',
+        maxGuests: '8',
+        defaultSeason: 'mid',
+        lowLabel: 'Low season',
+        midLabel: 'Mid season',
+        highLabel: 'High season',
+        guestsLabel: 'Guests',
+        singularLabel: 'stay',
+        unitLabel: 'stays',
+        perNightLabel: 'per night',
+        emptyText: 'No single stay sleeps that many guests. Try fewer guests or ask about combining two.',
+        stays: [
+          { stayName: 'First house', location: 'Coastal wing', summary: 'Add a short description of the space and outlook.', sleeps: '4', tags: 'Sleeps 4, 2 bedrooms, Terrace', lowRate: '320', midRate: '420', highRate: '540', ctaLabel: 'Check dates', href: '', src: '', alt: '' },
+          { stayName: 'Second house', location: 'Harbour side', summary: 'Visitors step guest count or switch season to compare rates.', sleeps: '6', tags: 'Sleeps 6, 3 bedrooms, Private garden', lowRate: '460', midRate: '580', highRate: '740', ctaLabel: 'Check dates', href: '', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sf-accent': cvar('brand'), '--sf-on': brandActionForeground(),
+          '--sf-surface': cvar('surface'), '--sf-bg': cvar('bg'),
+          '--sf-ink': cvar('ink'), '--sf-muted': cvar('muted'), '--sf-line': cvar('line'),
+          '--sf-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'stays', label: 'Stays', addLabel: 'Add stay',
+          rowFields: [
+            { k: 'stayName', label: 'Name', ph: 'House or suite', def: 'New stay' },
+            { k: 'location', label: 'Setting / wing', ph: 'Cliffside terrace', def: '' },
+            { k: 'sleeps', label: 'Max guests', ph: '4', def: '4' },
+            { k: 'lowRate', label: 'Low season rate', ph: '320', def: '320' },
+            { k: 'midRate', label: 'Mid season rate', ph: '420', def: '420' },
+            { k: 'highRate', label: 'High season rate', ph: '540', def: '540' },
+            { k: 'tags', label: 'Highlights (comma-separated)', ph: 'Sleeps 4, 2 bedrooms, Pool', def: '' },
+            { k: 'src', label: 'Photo', ph: 'asset:stay', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe stay', def: '' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Check dates', def: 'Check dates' },
+            { k: 'href', label: 'Button link', ph: 'contact.html', def: '' },
+            { k: 'summary', label: 'Description', ph: 'One-sentence overview', def: '', area: 1 }
+          ]
+        },
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '$' },
+        { t: 'unit', k: 'defaultGuests', label: 'Starting guests', integer: 1, min: 1, max: 24, units: [''] },
+        { t: 'unit', k: 'maxGuests', label: 'Maximum guests', integer: 1, min: 1, max: 24, units: [''] },
+        { t: 'select', k: 'defaultSeason', label: 'Default season', opts: [['low', 'Low season'], ['mid', 'Mid season'], ['high', 'High season']] },
+        { t: 'text', k: 'lowLabel', label: 'Low season label', ph: 'Nov to Mar' },
+        { t: 'text', k: 'midLabel', label: 'Mid season label', ph: 'Apr, May & Oct' },
+        { t: 'text', k: 'highLabel', label: 'High season label', ph: 'Jun to Sep' },
+        { t: 'text', k: 'guestsLabel', label: 'Guests label', ph: 'Guests' },
+        { t: 'text', k: 'singularLabel', label: 'Singular noun', ph: 'villa' },
+        { t: 'text', k: 'unitLabel', label: 'Plural noun', ph: 'villas' },
+        { t: 'text', k: 'perNightLabel', label: 'Rate period label', ph: 'per night' },
+        { t: 'area', k: 'emptyText', label: 'Empty state message', ph: 'No stay sleeps that many guests.' }
+      ],
+      style: [
+        { t: 'color', c: '--sf-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-bg', label: 'Pill track fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sf-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sf-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  roicalc: {
+    label: 'ROI calculator', icon: 'roicalc', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        heading: 'Model annual bunker & idle savings',
+        summary: 'Adjust active fleet vessels and sea-days to estimate fuel and emission savings from dynamic speed-to-berth pacing.',
+        slider1Label: 'Active vessels',
+        slider1Min: '4', slider1Max: '60', slider1Step: '1', slider1Value: '18', slider1Unit: 'vessels',
+        slider2Label: 'Operating sea-days / yr',
+        slider2Min: '120', slider2Max: '340', slider2Step: '10', slider2Value: '280', slider2Unit: 'days',
+        baseFactor: '1450',
+        savingsPct: '31',
+        co2Factor: '4.2',
+        currencySymbol: '€',
+        baselineLabel: 'Manual queue & steaming burn',
+        optimizedLabel: 'With dynamic pacing (−31%)',
+        savingsLabel: 'Estimated annual fuel & port savings',
+        co2Label: 't CO₂e avoided annually',
+        ctaLabel: 'Request fleet ledger',
+        href: ''
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--rc-bg': cvar('surface'), '--rc-card-bg': '#0B1420', '--rc-on': '#FFFFFF',
+          '--rc-card-muted': '#DCE6F5', '--rc-ink': cvar('ink'), '--rc-muted': cvar('muted'),
+          '--rc-accent': '#E59A28', '--rc-cta-ink': '#0F1722', '--rc-bar': cvar('brand'),
+          '--rc-line': cvar('line'), '--rc-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'heading', label: 'Heading', ph: 'Model annual savings' },
+        { t: 'area', k: 'summary', label: 'Summary', ph: 'Adjust controls to estimate savings.' },
+        { t: 'text', k: 'slider1Label', label: 'Slider 1 label', ph: 'Active vessels' },
+        { t: 'unit', k: 'slider1Min', label: 'Slider 1 min', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Max', label: 'Slider 1 max', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Step', label: 'Slider 1 step', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider1Value', label: 'Slider 1 default', integer: 1, units: [''] },
+        { t: 'text', k: 'slider1Unit', label: 'Slider 1 unit', ph: 'vessels' },
+        { t: 'text', k: 'slider2Label', label: 'Slider 2 label', ph: 'Sea-days / yr' },
+        { t: 'unit', k: 'slider2Min', label: 'Slider 2 min', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Max', label: 'Slider 2 max', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Step', label: 'Slider 2 step', integer: 1, units: [''] },
+        { t: 'unit', k: 'slider2Value', label: 'Slider 2 default', integer: 1, units: [''] },
+        { t: 'text', k: 'slider2Unit', label: 'Slider 2 unit', ph: 'days' },
+        { t: 'text', k: 'baseFactor', label: 'Daily baseline cost', ph: '1450' },
+        { t: 'text', k: 'savingsPct', label: 'Savings %', ph: '31' },
+        { t: 'text', k: 'co2Factor', label: 'Daily CO₂ tonnes', ph: '4.2' },
+        { t: 'text', k: 'currencySymbol', label: 'Currency symbol', ph: '€' },
+        { t: 'text', k: 'baselineLabel', label: 'Baseline label', ph: 'Manual baseline' },
+        { t: 'text', k: 'optimizedLabel', label: 'Optimized label', ph: 'Optimized routing' },
+        { t: 'text', k: 'savingsLabel', label: 'Savings kicker', ph: 'Estimated annual savings' },
+        { t: 'text', k: 'co2Label', label: 'Emissions suffix', ph: 't CO₂e avoided annually' },
+        { t: 'text', k: 'ctaLabel', label: 'Button label', ph: 'Request fleet ledger' },
+        { t: 'text', k: 'href', label: 'Button link', ph: 'ports.html#fleet-audit' }
+      ],
+      style: [
+        { t: 'color', c: '--rc-bg', label: 'Container surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-card-bg', label: 'Readout panel bg', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-on', label: 'Readout text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-card-muted', label: 'Readout muted', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-accent', label: 'Highlight amber', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-cta-ink', label: 'CTA text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-bar', label: 'Slider track', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-muted', label: 'Muted colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rc-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  stackcards: {
+    label: 'Stacked cards', icon: 'stackcards', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stickyOffset: '88px',
+        cards: [
+          { stepNum: '01', badge: 'Berth Telemetry', title: 'Ingress slot negotiation', detail: 'Continuously ingest quay crane schedules 72 hours ahead of pilot station ETA.', stat: '14 European terminals linked', src: '', alt: '' },
+          { stepNum: '02', badge: 'Speed Pacing', title: 'Cubic propeller curve match', detail: 'Trim two knots in open water to arrive on schedule rather than idling at anchorage.', stat: '−31% idle fuel burn', src: '', alt: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sc-top': '88px',
+          '--sc-surface': cvar('surface'), '--sc-ink': cvar('ink'),
+          '--sc-muted': cvar('muted'), '--sc-accent': cvar('brand'),
+          '--sc-badge-bg': cvar('ink'), '--sc-badge-fg': '#FFFFFF',
+          '--sc-line': cvar('line'), '--sc-radius': '14px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', k: 'stickyOffset', label: 'Sticky top offset', units: U.size },
+        {
+          t: 'qa', k: 'cards', label: 'Stacked cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'stepNum', label: 'Step code', ph: '01', def: '01' },
+            { k: 'badge', label: 'Category badge', ph: 'Telemetry', def: 'Stage' },
+            { k: 'title', label: 'Heading', ph: 'Protocol step title', def: 'New card' },
+            { k: 'stat', label: 'Key metric', ph: '−31% idle burn', def: '' },
+            { k: 'src', label: 'Image', ph: 'asset:step', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'detail', label: 'Detail', ph: 'Short technical note', def: '', area: 1 }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sc-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-badge-bg', label: 'Step pill bg', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-badge-fg', label: 'Step pill text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sc-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sc-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  showbill: {
+    label: 'Venue bill', icon: 'showbill', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        allLabel: 'All rooms',
+        shows: [
+          { dayNum: '06', month: 'NOV', title: 'Rrose · Polyrhythmic Sub Study', artists: 'Rrose (Live A/V) · Neel · Ena Lind', room: 'Turbine Hall', doors: '23:30 – 07:00', price: '€24', ctaLabel: 'Passes →', href: '' },
+          { dayNum: '13', month: 'NOV', title: 'Sub-30Hz Horn Calibration Night', artists: 'Klangwerk Resident Crew · Polar Inertia', room: 'Vault B2', doors: '22:00 – 05:00', price: '€18', ctaLabel: 'Passes →', href: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--sb-surface': '#14141A', '--sb-bg': '#0D0D10', '--sb-ink': '#F5F5FA',
+          '--sb-muted': '#B4B4C6', '--sb-accent': '#9D6BFF', '--sb-accent-ink': '#C8ADFF',
+          '--sb-on': '#0D0D10', '--sb-line': '#282834', '--sb-radius': '10px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'allLabel', label: 'All rooms label', ph: 'All rooms' },
+        {
+          t: 'qa', k: 'shows', label: 'Program dates', addLabel: 'Add show',
+          rowFields: [
+            { k: 'dayNum', label: 'Day', ph: '06', def: '01' },
+            { k: 'month', label: 'Month', ph: 'NOV', def: 'NOV' },
+            { k: 'title', label: 'Session title', ph: 'Night or live set', def: 'New session' },
+            { k: 'artists', label: 'Lineup', ph: 'Artists & live acts', def: '' },
+            { k: 'room', label: 'Room', ph: 'Turbine Hall', def: 'Main Hall' },
+            { k: 'doors', label: 'Hours', ph: '23:30 – 07:00', def: '23:00 – 06:00' },
+            { k: 'price', label: 'Entry price', ph: '€24', def: '€20' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Passes →', def: 'Passes →' },
+            { k: 'href', label: 'Button link', ph: 'venue.html#passes', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--sb-surface', label: 'Row surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-bg', label: 'Backing surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-accent', label: 'Accent fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-accent-ink', label: 'Meta highlight', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sb-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--sb-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  masonry: {
+    label: 'Masonry archive', icon: 'masonry', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        cols: '3',
+        items: [
+          { src: '', alt: 'Catalog item 1', title: 'SUB-014 · Dubplate Test', meta: '180 g · 45 RPM', ratio: '4 / 5' },
+          { src: '', alt: 'Catalog item 2', title: 'SUB-015 · Concrete Resonance', meta: '2xLP · Half-Speed Master', ratio: '3 / 2' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ms-surface': '#14141A', '--ms-ink': '#F5F5FA',
+          '--ms-muted': '#B4B4C6', '--ms-accent': '#9D6BFF',
+          '--ms-line': '#282834', '--ms-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'cols', label: 'Columns', opts: [['2', '2 columns'], ['3', '3 columns'], ['4', '4 columns']] },
+        {
+          t: 'qa', k: 'items', label: 'Archive plates', addLabel: 'Add plate',
+          rowFields: [
+            { k: 'src', label: 'Image', ph: 'asset:plate', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' },
+            { k: 'title', label: 'Title', ph: 'Catalogue title', def: 'New plate' },
+            { k: 'meta', label: 'Metadata', ph: '180 g · 45 RPM', def: '' },
+            { k: 'ratio', label: 'Frame aspect', ph: '4 / 5', def: '4 / 5' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ms-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-accent', label: 'Focus ring accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ms-line', label: 'Border colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ms-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  maplist: {
+    label: 'Map listings', icon: 'maplist', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        mapSrc: '',
+        mapAlt: 'Entrepotdok canal district map',
+        items: [
+          { pinLabel: '€2,150', price: '€2,150 / mo', title: 'Wharf Loft 2B', meta: '2 Bed · 94 m² · South Quay Balcony', detail: 'Four-metre arched steel glazing with direct spruce mezzanine.', x: '34', y: '44', src: '', alt: 'Wharf Loft 2B living room', ctaLabel: 'Schedule Tour →', href: 'viewings.html#book' },
+          { pinLabel: '€2,890', price: '€2,890 / mo', title: 'Lockkeeper Penthouse', meta: '3 Bed · 138 m² · Private Roof Terrace', detail: 'Corner top-floor loft overlooking the eastern basin.', x: '66', y: '34', src: '', alt: 'Lockkeeper Penthouse terrace', ctaLabel: 'Schedule Tour →', href: 'viewings.html#book' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--ml-surface': '#FFFFFF', '--ml-bg': '#DCE5DF',
+          '--ml-ink': cvar('ink'), '--ml-muted': cvar('muted'),
+          '--ml-accent': cvar('brand'), '--ml-on': '#FFFFFF',
+          '--ml-pin': cvar('ink'), '--ml-line': cvar('line'), '--ml-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'img', k: 'mapSrc', label: 'Map background' },
+        { t: 'text', k: 'mapAlt', label: 'Map description', ph: 'District or site plan' },
+        {
+          t: 'qa', k: 'items', label: 'Mapped residences', addLabel: 'Add listing',
+          rowFields: [
+            { k: 'pinLabel', label: 'Pin pill label', ph: '€2,150', def: 'Lot' },
+            { k: 'price', label: 'Price / rate', ph: '€2,150 / mo', def: '€2,000 / mo' },
+            { k: 'title', label: 'Listing title', ph: 'Wharf Loft 2B', def: 'New residence' },
+            { k: 'meta', label: 'Specifications', ph: '2 Bed · 94 m²', def: '' },
+            { k: 'detail', label: 'Short summary', ph: 'South quay exposure', def: '' },
+            { k: 'x', label: 'Pin X (%)', ph: '34', def: '50' },
+            { k: 'y', label: 'Pin Y (%)', ph: '44', def: '50' },
+            { k: 'src', label: 'Thumbnail image', ph: 'asset:listing', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe room', def: '' },
+            { k: 'ctaLabel', label: 'Bar button label', ph: 'Schedule Tour →', def: 'Schedule Tour →' },
+            { k: 'href', label: 'Bar button link', ph: 'viewings.html#book', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--ml-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-bg', label: 'Map backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-accent', label: 'Active accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-on', label: 'Text on pin/CTA', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-pin', label: 'Default pin fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--ml-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--ml-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  thumbviewer: {
+    label: 'Thumbnail viewer', icon: 'thumbviewer', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '16 / 10',
+        items: [
+          { src: '', alt: 'Double-height south quay living space', label: '01 Living', title: 'Lot 04B · South Quay Living Hall', meta: 'Four-metre triple-glazed arches & wide-plank oak' },
+          { src: '', alt: 'Open timber kitchen island', label: '02 Kitchen', title: 'Lot 04B · Solid Spruce Kitchen Island', meta: 'Induction downdraft & aquathermal manifold core' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tv-surface': '#FFFFFF', '--tv-ink': cvar('ink'),
+          '--tv-muted': cvar('muted'), '--tv-accent': cvar('brand'),
+          '--tv-on': '#FFFFFF', '--tv-line': cvar('line'), '--tv-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'ratio', label: 'Stage aspect', opts: [['16 / 10', '16:10 Editorial'], ['16 / 9', '16:9 Widescreen'], ['4 / 3', '4:3 Architectural']] },
+        {
+          t: 'qa', k: 'items', label: 'Gallery views', addLabel: 'Add view',
+          rowFields: [
+            { k: 'src', label: 'Plate image', ph: 'asset:plate', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe view', def: '' },
+            { k: 'label', label: 'Thumb caption', ph: '01 Living', def: 'View' },
+            { k: 'title', label: 'Bar heading', ph: 'Room or elevation title', def: 'Architectural view' },
+            { k: 'meta', label: 'Bar details', ph: 'Dimensions & finish', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--tv-surface', label: 'Frame surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-muted', label: 'Meta colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-accent', label: 'Active ring & CTA', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-on', label: 'Hover button ink', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tv-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--tv-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  financeswitch: {
+    label: 'Finance switch', icon: 'financeswitch', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        leaseLabel: 'Monthly lease (36 mo)',
+        cashLabel: 'Cash purchase',
+        defaultMode: 'lease',
+        items: [
+          {
+            title: 'NV-01 Single Motor', badge: '590 km WLTP',
+            specs: '220 kW rear drive · 800V LFP · 18 min fast charge',
+            leasePrice: '€549 / mo', cashPrice: '€56,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-01 Single Motor studio view'
+          },
+          {
+            title: 'NV-02 AWD Shooting Brake', badge: '640 km WLTP',
+            specs: '360 kW dual SiC · 1,820 L load bay · CO₂ heat pump',
+            leasePrice: '€649 / mo', cashPrice: '€64,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-02 AWD Shooting Brake studio view'
+          },
+          {
+            title: 'NV-03 Track Pack', badge: '610 km WLTP',
+            specs: '440 kW torque-vectoring AWD · Brembo 6-piston · Öhlins',
+            leasePrice: '€769 / mo', cashPrice: '€74,900',
+            leaseNote: '36 months · 15,000 km/yr · €0 down', cashNote: 'Direct factory price · 8-year battery warranty',
+            ctaLabel: 'Book 48h Test Drive', href: 'test-drive.html#book', src: '', alt: 'NV-03 Track Pack studio view'
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--fs-surface': cvar('surface'), '--fs-bg': cvar('bg'),
+          '--fs-ink': cvar('ink'), '--fs-muted': cvar('muted'),
+          '--fs-accent': cvar('brand'), '--fs-on': '#0A0E14',
+          '--fs-line': cvar('line'), '--fs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'leaseLabel', label: 'Lease button label', ph: 'Monthly lease (36 mo)' },
+        { t: 'text', k: 'cashLabel', label: 'Cash button label', ph: 'Cash purchase' },
+        { t: 'select', k: 'defaultMode', label: 'Initial mode', opts: [['lease', 'Lease'], ['cash', 'Cash']] },
+        {
+          t: 'qa', k: 'items', label: 'Vehicle or plan cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'title', label: 'Trim / plan title', ph: 'NV-02 AWD Shooting Brake', def: 'New trim' },
+            { k: 'badge', label: 'Top highlight', ph: '640 km WLTP', def: '' },
+            { k: 'specs', label: 'Specifications', ph: '360 kW dual SiC · 1,820 L', def: '' },
+            { k: 'leasePrice', label: 'Lease price', ph: '€649 / mo', def: '€599 / mo' },
+            { k: 'cashPrice', label: 'Cash price', ph: '€64,900', def: '€59,900' },
+            { k: 'leaseNote', label: 'Lease note', ph: '36 months · €0 down', def: '' },
+            { k: 'cashNote', label: 'Cash note', ph: 'Direct price · warranty', def: '' },
+            { k: 'src', label: 'Vehicle image', ph: 'asset:trim', def: '', img: 1 },
+            { k: 'alt', label: 'Image alt text', ph: 'Describe trim view', def: '' },
+            { k: 'ctaLabel', label: 'Button label', ph: 'Book 48h Test Drive', def: 'Book 48h Test Drive' },
+            { k: 'href', label: 'Button link', ph: 'test-drive.html#book', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'color', c: '--fs-surface', label: 'Card surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-bg', label: 'Image frame fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-ink', label: 'Heading colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-muted', label: 'Secondary copy', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-accent', label: 'Toggle & CTA accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-on', label: 'Text on accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fs-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--fs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+  rangeslider: {
+    label: 'Range slider', icon: 'rangeslider', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        heading: 'Estimate cold-weather highway range',
+        summary: 'Scrub outside temperature and tyre package to see verified Arjeplog telemetry for 110 km/h Nordic cruising.',
+        tempLabel: 'Ambient winter temperature',
+        minTemp: '-25',
+        maxTemp: '25',
+        defaultTemp: '-10',
+        baseRangeKm: '640',
+        wheelOptions: '19" Aero Winter:0|20" Touring:-28|21" Track:-54',
+        speedLabel: '110 km/h highway telemetry',
+        chargeLabel: '10–80% DC fast charge',
+        heatLabel: 'CO₂ heat-pump recovery',
+        ctaLabel: 'Explore 800V Thermal Specs',
+        href: 'range.html#thermal',
+        note: 'Based on 102 kWh net pack, preconditioned departure, and 21°C cabin setpoint.'
+      },
+      css: {
+        d: {
+          width: '100%',
+          '--rs-surface': '#FFFFFF', '--rs-bg': '#0A0E14',
+          '--rs-ink': '#0A0E14', '--rs-muted': '#475569',
+          '--rs-accent': '#0B6E7D', '--rs-on': '#FFFFFF',
+          '--rs-line': '#D7E0EC', '--rs-radius': '12px'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'heading', label: 'Heading', ph: 'Estimate winter range' },
+        { t: 'area', k: 'summary', label: 'Summary', ph: 'Adjust temperature and tyres.' },
+        { t: 'text', k: 'tempLabel', label: 'Temperature label', ph: 'Ambient temperature' },
+        { t: 'unit', k: 'minTemp', label: 'Min temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'maxTemp', label: 'Max temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'defaultTemp', label: 'Default temp (°C)', integer: 1, units: [''] },
+        { t: 'unit', k: 'baseRangeKm', label: 'Base WLTP (km)', integer: 1, units: [''] },
+        { t: 'text', k: 'wheelOptions', label: 'Wheel presets', ph: '19" Aero Winter:0|20" Touring:-28' },
+        { t: 'text', k: 'speedLabel', label: 'Speed telemetry badge', ph: '110 km/h cruise' },
+        { t: 'text', k: 'chargeLabel', label: 'Charge label', ph: '10–80% DC fast charge' },
+        { t: 'text', k: 'heatLabel', label: 'Heat-pump label', ph: 'CO₂ heat-pump recovery' },
+        { t: 'text', k: 'ctaLabel', label: 'Button label', ph: 'Explore 800V Specs' },
+        { t: 'text', k: 'href', label: 'Button link', ph: 'range.html#thermal' },
+        { t: 'text', k: 'note', label: 'Methodology note', ph: '102 kWh net pack.' }
+      ],
+      style: [
+        { t: 'color', c: '--rs-surface', label: 'Control panel fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-bg', label: 'Readout panel fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-ink', label: 'Control text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-muted', label: 'Muted text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-accent', label: 'Slider accent', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-on', label: 'Selected wheel text', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rs-line', label: 'Border rule', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--rs-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -2801,6 +3603,21 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'dockbar' || n.type === 'slotpicker') { const count = formFieldsOf(n.type, n.props as PropBag).length; return `${n.type === 'dockbar' ? 'Docked bar' : 'Booking request'} · ${count} field${count === 1 ? '' : 's'}`; }
   if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'typemask') return `Wordmark · ${n.props.wordmark || 'Cutout'}`;
+  if (n.type === 'fullmenu') return `Fullscreen menu · ${((n.props.menuItems as any[]) || []).length} link${((n.props.menuItems as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'swatchshop') return `Product swatches · ${((n.props.products as any[]) || []).length} item${((n.props.products as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'snaprail') return `Snap rail · ${((n.props.railCards as any[]) || []).length} card${((n.props.railCards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'scrollsteps') return `Scroll steps · ${((n.props.steps as any[]) || []).length} step${((n.props.steps as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'dragstrip') return `Filmstrip · ${((n.props.slides as any[]) || []).length} frame${((n.props.slides as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'stayfilter') return `Stay finder · ${((n.props.stays as any[]) || []).length} stay${((n.props.stays as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'roicalc') return `ROI calculator · ${n.props.heading || 'Savings model'}`;
+  if (n.type === 'stackcards') return `Stacked cards · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'showbill') return `Venue bill · ${((n.props.shows as any[]) || []).length} date${((n.props.shows as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'masonry') return `Masonry · ${((n.props.items as any[]) || []).length} plate${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'maplist') return `Map listings · ${((n.props.items as any[]) || []).length} unit${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'thumbviewer') return `Thumbnail viewer · ${((n.props.items as any[]) || []).length} view${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'financeswitch') return `Finance switch · ${((n.props.items as any[]) || []).length} trim${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'rangeslider') return `Range slider · ${n.props.baseRangeKm || '640'} km`;
   return d.label;
 };
 
@@ -3260,7 +4077,8 @@ function tabAdd(n: PcNode): string {
   if (!hasRichTabPanels(n)) enableTabPanels(n);
   if (tabPanelProblem(n)) return '';
   const panel = N('box');
-  n.props.items = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  const nextTabs: TabPanel[] = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  (n.props as Record<string, unknown>).items = nextTabs;
   n.children.push(panel);
   return panel.id;
 }
@@ -6021,6 +6839,21 @@ const TEXT_SLOTS = {
   arches: [['items', 'alt', 'caption']],
   chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
   slotpicker: ['currencySymbol', 'submit', 'aria', 'success', 'note', 'summaryTitle', 'passHeading', 'guestHeading', 'slotHeading', 'contactHeading', 'serviceLabel', 'guestLabel', 'timeLabel', 'totalLabel', 'perGuestLabel', 'fixedLabel', ['passes', 'passName', 'passMeta', 'unitPrice'], ['slots', 'time'], ['fields', 'label', 'ph']],
+  typemask: ['wordmark', 'maskAlt'],
+  fullmenu: ['triggerLabel', 'closeLabel', 'menuNote', ['menuItems', 'label', 'meta', 'alt']],
+  swatchshop: [['products', 'prodName', 'prodPrice', 'prodSpec', 'ctaLabel', 'c1Name', 'c2Name', 'c3Name', 'alt']],
+  snaprail: ['prevLabel', 'nextLabel', ['railCards', 'cardTag', 'title', 'detail', 'stat']],
+  scrollsteps: [['steps', 'title', 'badge', 'detail', 'alt']],
+  dragstrip: ['ariaLabel', ['slides', 'title', 'meta', 'alt']],
+  stayfilter: ['currencySymbol', 'lowLabel', 'midLabel', 'highLabel', 'guestsLabel', 'singularLabel', 'unitLabel', 'perNightLabel', 'emptyText', ['stays', 'stayName', 'location', 'summary', 'tags', 'lowRate', 'midRate', 'highRate', 'ctaLabel', 'alt']],
+  roicalc: ['heading', 'summary', 'slider1Label', 'slider1Unit', 'slider2Label', 'slider2Unit', 'currencySymbol', 'baselineLabel', 'optimizedLabel', 'savingsLabel', 'co2Label', 'ctaLabel'],
+  stackcards: [['cards', 'stepNum', 'badge', 'title', 'detail', 'stat', 'alt']],
+  showbill: ['allLabel', ['shows', 'dayNum', 'month', 'title', 'artists', 'room', 'doors', 'price', 'ctaLabel']],
+  masonry: [['items', 'alt', 'title', 'meta']],
+  maplist: ['mapAlt', ['items', 'pinLabel', 'price', 'title', 'meta', 'detail', 'ctaLabel', 'alt']],
+  thumbviewer: [['items', 'alt', 'label', 'title', 'meta']],
+  financeswitch: ['leaseLabel', 'cashLabel', ['items', 'title', 'badge', 'specs', 'leasePrice', 'cashPrice', 'leaseNote', 'cashNote', 'ctaLabel', 'alt']],
+  rangeslider: ['heading', 'summary', 'tempLabel', 'speedLabel', 'chargeLabel', 'heatLabel', 'ctaLabel', 'note'],
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -6047,7 +6880,14 @@ const SLOT_LABEL = {
   submitLabel: 'Submit label', ariaLabel: 'Accessible label', fieldLabel: 'Field label', choices: 'Choices',
   chapterTitle: 'Chapter title', chapterSub: 'Chapter subtitle', overlayText: 'Overlay text',
   currencySymbol: 'Currency', timeSlots: 'Time slots', confirmLabel: 'Confirm label', summaryTitle: 'Summary title',
-  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price'
+  phoneNote: 'Note', passName: 'Pass name', passMeta: 'Pass details', unitPrice: 'Price',
+  wordmark: 'Wordmark', maskAlt: 'Accessible label', triggerLabel: 'Trigger label', closeLabel: 'Close label',
+  menuNote: 'Drawer note', prodName: 'Product name', prodPrice: 'Price', prodSpec: 'Specification',
+  ctaLabel: 'Link label', c1Name: 'Swatch 1', c2Name: 'Swatch 2', c3Name: 'Swatch 3',
+  prevLabel: 'Previous button', nextLabel: 'Next button', cardTag: 'Card tag', stat: 'Metric',
+  stayName: 'Stay name', lowLabel: 'Low season', midLabel: 'Mid season', highLabel: 'High season',
+  guestsLabel: 'Guests label', singularLabel: 'Singular noun', unitLabel: 'Plural noun',
+  perNightLabel: 'Rate period', emptyText: 'Empty message', lowRate: 'Low rate', midRate: 'Mid rate', highRate: 'High rate'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -6074,7 +6914,13 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   clocks: [['items', 'src']],
   roster: [['items', 'src']],
   arches: [['items', 'src']],
-  chapters: [['chapters', 'src']]
+  chapters: [['chapters', 'src']],
+  typemask: ['maskSrc'],
+  fullmenu: [['menuItems', 'src']],
+  swatchshop: [['products', 'c1Src', 'c2Src', 'c3Src']],
+  scrollsteps: [['steps', 'src']],
+  dragstrip: [['slides', 'src']],
+  stayfilter: [['stays', 'src']]
 };
 
 /** Which prop keys, for this widget type, hold words rather than settings.
@@ -6922,6 +7768,18 @@ function relink(from: string, to: string) {
     if (p.link !== undefined) p.link = swap(p.link);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { if (it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'fullmenu' && Array.isArray(p.menuItems)) {
+      (p.menuItems as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'swatchshop' && Array.isArray(p.products)) {
+      (p.products as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'dragstrip' && Array.isArray(p.slides)) {
+      (p.slides as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
+    }
+    if (node.type === 'stayfilter' && Array.isArray(p.stays)) {
+      (p.stays as any[]).forEach(it => { if (it && it.href !== undefined) it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
       p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
@@ -10494,7 +11352,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, typemask = false, fullmenu = false, swatchshop = false, snaprail = false, scrollsteps = false, dragstrip = false, stayfilter = false, roicalc = false, stackcards = false, showbill = false, masonry = false, maplist = false, thumbviewer = false, financeswitch = false, rangeslider = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10518,14 +11376,29 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'arches') arches = true;
     else if (node.type === 'chapters') chapters = true;
     else if (node.type === 'slotpicker') slotpicker = true;
+    else if (node.type === 'typemask') typemask = true;
+    else if (node.type === 'fullmenu') fullmenu = true;
+    else if (node.type === 'swatchshop') swatchshop = true;
+    else if (node.type === 'snaprail') snaprail = true;
+    else if (node.type === 'scrollsteps') scrollsteps = true;
+    else if (node.type === 'dragstrip') dragstrip = true;
+    else if (node.type === 'stayfilter') stayfilter = true;
+    else if (node.type === 'roicalc') roicalc = true;
+    else if (node.type === 'stackcards') stackcards = true;
+    else if (node.type === 'showbill') showbill = true;
+    else if (node.type === 'masonry') masonry = true;
+    else if (node.type === 'maplist') maplist = true;
+    else if (node.type === 'thumbviewer') thumbviewer = true;
+    else if (node.type === 'financeswitch') financeswitch = true;
+    else if (node.type === 'rangeslider') rangeslider = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, typemask, fullmenu, swatchshop, snaprail, scrollsteps, dragstrip, stayfilter, roicalc, stackcards, showbill, masonry, maplist, thumbviewer, financeswitch, rangeslider };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; typemask?: boolean; fullmenu?: boolean; swatchshop?: boolean; snaprail?: boolean; scrollsteps?: boolean; dragstrip?: boolean; stayfilter?: boolean; roicalc?: boolean; stackcards?: boolean; showbill?: boolean; masonry?: boolean; maplist?: boolean; thumbviewer?: boolean; financeswitch?: boolean; rangeslider?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10548,6 +11421,21 @@ function extraWidgetCss(used: {
     + (used.arches ? `\n${ARCHES_CSS}` : '')
     + (used.chapters ? `\n${CHAPTERS_CSS}` : '')
     + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
+    + (used.typemask ? `\n${TYPEMASK_CSS}` : '')
+    + (used.fullmenu ? `\n${FULLMENU_CSS}` : '')
+    + (used.swatchshop ? `\n${SWATCHSHOP_CSS}` : '')
+    + (used.snaprail ? `\n${SNAPRAIL_CSS}` : '')
+    + (used.scrollsteps ? `\n${SCROLLSTEPS_CSS}` : '')
+    + (used.dragstrip ? `\n${DRAGSTRIP_CSS}` : '')
+    + (used.stayfilter ? `\n${STAYFILTER_CSS}` : '')
+    + (used.roicalc ? `\n${ROICALC_CSS}` : '')
+    + (used.stackcards ? `\n${STACKCARDS_CSS}` : '')
+    + (used.showbill ? `\n${SHOWBILL_CSS}` : '')
+    + (used.masonry ? `\n${MASONRY_CSS}` : '')
+    + (used.maplist ? `\n${MAPLIST_CSS}` : '')
+    + (used.thumbviewer ? `\n${THUMBVIEWER_CSS}` : '')
+    + (used.financeswitch ? `\n${FINANCESWITCH_CSS}` : '')
+    + (used.rangeslider ? `\n${RANGESLIDER_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10598,6 +11486,13 @@ function wordpressStylesFor(pg: Page) {
         arches: pageExtra.arches && !globalExtra.arches,
         chapters: pageExtra.chapters && !globalExtra.chapters,
         slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
+        typemask: pageExtra.typemask && !globalExtra.typemask,
+        fullmenu: pageExtra.fullmenu && !globalExtra.fullmenu,
+        swatchshop: pageExtra.swatchshop && !globalExtra.swatchshop,
+        snaprail: pageExtra.snaprail && !globalExtra.snaprail,
+        scrollsteps: pageExtra.scrollsteps && !globalExtra.scrollsteps,
+        dragstrip: pageExtra.dragstrip && !globalExtra.dragstrip,
+        stayfilter: pageExtra.stayfilter && !globalExtra.stayfilter,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -11494,6 +12389,10 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
     } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
       family.push(root + '-caption');
+    } else if (n.type === 'typemask') {
+      family.push(root + '-clip');
+    } else if (n.type === 'dragstrip') {
+      family.push(root + '-strip');
     } else if (ITEM_ID_PARTS[n.type]) {
       const rows = n.type === 'chapters' ? (p as any).chapters : p.items;
       if (Array.isArray(rows)) rows.forEach((_, i) => ITEM_ID_PARTS[n.type]!.forEach(part => family.push(`${root}-${part}-${i}`)));
@@ -12593,6 +13492,561 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-chapters-nav" role="tablist" aria-label="Chapters">${btns}</div>`
         + `</div>`;
     }
+    case 'typemask': {
+      const word = String(p.wordmark || 'STUDIO').trim().toUpperCase() || 'STUDIO';
+      const src = esc(String(p.maskSrc || PH));
+      const alt = esc(String(p.maskAlt || word));
+      const clipId = `${domId()}-clip`;
+      return `<div ${at()} ${cx('pagecraft-typemask')} data-typemask>`
+        + `<svg class="pagecraft-typemask-svg" viewBox="0 0 1200 216" role="img" aria-label="${alt}">`
+        + `<title>${alt}</title>`
+        + `<defs><clipPath id="${clipId}"><text x="600" y="182" text-anchor="middle" textLength="1176" lengthAdjust="spacingAndGlyphs" class="pagecraft-typemask-txt">${esc(word)}</text></clipPath></defs>`
+        + `<rect width="1200" height="216" fill="#2A3630" clip-path="url(#${clipId})"/>`
+        + `<image href="${src}" width="1200" height="216" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
+        + `</svg></div>`;
+    }
+    case 'fullmenu': {
+      const trig = String(p.triggerLabel || 'Menu');
+      const clsLbl = String(p.closeLabel || 'Close');
+      const note = String(p.menuNote || '');
+      const items = (Array.isArray(p.menuItems) ? p.menuItems as any[] : []).filter(Boolean);
+      const firstIdx = items.findIndex(it => it.src);
+      const firstSrc = firstIdx >= 0 ? items[firstIdx].src : '';
+      const stageStyle = firstSrc ? ` style="background-image:url(&quot;${esc(String(firstSrc))}&quot;)"` : '';
+      const listHtml = items.map((it, i) => {
+        const lbl = String(it.label || `Page ${i + 1}`);
+        const mt = String(it.meta || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '#';
+        const pv = String(it.src || '');
+        const pvAttr = pv ? ` data-preview-src="${esc(pv)}" data-preview-idx="${i}"` : '';
+        return `<li style="--fm-i:${i}"><a class="pagecraft-fullmenu-link" href="${esc(href)}"${pvAttr}>`
+          + `<span class="pagecraft-fullmenu-lbl">${esc(lbl)}</span>`
+          + (mt ? `<span class="pagecraft-fullmenu-meta">${esc(mt)}</span>` : '')
+          + `</a></li>`;
+      }).join('');
+      const platesHtml = items.map((it, i) => {
+        const pv = String(it.src || '').trim();
+        if (!pv) return '';
+        const active = (firstIdx >= 0 ? i === firstIdx : i === 0) ? '1' : '0';
+        return `<div class="pagecraft-fullmenu-plate" data-fm-plate="${i}" data-active="${active}" style="background-image:url(&quot;${esc(pv)}&quot;)"></div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-fullmenu')} data-fullmenu>`
+        + `<button type="button" class="pagecraft-fullmenu-btn" aria-haspopup="dialog" aria-expanded="false"><span>${esc(trig)}</span><span class="pagecraft-fullmenu-bars" aria-hidden="true"><i></i><i></i></span></button>`
+        + `<dialog class="pagecraft-fullmenu-dlg" aria-label="Site navigation">`
+        + `<div class="pagecraft-fullmenu-inner">`
+        + `<div class="pagecraft-fullmenu-top"><div class="pagecraft-fullmenu-bar"><span class="pagecraft-fullmenu-note">${esc(note)}</span><button type="button" class="pagecraft-fullmenu-close">${esc(clsLbl)} ✕</button></div></div>`
+        + `<div class="pagecraft-fullmenu-body"><div class="pagecraft-fullmenu-grid"><ul class="pagecraft-fullmenu-list">${listHtml}</ul><div class="pagecraft-fullmenu-stage"${stageStyle} aria-hidden="true">${platesHtml}</div></div></div>`
+        + `</div></dialog></div>`;
+    }
+    case 'swatchshop': {
+      const cols = ['2', '3', '4'].includes(String(p.gridCols)) ? String(p.gridCols) : '4';
+      const items = (Array.isArray(p.products) ? p.products as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const nm = String(it.prodName || `Product ${i + 1}`);
+        const pr = String(it.prodPrice || '');
+        const sp = String(it.prodSpec || '');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const cta = String(it.ctaLabel || 'View details');
+        const swatches = [
+          { name: String(it.c1Name || 'Default'), hex: String(it.c1Hex || '#1F2421'), src: String(it.c1Src || PH) },
+          ...(it.c2Name ? [{ name: String(it.c2Name), hex: String(it.c2Hex || '#145C3E'), src: String(it.c2Src || it.c1Src || PH) }] : []),
+          ...(it.c3Name ? [{ name: String(it.c3Name), hex: String(it.c3Hex || '#9E3D22'), src: String(it.c3Src || it.c1Src || PH) }] : []),
+        ];
+        const first = swatches[0];
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const dots = swatches.map((sw, sIdx) => {
+          const safeHex = /^#[0-9a-fA-F]{3,8}$/.test(sw.hex.trim()) ? sw.hex.trim() : '#1F2421';
+          return `<button type="button" class="pagecraft-swatch-dot" style="background-color:${esc(safeHex)}" data-swp-name="${esc(sw.name)}" data-swp-src="${esc(sw.src)}" aria-label="${esc(nm + ' in ' + sw.name)}" aria-pressed="${sIdx === 0 ? 'true' : 'false'}"></button>`;
+        }).join('');
+        const activeTxt = first.name + (sp ? ` · ${sp}` : '');
+        return `<li class="pagecraft-swatch-card" data-spec="${esc(sp)}">`
+          + `<div class="pagecraft-swatch-media"><img class="pagecraft-swatch-img" src="${esc(first.src)}" alt="${esc(String(it.alt || nm))}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-swatch-head"><h3 class="pagecraft-swatch-name">${esc(nm)}</h3>`
+          + (pr ? `<span class="pagecraft-swatch-price">${esc(pr)}</span>` : '')
+          + `</div>`
+          + `<p class="pagecraft-swatch-active" data-swp-active>${esc(activeTxt)}</p>`
+          + `<div class="pagecraft-swatch-foot"><div class="pagecraft-swatch-dots" role="group" aria-label="${esc(nm + ' colourways')}">${dots}</div>`
+          + (link ? `<a class="pagecraft-swatch-link" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-swatch-link">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-swatchshop')} data-swatchshop style="--swp-cols:${esc(cols)}"><ul class="pagecraft-swatch-grid">${cards}</ul></div>`;
+    }
+    case 'snaprail': {
+      const prevLbl = String(p.prevLabel || 'Previous card');
+      const nextLbl = String(p.nextLabel || 'Next card');
+      const items = (Array.isArray(p.railCards) ? p.railCards as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const bg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.bgHex || '').trim()) ? String(it.bgHex).trim() : '#14261F';
+        const fg = /^#[0-9a-fA-F]{3,8}$/.test(String(it.fgHex || '').trim()) ? String(it.fgHex).trim() : '#F2F6F3';
+        const tag = String(it.cardTag || '');
+        const title = String(it.title || `Feature ${i + 1}`);
+        const detail = String(it.detail || '');
+        const stat = String(it.stat || '');
+        return `<li class="pagecraft-snaprail-card" style="background-color:${esc(bg)};color:${esc(fg)}">`
+          + `<div class="pagecraft-snaprail-top">`
+          + (tag ? `<span class="pagecraft-snaprail-tag">${esc(tag)}</span>` : '')
+          + `<h3 class="pagecraft-snaprail-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-snaprail-detail">${esc(detail)}</p>` : '')
+          + `</div>`
+          + (stat ? `<p class="pagecraft-snaprail-stat">${esc(stat)}</p>` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-snaprail')} data-snaprail>`
+        + `<div class="pagecraft-snaprail-controls"><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="-1" aria-label="${esc(prevLbl)}">←</button><button type="button" class="pagecraft-snaprail-arrow" data-sr-dir="1" aria-label="${esc(nextLbl)}">→</button></div>`
+        + `<ul class="pagecraft-snaprail-track" tabindex="0" aria-label="Feature cards">${cards}</ul></div>`;
+    }
+    case 'scrollsteps': {
+      const items = (Array.isArray(p.steps) ? p.steps as any[] : []).filter(Boolean);
+      const checkSvg = `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3.5 8.5 6.8 11.5 12.8 4.8"/></svg>`;
+      const rows = items.map((it, i) => {
+        const title = String(it.title || `Step ${i + 1}`);
+        const badge = String(it.badge || '');
+        const detail = String(it.detail || '');
+        const rawSrc = String(it.src || '').trim();
+        const hasImg = !!rawSrc;
+        const src = esc(rawSrc);
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const noImgAttr = hasImg ? '' : ' data-no-img="1"';
+        return `<li class="pagecraft-scrollsteps-item" data-active="${i === 0 ? '1' : '0'}"${noImgAttr} tabindex="0">`
+          + `<span class="pagecraft-scrollsteps-dot" aria-hidden="true">${checkSvg}</span>`
+          + `<div class="pagecraft-scrollsteps-copy"><h3 class="pagecraft-scrollsteps-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-scrollsteps-detail">${esc(detail)}</p>` : '')
+          + (badge ? `<div><span class="pagecraft-scrollsteps-badge">${esc(badge)}</span></div>` : '')
+          + `</div>`
+          + (hasImg ? `<img class="pagecraft-scrollsteps-img" src="${src}" alt="${alt}"${dim} decoding="async">` : '')
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-scrollsteps')} data-scrollsteps>`
+        + `<div class="pagecraft-scrollsteps-spine" aria-hidden="true"><div class="pagecraft-scrollsteps-fill"></div></div>`
+        + `<ol class="pagecraft-scrollsteps-list">${rows}</ol></div>`;
+    }
+    case 'dragstrip': {
+      const ratio = cssRatio(p.cardRatio);
+      const ratioStyle = ratio ? ` style="--ds-ratio:${esc(ratio)}"` : '';
+      const aria = String(p.ariaLabel || 'Scroll gallery');
+      const items = (Array.isArray(p.slides) ? p.slides as any[] : []).filter(Boolean);
+      const stripId = `${domId()}-strip`;
+      const slidesHtml = items.map((it, i) => {
+        const title = String(it.title || `Frame ${i + 1}`);
+        const meta = String(it.meta || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const inner = `<img class="pagecraft-dragstrip-img" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false">`
+          + `<p class="pagecraft-dragstrip-cap"><strong class="pagecraft-dragstrip-title">${esc(title)}</strong>`
+          + (meta ? `<span class="pagecraft-dragstrip-meta">${esc(meta)}</span>` : '')
+          + `</p>`;
+        return `<li class="pagecraft-dragstrip-item">`
+          + (link ? `<a class="pagecraft-dragstrip-link" href="${esc(link)}" draggable="false">${inner}</a>` : inner)
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-dragstrip')} data-dragstrip${ratioStyle}>`
+        + `<ul class="pagecraft-dragstrip-rail" id="${stripId}" role="list" tabindex="0" aria-label="${esc(aria)}" data-ds-strip>${slidesHtml}</ul>`
+        + `<div class="pagecraft-dragstrip-track" role="scrollbar" aria-controls="${stripId}" aria-orientation="horizontal" aria-label="${esc(aria)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" data-ds-track><span class="pagecraft-dragstrip-bar" data-ds-bar></span></div>`
+        + `</div>`;
+    }
+    case 'stayfilter': {
+      const sym = String(p.currencySymbol ?? '$');
+      const maxG = Math.max(1, Math.min(24, Math.round(Number(p.maxGuests) || 8)));
+      const initG = Math.max(1, Math.min(maxG, Math.round(Number(p.defaultGuests) || 2)));
+      const defSeason = ['low', 'mid', 'high'].includes(String(p.defaultSeason)) ? String(p.defaultSeason) : 'mid';
+      const gLbl = String(p.guestsLabel || 'Guests');
+      const sing = String(p.singularLabel || 'stay');
+      const plur = String(p.unitLabel || 'stays');
+      const perNight = String(p.perNightLabel || 'per night');
+      const emptyTxt = String(p.emptyText || 'No single stay sleeps that many guests.');
+      const seasons = [
+        ['low', String(p.lowLabel || 'Low season')],
+        ['mid', String(p.midLabel || 'Mid season')],
+        ['high', String(p.highLabel || 'High season')],
+      ] as const;
+      const items = (Array.isArray(p.stays) ? p.stays as any[] : []).filter(Boolean);
+      let initShown = 0;
+      const rowsHtml = items.map((it, i) => {
+        const nm = String(it.stayName || `Stay ${i + 1}`);
+        const loc = String(it.location || '');
+        const sum = String(it.summary || '');
+        const sleeps = Math.max(1, Math.round(Number(it.sleeps) || 4));
+        const fit = sleeps >= initG;
+        if (fit) initShown++;
+        const lowR = String(it.lowRate || '300').replace(/^[^0-9]+/, '');
+        const midR = String(it.midRate || lowR).replace(/^[^0-9]+/, '');
+        const highR = String(it.highRate || midR).replace(/^[^0-9]+/, '');
+        const initRate = defSeason === 'low' ? lowR : defSeason === 'high' ? highR : midR;
+        const tags = String(it.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+        const tagsHtml = tags.length ? `<ul class="pagecraft-stay-tags" role="list">${tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || nm));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const cta = String(it.ctaLabel || 'Check dates');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<li class="pagecraft-stay-row" data-sleeps="${sleeps}" data-low="${esc(lowR)}" data-mid="${esc(midR)}" data-high="${esc(highR)}"${fit ? '' : ' hidden'}>`
+          + `<img class="pagecraft-stay-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<div class="pagecraft-stay-body">`
+          + (loc ? `<p class="pagecraft-stay-where">${esc(loc)}</p>` : '')
+          + `<h3 class="pagecraft-stay-name">${esc(nm)}</h3>`
+          + (sum ? `<p class="pagecraft-stay-line">${esc(sum)}</p>` : '')
+          + tagsHtml
+          + `</div>`
+          + `<div class="pagecraft-stay-buy">`
+          + `<p class="pagecraft-stay-price"><strong data-sf-price>${esc(sym + initRate)}</strong><span>${esc(perNight)}</span></p>`
+          + (link ? `<a class="pagecraft-stay-cta" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-stay-cta">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      const seasonBtns = seasons.map(([code, lbl]) =>
+        `<button type="button" class="pagecraft-stay-sbtn" role="radio" aria-checked="${code === defSeason ? 'true' : 'false'}" data-sf-season="${code}">${esc(lbl)}</button>`
+      ).join('');
+      const countLbl = `${initShown} ${initShown === 1 ? sing : plur}`;
+      return `<div ${at()} ${cx('pagecraft-stayfilter')} data-stayfilter data-init-guests="${initG}" data-max-guests="${maxG}" data-sym="${esc(sym)}" data-singular="${esc(sing)}" data-plural="${esc(plur)}">`
+        + `<div class="pagecraft-stay-bar">`
+        + `<div class="pagecraft-stay-guests" role="group" aria-label="${esc(gLbl)}">`
+        + `<span class="pagecraft-stay-glbl">${esc(gLbl)}</span>`
+        + `<button type="button" class="pagecraft-stay-step" data-sf-step="-1" aria-label="Fewer guests"${initG <= 1 ? ' disabled' : ''}>−</button>`
+        + `<output class="pagecraft-stay-count" data-sf-guests aria-live="polite">${initG}</output>`
+        + `<button type="button" class="pagecraft-stay-step" data-sf-step="1" aria-label="More guests"${initG >= maxG ? ' disabled' : ''}>+</button>`
+        + `</div>`
+        + `<div class="pagecraft-stay-seasons" role="radiogroup" aria-label="Season">${seasonBtns}</div>`
+        + `<p class="pagecraft-stay-result" data-sf-result aria-live="polite">${esc(countLbl)}</p>`
+        + `</div>`
+        + `<ul class="pagecraft-stay-list" role="list">${rowsHtml}</ul>`
+        + `<p class="pagecraft-stay-empty" data-sf-empty${initShown > 0 ? ' hidden' : ''}>${esc(emptyTxt)}</p>`
+        + `</div>`;
+    }
+    case 'roicalc': {
+      const heading = String(p.heading || '');
+      const summary = String(p.summary || '');
+      const s1Lbl = String(p.slider1Label || 'Active vessels');
+      const s1Min = parseFloat(String(p.slider1Min ?? '4')) || 1;
+      const s1Max = Math.max(s1Min + 1, parseFloat(String(p.slider1Max ?? '60')) || 60);
+      const s1Step = parseFloat(String(p.slider1Step ?? '1')) || 1;
+      const s1Val = Math.min(s1Max, Math.max(s1Min, parseFloat(String(p.slider1Value ?? '18')) || 18));
+      const s1Unit = String(p.slider1Unit || '').trim();
+      const s2Lbl = String(p.slider2Label || 'Operating sea-days / yr');
+      const s2Min = parseFloat(String(p.slider2Min ?? '120')) || 1;
+      const s2Max = Math.max(s2Min + 1, parseFloat(String(p.slider2Max ?? '340')) || 340);
+      const s2Step = parseFloat(String(p.slider2Step ?? '10')) || 1;
+      const s2Val = Math.min(s2Max, Math.max(s2Min, parseFloat(String(p.slider2Value ?? '280')) || 280));
+      const s2Unit = String(p.slider2Unit || '').trim();
+      const factor = parseFloat(String(p.baseFactor ?? '1450')) || 1450;
+      const pct = Math.min(95, Math.max(1, parseFloat(String(p.savingsPct ?? '31')) || 31));
+      const co2f = parseFloat(String(p.co2Factor ?? '4.2')) || 4.2;
+      const sym = String(p.currencySymbol || '€');
+      const baseLbl = String(p.baselineLabel || 'Baseline annual spend');
+      const optLbl = String(p.optimizedLabel || 'With optimization');
+      const savLbl = String(p.savingsLabel || 'Estimated annual savings');
+      const co2Lbl = String(p.co2Label || 't CO₂e avoided annually');
+      const ctaLbl = String(p.ctaLabel || '').trim();
+      const rawHref = safeUrl(String(p.href || '').trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const baseSpend = s1Val * s2Val * factor;
+      const savSpend = baseSpend * (pct / 100);
+      const optSpend = Math.max(0, baseSpend - savSpend);
+      const co2 = s1Val * s2Val * co2f * (pct / 100);
+      const fmtInt = (v: number) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const baseId = domId();
+      return `<div ${at()} ${cx('pagecraft-roicalc')} data-roicalc data-base-factor="${factor}" data-savings-pct="${pct}" data-co2-factor="${co2f}" data-sym="${esc(sym)}" data-co2-label="${esc(co2Lbl)}">`
+        + `<div class="pagecraft-roicalc-ctrl">`
+        + (heading ? `<h3 class="pagecraft-roicalc-h">${esc(heading)}</h3>` : '')
+        + (summary ? `<p class="pagecraft-roicalc-sub">${esc(summary)}</p>` : '')
+        + `<div class="pagecraft-roicalc-field">`
+        + `<label class="pagecraft-roicalc-lbl" for="${baseId}-r1"><span>${esc(s1Lbl)}</span><output data-rc-out="1">${esc(fmtInt(s1Val) + (s1Unit ? ' ' + s1Unit : ''))}</output></label>`
+        + `<input class="pagecraft-roicalc-range" id="${baseId}-r1" type="range" min="${s1Min}" max="${s1Max}" step="${s1Step}" value="${s1Val}" data-rc-in="1" data-unit="${esc(s1Unit)}">`
+        + `</div>`
+        + `<div class="pagecraft-roicalc-field">`
+        + `<label class="pagecraft-roicalc-lbl" for="${baseId}-r2"><span>${esc(s2Lbl)}</span><output data-rc-out="2">${esc(fmtInt(s2Val) + (s2Unit ? ' ' + s2Unit : ''))}</output></label>`
+        + `<input class="pagecraft-roicalc-range" id="${baseId}-r2" type="range" min="${s2Min}" max="${s2Max}" step="${s2Step}" value="${s2Val}" data-rc-in="2" data-unit="${esc(s2Unit)}">`
+        + `</div>`
+        + `</div>`
+        + `<div class="pagecraft-roicalc-panel">`
+        + `<div><p class="pagecraft-roicalc-kicker">${esc(savLbl)}</p>`
+        + `<p class="pagecraft-roicalc-hero" data-rc-savings>${esc(sym + fmtInt(savSpend))}</p>`
+        + `<p class="pagecraft-roicalc-co2" data-rc-co2>${esc(fmtInt(co2) + ' ' + co2Lbl)}</p></div>`
+        + `<div class="pagecraft-roicalc-bars">`
+        + `<div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(baseLbl)}</span><strong data-rc-base>${esc(sym + fmtInt(baseSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-base" style="width:100%"></div></div></div>`
+        + `<div class="pagecraft-roicalc-barrow"><div class="pagecraft-roicalc-barhead"><span>${esc(optLbl)}</span><strong data-rc-opt>${esc(sym + fmtInt(optSpend))}</strong></div><div class="pagecraft-roicalc-track"><div class="pagecraft-roicalc-fill pagecraft-roicalc-fill-opt" data-rc-opt-bar style="width:${100 - pct}%"></div></div></div>`
+        + `</div>`
+        + (ctaLbl && link ? `<a class="pagecraft-roicalc-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : (ctaLbl && o.edit) ? `<span class="pagecraft-roicalc-cta">${esc(ctaLbl)}</span>` : '')
+        + `</div>`
+        + `</div>`;
+    }
+    case 'stackcards': {
+      const items = (Array.isArray(p.cards) ? p.cards as any[] : []).filter(Boolean);
+      const off = String(p.stickyOffset || '').trim();
+      const offsetStyle = off ? ` style="--sc-top:${esc(off)}"` : '';
+      const cardsHtml = items.map((it, i) => {
+        const num = String(it.stepNum || String(i + 1).padStart(2, '0'));
+        const badge = String(it.badge || '').trim();
+        const title = String(it.title || `Step ${i + 1}`);
+        const detail = String(it.detail || '').trim();
+        const stat = String(it.stat || '').trim();
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<li class="pagecraft-stackcards-card" style="--sc-i:${i}">`
+          + `<div class="pagecraft-stackcards-body">`
+          + `<div class="pagecraft-stackcards-meta"><span class="pagecraft-stackcards-num">${esc(num)}</span>${badge ? `<span class="pagecraft-stackcards-badge">${esc(badge)}</span>` : ''}</div>`
+          + `<h3 class="pagecraft-stackcards-title">${esc(title)}</h3>`
+          + (detail ? `<p class="pagecraft-stackcards-detail">${esc(detail)}</p>` : '')
+          + (stat ? `<p class="pagecraft-stackcards-stat">${esc(stat)}</p>` : '')
+          + `</div>`
+          + `<div class="pagecraft-stackcards-media"><img class="pagecraft-stackcards-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `</li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-stackcards')} data-stackcards${o.edit ? ' data-stackcards-edit' : ''}${offsetStyle}>`
+        + `<ol class="pagecraft-stackcards-list" role="list">${cardsHtml}</ol></div>`;
+    }
+    case 'showbill': {
+      const shows = (Array.isArray(p.shows) ? p.shows as any[] : []).filter(Boolean);
+      const allLbl = String(p.allLabel || 'All rooms');
+      const rooms = [...new Set(shows.map(s => String(s.room || '').trim()).filter(Boolean))];
+      const fBtns = rooms.length > 1
+        ? `<div class="pagecraft-showbill-filters" role="group" aria-label="Room filter">`
+          + `<button type="button" class="pagecraft-showbill-fbtn" data-sb-filter="__all__" aria-pressed="true">${esc(allLbl)}</button>`
+          + rooms.map(r => `<button type="button" class="pagecraft-showbill-fbtn" data-sb-filter="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')
+          + `</div>`
+        : '';
+      const rows = shows.map((it, i) => {
+        const day = String(it.dayNum || '01');
+        const mon = String(it.month || 'NOV');
+        const title = String(it.title || `Session ${i + 1}`);
+        const artists = String(it.artists || '').trim();
+        const room = String(it.room || '').trim();
+        const doors = String(it.doors || '').trim();
+        const price = String(it.price || '').trim();
+        const cta = String(it.ctaLabel || 'Passes →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const metaTxt = [room, doors].filter(Boolean).join(' · ');
+        return `<li class="pagecraft-showbill-row" data-sb-room="${esc(room)}">`
+          + `<div class="pagecraft-showbill-date"><span class="pagecraft-showbill-day">${esc(day)}</span><span class="pagecraft-showbill-mon">${esc(mon)}</span></div>`
+          + `<div class="pagecraft-showbill-body">`
+          + (metaTxt ? `<p class="pagecraft-showbill-meta">${esc(metaTxt)}</p>` : '')
+          + `<h3 class="pagecraft-showbill-title">${esc(title)}</h3>`
+          + (artists ? `<p class="pagecraft-showbill-artists">${esc(artists)}</p>` : '')
+          + `</div>`
+          + `<div class="pagecraft-showbill-side">`
+          + (price ? `<span class="pagecraft-showbill-price">${esc(price)}</span>` : '')
+          + (link ? `<a class="pagecraft-showbill-cta" href="${esc(link)}">${esc(cta)}</a>` : (rawHref && o.edit) ? `<span class="pagecraft-showbill-cta">${esc(cta)}</span>` : '')
+          + `</div></li>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-showbill')} data-showbill>${fBtns}<ul class="pagecraft-showbill-list" role="list">${rows}</ul></div>`;
+    }
+    case 'masonry': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const cols = ['2', '3', '4'].includes(String(p.cols)) ? String(p.cols) : '3';
+      const first = items[0] || {};
+      const tiles = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `Plate ${i + 1}`));
+        const title = String(it.title || '').trim();
+        const meta = String(it.meta || '').trim();
+        const ratio = cssRatio(it.ratio) || '4 / 5';
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const inner = `<img class="pagecraft-masonry-img" src="${src}" alt="${alt}"${dim} style="--ms-r:${esc(ratio)}" decoding="async">`
+          + ((title || meta) ? `<div class="pagecraft-masonry-cap">${title ? `<h3 class="pagecraft-masonry-title">${esc(title)}</h3>` : ''}${meta ? `<p class="pagecraft-masonry-meta">${esc(meta)}</p>` : ''}</div>` : '');
+        return `<figure class="pagecraft-masonry-card">`
+          + (o.edit
+            ? `<div class="pagecraft-masonry-trigger">${inner}</div>`
+            : `<button type="button" class="pagecraft-masonry-trigger" data-ms-open="${i}" data-ms-src="${src}" data-ms-alt="${alt}" data-ms-title="${esc(title)}" data-ms-meta="${esc(meta)}">${inner}</button>`)
+          + `</figure>`;
+      }).join('');
+      const dlg = o.edit ? '' : `<dialog class="pagecraft-masonry-dlg" aria-label="Image viewer">`
+        + `<div class="pagecraft-masonry-stage">`
+        + `<img class="pagecraft-masonry-dlg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${esc(String(first.alt || ''))}">`
+        + `<div class="pagecraft-masonry-bar">`
+        + `<div><strong data-ms-dtitle>${esc(String(first.title || ''))}</strong> <span class="pagecraft-masonry-meta" data-ms-dmeta>${esc(String(first.meta || ''))}</span></div>`
+        + `<div class="pagecraft-masonry-nav"><button type="button" class="pagecraft-masonry-btn" data-ms-prev>Prev</button><button type="button" class="pagecraft-masonry-btn" data-ms-next>Next</button><button type="button" class="pagecraft-masonry-btn" data-ms-close>Close</button></div>`
+        + `</div></div></dialog>`;
+      return `<div ${at()} ${cx('pagecraft-masonry')} data-masonry style="--ms-cols:${cols}"><div class="pagecraft-masonry-grid">${tiles}</div>${dlg}</div>`;
+    }
+    case 'maplist': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const mapSrc = esc(String(p.mapSrc || PH));
+      const mapAlt = esc(String(p.mapAlt || 'Interactive neighbourhood map'));
+      const first = items[0] || {};
+      const firstHref = safeUrl(String(first.href || '').trim());
+      const firstLink = firstHref && !o.edit ? pageHref(firstHref, o) : '';
+      const firstCta = String(first.ctaLabel || 'Schedule Tour →');
+      const cards = items.map((it, i) => {
+        const sel = i === 0 ? '1' : '0';
+        const price = String(it.price || '');
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || '');
+        const detail = String(it.detail || '');
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const cta = String(it.ctaLabel || 'Schedule Tour →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<button type="button" class="pagecraft-maplist-card" data-ml-pick="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? 'true' : 'false'}" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}">`
+          + `<img class="pagecraft-maplist-thumb" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<span class="pagecraft-maplist-body">`
+          + (price ? `<span class="pagecraft-maplist-price">${esc(price)}</span>` : '')
+          + `<span class="pagecraft-maplist-title">${esc(title)}</span>`
+          + (meta ? `<span class="pagecraft-maplist-meta">${esc(meta)}</span>` : '')
+          + (detail ? `<span class="pagecraft-maplist-detail">${esc(detail)}</span>` : '')
+          + `</span></button>`;
+      }).join('');
+      const pins = items.map((it, i) => {
+        const sel = i === 0 ? '1' : '0';
+        const xNum = parseFloat(String(it.x ?? '50'));
+        const yNum = parseFloat(String(it.y ?? '50'));
+        const x = Number.isFinite(xNum) ? Math.max(8, Math.min(92, xNum)) : 50;
+        const y = Number.isFinite(yNum) ? Math.max(10, Math.min(90, yNum)) : 50;
+        const lbl = String(it.pinLabel || it.price || `#${i + 1}`);
+        const price = String(it.price || '');
+        const title = String(it.title || `Unit ${i + 1}`);
+        const meta = String(it.meta || '');
+        const cta = String(it.ctaLabel || 'Schedule Tour →');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const href = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        return `<button type="button" class="pagecraft-maplist-pin" data-ml-pin="${i}" data-selected="${sel}" aria-pressed="${i === 0 ? 'true' : 'false'}" style="left:${x}%;top:${y}%" data-ml-price="${esc(price)}" data-ml-title="${esc(title)}" data-ml-meta="${esc(meta)}" data-ml-cta-label="${esc(cta)}" data-ml-href="${esc(href)}" aria-label="${esc(title)}">${esc(lbl)}</button>`;
+      }).join('');
+      const bar = `<div class="pagecraft-maplist-bar">`
+        + `<div class="pagecraft-maplist-bar-copy">`
+        + `<span class="pagecraft-maplist-price" data-ml-active-price>${esc(String(first.price || ''))}</span>`
+        + `<strong class="pagecraft-maplist-bar-title" data-ml-active-title>${esc(String(first.title || ''))}</strong>`
+        + `<span class="pagecraft-maplist-bar-meta" data-ml-active-meta>${esc(String(first.meta || ''))}</span>`
+        + `</div>`
+        + `<a class="pagecraft-maplist-cta" data-ml-cta${firstLink ? ` href="${esc(firstLink)}"` : ' hidden'}>${esc(firstCta)}</a>`
+        + `</div>`;
+      return `<div ${at()} ${cx('pagecraft-maplist')} data-maplist>`
+        + `<div class="pagecraft-maplist-list">${cards}</div>`
+        + `<div class="pagecraft-maplist-pane"><div class="pagecraft-maplist-stage"><img class="pagecraft-maplist-bg" src="${mapSrc}" alt="${mapAlt}" decoding="async">${pins}</div>${bar}</div>`
+        + `</div>`;
+    }
+    case 'thumbviewer': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || '16 / 10';
+      const first = items[0] || {};
+      const mainSrc = esc(String(first.src || PH));
+      const mainAlt = esc(String(first.alt || first.title || 'Selected view'));
+      const countText = items.length ? `01 / ${String(items.length).padStart(2, '0')}` : '00 / 00';
+      const thumbs = items.map((it, i) => {
+        const active = i === 0 ? '1' : '0';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || it.title || `View ${i + 1}`));
+        const label = String(it.label || it.title || `View ${i + 1}`);
+        const title = String(it.title || label);
+        const meta = String(it.meta || '');
+        return `<button type="button" class="pagecraft-thumbviewer-thumb" data-tv-thumb="${i}" data-active="${active}" aria-pressed="${i === 0 ? 'true' : 'false'}" data-tv-src="${src}" data-tv-alt="${alt}" data-tv-title="${esc(title)}" data-tv-meta="${esc(meta)}">`
+          + `<span class="pagecraft-thumbviewer-timg" style="background-image:url('${src}')" aria-hidden="true"></span>`
+          + `<span class="pagecraft-thumbviewer-tlbl">${esc(label)}</span>`
+          + `</button>`;
+      }).join('');
+      const mainDim = (first.w && first.h) ? ` width="${parseInt(String(first.w), 10)}" height="${parseInt(String(first.h), 10)}"` : '';
+      return `<div ${at()} ${cx('pagecraft-thumbviewer')} data-thumbviewer style="--tv-ratio:${esc(ratio)}">`
+        + `<div class="pagecraft-thumbviewer-stage"><img class="pagecraft-thumbviewer-main" data-tv-img src="${mainSrc}" alt="${mainAlt}"${mainDim} decoding="async"></div>`
+        + `<div class="pagecraft-thumbviewer-bar">`
+        + `<div class="pagecraft-thumbviewer-info"><span class="pagecraft-thumbviewer-count" data-tv-count>${countText}</span><strong class="pagecraft-thumbviewer-title" data-tv-title>${esc(String(first.title || ''))}</strong><span class="pagecraft-thumbviewer-meta" data-tv-meta>${esc(String(first.meta || ''))}</span></div>`
+        + `<div class="pagecraft-thumbviewer-nav"><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-prev>Prev</button><button type="button" class="pagecraft-thumbviewer-nbtn" data-tv-next>Next</button></div>`
+        + `</div>`
+        + `<div class="pagecraft-thumbviewer-strip">${thumbs}</div>`
+        + `</div>`;
+    }
+    case 'financeswitch': {
+      const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const leaseLbl = String(p.leaseLabel || 'Monthly lease (36 mo)');
+      const cashLbl = String(p.cashLabel || 'Cash purchase');
+      const mode = String(p.defaultMode || 'lease').toLowerCase() === 'cash' ? 'cash' : 'lease';
+      const cards = items.map((it, i) => {
+        const title = String(it.title || `Trim ${i + 1}`);
+        const badge = String(it.badge || '').trim();
+        const specs = String(it.specs || '').trim();
+        const leasePrice = String(it.leasePrice || '€549 / mo');
+        const cashPrice = String(it.cashPrice || '€56,900');
+        const leaseNote = String(it.leaseNote || '');
+        const cashNote = String(it.cashNote || '');
+        const shownPrice = mode === 'cash' ? cashPrice : leasePrice;
+        const shownNote = mode === 'cash' ? cashNote : leaseNote;
+        const cta = String(it.ctaLabel || 'Book 48h Test Drive');
+        const rawHref = safeUrl(String(it.href || '').trim());
+        const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+        const src = esc(String(it.src || PH));
+        const alt = esc(String(it.alt || title));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<article class="pagecraft-fs-card">`
+          + `<div class="pagecraft-fs-media"><img class="pagecraft-fs-img" src="${src}" alt="${alt}"${dim} decoding="async"></div>`
+          + `<div class="pagecraft-fs-body">`
+          + `<div class="pagecraft-fs-top"><h3 class="pagecraft-fs-title">${esc(title)}</h3>${badge ? `<span class="pagecraft-fs-badge">${esc(badge)}</span>` : ''}</div>`
+          + (specs ? `<p class="pagecraft-fs-specs">${esc(specs)}</p>` : '')
+          + `<div class="pagecraft-fs-pricing">`
+          + `<span class="pagecraft-fs-price" data-fs-price data-lease-price="${esc(leasePrice)}" data-cash-price="${esc(cashPrice)}">${esc(shownPrice)}</span>`
+          + `<span class="pagecraft-fs-note" data-fs-note data-lease-note="${esc(leaseNote)}" data-cash-note="${esc(cashNote)}">${esc(shownNote)}</span>`
+          + `</div>`
+          + (cta && link ? `<a class="pagecraft-fs-cta" href="${esc(link)}">${esc(cta)}</a>` : (cta && o.edit) ? `<span class="pagecraft-fs-cta">${esc(cta)}</span>` : '')
+          + `</div></article>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-financeswitch')} data-financeswitch data-fs-active="${mode}">`
+        + `<div class="pagecraft-fs-bar" role="group" aria-label="Financing mode">`
+        + `<button type="button" class="pagecraft-fs-mode" data-fs-mode="lease" aria-pressed="${mode === 'lease' ? 'true' : 'false'}">${esc(leaseLbl)}</button>`
+        + `<button type="button" class="pagecraft-fs-mode" data-fs-mode="cash" aria-pressed="${mode === 'cash' ? 'true' : 'false'}">${esc(cashLbl)}</button>`
+        + `</div>`
+        + `<div class="pagecraft-fs-grid">${cards}</div>`
+        + `</div>`;
+    }
+    case 'rangeslider': {
+      const heading = String(p.heading || '').trim();
+      const summary = String(p.summary || '').trim();
+      const tempLbl = String(p.tempLabel || 'Ambient winter temperature');
+      const minT = Math.round(parseFloat(String(p.minTemp ?? '-25'))) || -25;
+      const maxT = Math.max(minT + 10, Math.round(parseFloat(String(p.maxTemp ?? '25'))) || 25);
+      const defT = Math.min(maxT, Math.max(minT, Number.isFinite(parseFloat(String(p.defaultTemp ?? '-10'))) ? parseFloat(String(p.defaultTemp ?? '-10')) : -10));
+      const baseKm = Math.max(200, Math.round(parseFloat(String(p.baseRangeKm ?? '640'))) || 640);
+      const speedLbl = String(p.speedLabel || '110 km/h highway telemetry');
+      const chargeLbl = String(p.chargeLabel || '10–80% DC fast charge');
+      const heatLbl = String(p.heatLabel || 'CO₂ heat-pump recovery');
+      const ctaLbl = String(p.ctaLabel || '').trim();
+      const rawHref = safeUrl(String(p.href || '').trim());
+      const link = rawHref && !o.edit ? pageHref(rawHref, o) : '';
+      const note = String(p.note || '').trim();
+      const wheelsRaw = String(p.wheelOptions || '19" Aero Winter:0|20" Touring:-28|21" Track:-54');
+      const wheels = wheelsRaw.split('|').map(part => {
+        const [lbl, d] = part.split(':');
+        return { label: String(lbl || '').trim(), delta: parseFloat(String(d ?? '0')) || 0 };
+      }).filter(w => w.label);
+      const firstDelta = wheels[0]?.delta || 0;
+      const ret = defT >= 15 ? Math.max(0.96, 1 - Math.max(0, defT - 22) * 0.002) : Math.max(0.55, 1 - (15 - defT) * 0.0062);
+      const initKm = Math.max(220, Math.round(baseKm * ret + firstDelta));
+      const initPct = Math.max(20, Math.min(100, Math.round((initKm / baseKm) * 100)));
+      const initChg = 17 + (defT < 0 ? Math.min(6, Math.ceil((-defT) / 6)) : 0);
+      const initHeat = Math.max(0, Math.round((15 - Math.min(15, defT)) * 1.65));
+      const fmtT = (t: number) => `${t > 0 ? '+' : ''}${t}°C`;
+      const baseId = domId();
+      const wheelBtns = wheels.map((w, i) =>
+        `<button type="button" class="pagecraft-rs-wbtn" data-rs-wheel data-rs-delta="${w.delta}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(w.label)}</button>`
+      ).join('');
+      return `<div ${at()} ${cx('pagecraft-rangeslider')} data-rangeslider data-rs-base-range="${baseKm}">`
+        + `<div class="pagecraft-rs-ctrl">`
+        + (heading ? `<h3 class="pagecraft-rs-h">${esc(heading)}</h3>` : '')
+        + (summary ? `<p class="pagecraft-rs-sub">${esc(summary)}</p>` : '')
+        + `<div class="pagecraft-rs-field">`
+        + `<label class="pagecraft-rs-lbl" for="${baseId}-temp"><span>${esc(tempLbl)}</span><output data-rs-temp-out>${esc(fmtT(defT))}</output></label>`
+        + `<input class="pagecraft-rs-range" id="${baseId}-temp" type="range" min="${minT}" max="${maxT}" step="5" value="${defT}" data-rs-temp>`
+        + `<div class="pagecraft-rs-scale"><span>${esc(fmtT(minT))}</span><span>0°C</span><span>${esc(fmtT(maxT))}</span></div>`
+        + `</div>`
+        + (wheelBtns ? `<div class="pagecraft-rs-wheels" role="group" aria-label="Wheel and tyre package">${wheelBtns}</div>` : '')
+        + `</div>`
+        + `<div class="pagecraft-rs-readout">`
+        + `<div class="pagecraft-rs-rhead"><span class="pagecraft-rs-rtag">Projected Nordic highway range</span><span class="pagecraft-rs-speed">${esc(speedLbl)}</span></div>`
+        + `<p class="pagecraft-rs-km" data-rs-range>${initKm} km</p>`
+        + `<div class="pagecraft-rs-track"><div class="pagecraft-rs-fill" data-rs-bar style="width:${initPct}%"></div></div>`
+        + `<div class="pagecraft-rs-stats">`
+        + `<div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(chargeLbl)}</span><strong class="pagecraft-rs-sval" data-rs-charge>${initChg} min</strong></div>`
+        + `<div class="pagecraft-rs-stat"><span class="pagecraft-rs-slbl">${esc(heatLbl)}</span><strong class="pagecraft-rs-sval" data-rs-heat>${initHeat > 0 ? `+${initHeat}` : '0'} km recovered</strong></div>`
+        + `</div>`
+        + (ctaLbl && link ? `<a class="pagecraft-rs-cta" href="${esc(link)}">${esc(ctaLbl)}</a>` : (ctaLbl && o.edit) ? `<span class="pagecraft-rs-cta">${esc(ctaLbl)}</span>` : '')
+        + (note ? `<p class="pagecraft-rs-note">${esc(note)}</p>` : '')
+        + `</div>`
+        + `</div>`;
+    }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
@@ -13214,7 +14668,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-fullmenu/.test(body) ? FULLMENU_JS : ''}${/data-swatchshop/.test(body) ? SWATCHSHOP_JS : ''}${/data-snaprail/.test(body) ? SNAPRAIL_JS : ''}${/data-scrollsteps/.test(body) ? SCROLLSTEPS_JS : ''}${/data-dragstrip/.test(body) ? DRAGSTRIP_JS : ''}${/data-stayfilter/.test(body) ? STAYFILTER_JS : ''}${/data-roicalc/.test(body) ? ROICALC_JS : ''}${/data-showbill/.test(body) ? SHOWBILL_JS : ''}${/data-masonry/.test(body) ? MASONRY_JS : ''}${/data-maplist/.test(body) ? MAPLIST_JS : ''}${/data-thumbviewer/.test(body) ? THUMBVIEWER_JS : ''}${/data-financeswitch/.test(body) ? FINANCESWITCH_JS : ''}${/data-rangeslider/.test(body) ? RANGESLIDER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -13724,7 +15178,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, TYPEMASK_CSS, FULLMENU_CSS, FULLMENU_JS, SWATCHSHOP_CSS, SWATCHSHOP_JS, SNAPRAIL_CSS, SNAPRAIL_JS, SCROLLSTEPS_CSS, SCROLLSTEPS_JS, DRAGSTRIP_CSS, DRAGSTRIP_JS, STAYFILTER_CSS, STAYFILTER_JS, ROICALC_CSS, ROICALC_JS, STACKCARDS_CSS, SHOWBILL_CSS, SHOWBILL_JS, MASONRY_CSS, MASONRY_JS, MAPLIST_CSS, MAPLIST_JS, THUMBVIEWER_CSS, THUMBVIEWER_JS, FINANCESWITCH_CSS, FINANCESWITCH_JS, RANGESLIDER_CSS, RANGESLIDER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

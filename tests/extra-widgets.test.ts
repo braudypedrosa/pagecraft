@@ -797,7 +797,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(overnight('2026-11-30T03:00:00Z')).toEqual([false, 'Closed']);    // Sunday's shift, Monday 3 am
     expect(overnight('2026-11-25T12:00:00Z')).toEqual([false, 'Closed']);
 
-    for (const type of ['roster', 'qapills', 'chapters'] as const) {
+    for (const type of ['roster', 'qapills', 'chapters', 'typemask', 'dragstrip'] as const) {
       const node = C.N(type);
       node.adv = { ...(node.adv || {}), htmlId: 'team' } as any;
       const html = C.renderNode(node, { edit: false });
@@ -844,5 +844,184 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     button.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     expect(active()).toBe(2);
     w.close();
+  });
+
+  test('typemask, fullmenu, swatchshop, snaprail and scrollsteps render neutral defaults and run interactively', () => {
+    for (const type of ['typemask', 'fullmenu', 'swatchshop', 'snaprail', 'scrollsteps'] as const) {
+      const starter = C.renderNode(C.N(type), { edit: false });
+      expect(starter).not.toMatch(/SKARVEN|Tromsø|Lyngen|Røst/);
+    }
+
+    const swpHtml = C.renderNode(C.N('swatchshop', {
+      products: [{
+        prodName: 'Storm Shell', prodPrice: '$420', prodSpec: '310 g',
+        c1Name: 'Obsidian', c1Hex: '#1D2421', c1Src: 'https://example.test/s1.webp',
+        c2Name: 'Spruce', c2Hex: '#145C3E', c2Src: 'https://example.test/s2.webp',
+        href: ''
+      }]
+    }), { edit: false });
+    expect(swpHtml).not.toContain('href="#"');
+    const swpDom = domFor(swpHtml);
+    const swpWin = swpDom.window as any;
+    let swpDispose: (() => void) | null = null;
+    swpWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { swpDispose = fn; };
+    swpWin.eval(scriptBody(C.SWATCHSHOP_JS));
+    const dots = swpWin.document.querySelectorAll('.pagecraft-swatch-dot');
+    (dots[1] as HTMLElement).click();
+    expect(swpWin.document.querySelector('.pagecraft-swatch-img')?.getAttribute('src')).toBe('https://example.test/s2.webp');
+    expect(swpWin.document.querySelector('[data-swp-active]')?.textContent).toBe('Spruce · 310 g');
+    swpDispose!();
+    swpDom.window.close();
+
+    const fmDom = domFor(C.renderNode(C.N('fullmenu', {
+      menuItems: [
+        { label: 'Overview', href: 'index.html', src: 'https://example.test/m1.webp' },
+        { label: 'Catalog', href: 'shells.html', src: 'https://example.test/m2.webp' }
+      ]
+    }), { edit: false }));
+    const fmWin = fmDom.window as any;
+    let fmDispose: (() => void) | null = null;
+    fmWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { fmDispose = fn; };
+    fmWin.eval(scriptBody(C.FULLMENU_JS));
+    (fmWin.document.querySelector('.pagecraft-fullmenu-btn') as HTMLElement).click();
+    expect(fmWin.document.querySelector('.pagecraft-fullmenu-dlg')?.getAttribute('data-open')).toBe('1');
+    expect(fmWin.document.documentElement.style.overflow).toBe('');
+    fmWin.document.querySelectorAll('.pagecraft-fullmenu-link')[1].dispatchEvent(new fmWin.Event('mouseenter'));
+    expect(fmWin.document.querySelector('[data-fm-plate="1"]')?.getAttribute('data-active')).toBe('1');
+    fmDispose!();
+    fmDom.window.close();
+
+    const ssDom = domFor(C.renderNode(C.N('scrollsteps'), { edit: false }));
+    const ssWin = ssDom.window as any;
+    ssWin.eval(scriptBody(C.SCROLLSTEPS_JS));
+    const stepItems = ssWin.document.querySelectorAll('.pagecraft-scrollsteps-item');
+    stepItems[2].dispatchEvent(new ssWin.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(stepItems[2].getAttribute('data-active')).toBe('1');
+    ssDom.window.close();
+
+    const dsDom = domFor(C.renderNode(C.N('dragstrip'), { edit: false }));
+    const dsWin = dsDom.window as any;
+    let dsDispose: (() => void) | null = null;
+    dsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { dsDispose = fn; };
+    dsWin.eval(scriptBody(C.DRAGSTRIP_JS));
+    expect(dsWin.document.querySelector('[data-ds-track]')?.getAttribute('aria-valuenow')).toBe('0');
+    dsDispose!();
+    dsDom.window.close();
+
+    const sfDom = domFor(C.renderNode(C.N('stayfilter', {
+      currencySymbol: '€', defaultGuests: '2', maxGuests: '8', singularLabel: 'villa', unitLabel: 'villas',
+      stays: [
+        { stayName: 'Cove Suite', sleeps: '2', lowRate: '380', midRate: '490', highRate: '640' },
+        { stayName: 'Cliff House', sleeps: '6', lowRate: '620', midRate: '790', highRate: '980' }
+      ]
+    }), { edit: false }));
+    const sfWin = sfDom.window as any;
+    let sfDispose: (() => void) | null = null;
+    sfWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { sfDispose = fn; };
+    sfWin.eval(scriptBody(C.STAYFILTER_JS));
+    expect(sfWin.document.querySelector('[data-sf-result]')?.textContent).toBe('2 villas');
+    (sfWin.document.querySelectorAll('[data-sf-step]')[1] as HTMLElement).click();
+    expect(sfWin.document.querySelector('[data-sf-guests]')?.textContent).toBe('3');
+    expect(sfWin.document.querySelector('[data-sf-result]')?.textContent).toBe('1 villa');
+    (sfWin.document.querySelector('[data-sf-season="high"]') as HTMLElement).click();
+    expect(sfWin.document.querySelectorAll('[data-sf-price]')[1]?.textContent).toBe('€980');
+    sfDispose!();
+    sfDom.window.close();
+
+    const rcDom = domFor(C.renderNode(C.N('roicalc', {
+      slider1Value: '10', slider2Value: '200', baseFactor: '1000', savingsPct: '30', co2Factor: '4', currencySymbol: '€'
+    }), { edit: false }));
+    const rcWin = rcDom.window as any;
+    let rcDispose: (() => void) | null = null;
+    rcWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rcDispose = fn; };
+    rcWin.eval(scriptBody(C.ROICALC_JS));
+    expect(rcWin.document.querySelector('[data-rc-savings]')?.textContent).toBe('€600,000');
+    const rcIn1 = rcWin.document.querySelector('[data-rc-in="1"]') as HTMLInputElement;
+    rcIn1.value = '20';
+    rcIn1.dispatchEvent(new rcWin.Event('input', { bubbles: true }));
+    expect(rcWin.document.querySelector('[data-rc-savings]')?.textContent).toBe('€1,200,000');
+    rcDispose!();
+    rcDom.window.close();
+
+    const scHtml = C.renderNode(C.N('stackcards'), { edit: false });
+    expect(scHtml).toContain('pagecraft-stackcards');
+    expect(scHtml).toContain('--sc-i:1');
+
+    const sbDom = domFor(C.renderNode(C.N('showbill'), { edit: false }));
+    const sbWin = sbDom.window as any;
+    let sbDispose: (() => void) | null = null;
+    sbWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { sbDispose = fn; };
+    sbWin.eval(scriptBody(C.SHOWBILL_JS));
+    (sbWin.document.querySelector('[data-sb-filter="Vault B2"]') as HTMLElement).click();
+    expect((sbWin.document.querySelector('[data-sb-room="Turbine Hall"]') as HTMLElement).hidden).toBe(true);
+    expect((sbWin.document.querySelector('[data-sb-room="Vault B2"]') as HTMLElement).hidden).toBe(false);
+    sbDispose!();
+    sbDom.window.close();
+
+    const msDom = domFor(C.renderNode(C.N('masonry'), { edit: false }));
+    const msWin = msDom.window as any;
+    let msDispose: (() => void) | null = null;
+    msWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { msDispose = fn; };
+    msWin.eval(scriptBody(C.MASONRY_JS));
+    (msWin.document.querySelector('[data-ms-open="1"]') as HTMLElement).click();
+    expect(msWin.document.querySelector('.pagecraft-masonry-dlg')?.getAttribute('data-open')).toBe('1');
+    expect(msWin.document.querySelector('[data-ms-dtitle]')?.textContent).toContain('SUB-015');
+    msDispose!();
+    msDom.window.close();
+
+    const mlDom = domFor(C.renderNode(C.N('maplist'), { edit: false }));
+    const mlWin = mlDom.window as any;
+    let mlDispose: (() => void) | null = null;
+    mlWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { mlDispose = fn; };
+    mlWin.eval(scriptBody(C.MAPLIST_JS));
+    (mlWin.document.querySelector('[data-ml-pin="1"]') as HTMLElement).click();
+    expect(mlWin.document.querySelector('[data-ml-pick="1"]')?.getAttribute('data-selected')).toBe('1');
+    expect(mlWin.document.querySelector('[data-ml-pick="0"]')?.getAttribute('data-selected')).toBe('0');
+    expect(mlWin.document.querySelector('[data-ml-active-title]')?.textContent).toContain('Lockkeeper');
+    mlDispose!();
+    mlDom.window.close();
+
+    const tvDom = domFor(C.renderNode(C.N('thumbviewer'), { edit: false }));
+    const tvWin = tvDom.window as any;
+    let tvDispose: (() => void) | null = null;
+    tvWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { tvDispose = fn; };
+    tvWin.eval(scriptBody(C.THUMBVIEWER_JS));
+    (tvWin.document.querySelector('[data-tv-next]') as HTMLElement).click();
+    expect(tvWin.document.querySelector('[data-tv-count]')?.textContent).toBe('02 / 02');
+    expect(tvWin.document.querySelector('[data-tv-thumb="1"]')?.getAttribute('data-active')).toBe('1');
+    expect(tvWin.document.querySelector('[data-tv-title]')?.textContent).toContain('Kitchen');
+    tvDispose!();
+    tvDom.window.close();
+
+    const fsDom = domFor(C.renderNode(C.N('financeswitch'), { edit: false }));
+    const fsWin = fsDom.window as any;
+    let fsDispose: (() => void) | null = null;
+    fsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { fsDispose = fn; };
+    fsWin.eval(scriptBody(C.FINANCESWITCH_JS));
+    expect(fsWin.document.querySelector('[data-fs-price]')?.textContent).toContain('/ mo');
+    (fsWin.document.querySelector('[data-fs-mode="cash"]') as HTMLElement).click();
+    expect(fsWin.document.querySelector('[data-financeswitch]')?.getAttribute('data-fs-active')).toBe('cash');
+    expect(fsWin.document.querySelector('[data-fs-mode="cash"]')?.getAttribute('aria-pressed')).toBe('true');
+    expect(fsWin.document.querySelector('[data-fs-price]')?.textContent).toBe('€56,900');
+    fsDispose!();
+    fsDom.window.close();
+
+    const rsDom = domFor(C.renderNode(C.N('rangeslider'), { edit: false }));
+    const rsWin = rsDom.window as any;
+    let rsDispose: (() => void) | null = null;
+    rsWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rsDispose = fn; };
+    rsWin.eval(scriptBody(C.RANGESLIDER_JS));
+    const rsRangeBefore = rsWin.document.querySelector('[data-rs-range]')?.textContent;
+    const rsInput = rsWin.document.querySelector('[data-rs-temp]') as HTMLInputElement;
+    rsInput.value = '-25';
+    rsInput.dispatchEvent(new rsWin.Event('input', { bubbles: true }));
+    expect(rsWin.document.querySelector('[data-rs-temp-out]')?.textContent).toBe('-25°C');
+    const rsAfterCold = parseInt(rsWin.document.querySelector('[data-rs-range]')?.textContent || '0', 10);
+    expect(rsAfterCold).toBeLessThan(parseInt(rsRangeBefore || '0', 10));
+    const wheels = rsWin.document.querySelectorAll('[data-rs-wheel]');
+    (wheels[2] as HTMLElement).click();
+    expect(parseInt(rsWin.document.querySelector('[data-rs-range]')?.textContent || '0', 10)).toBeLessThan(rsAfterCold);
+    rsDispose!();
+    rsDom.window.close();
   });
 });

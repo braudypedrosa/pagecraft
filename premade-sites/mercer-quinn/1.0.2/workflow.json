@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "mercer-quinn",
+  "version": "1.0.2",
+  "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
+  "packageSha256": "a469f39deee91bc69a77e59f5cb9cf560e6166c43782fbb8b458335d0dfebf42",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

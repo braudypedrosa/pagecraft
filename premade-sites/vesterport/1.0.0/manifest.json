@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "vesterport",
+  "version": "1.0.0",
+  "name": "VESTERPORT · Maritime Routing & Port Decarbonisation",
+  "sampleName": "VESTERPORT — Autonomous Maritime Routing & Port Decarbonisation",
+  "description": "Four-page Nordic maritime routing and port decarbonisation platform featuring a 100vh dusk container port hero with monumental −31% telemetry typography, interactive dual-slider fleet fuel savings calculator, scroll-stacking operational protocol cards, live European port hub clocks, IMO CII & EU ETS compliance ledger, and fleet audit booking.",
+  "categories": [
+    "Maritime & Logistics",
+    "Enterprise Tech"
+  ],
+  "pages": [
+    {
+      "id": "vp-page-index",
+      "name": "Platform",
+      "slug": "index"
+    },
+    {
+      "id": "vp-page-voyage-ai",
+      "name": "Voyage AI",
+      "slug": "voyage-ai"
+    },
+    {
+      "id": "vp-page-compliance",
+      "name": "CII Compliance",
+      "slug": "compliance"
+    },
+    {
+      "id": "vp-page-ports",
+      "name": "Ports",
+      "slug": "ports"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "2e20a4eb4d2dc493d146731585dd35813f882774fc5bf0e90c571ec513590e7b",
+  "previewPage": "index.html",
+  "assetCount": 19,
+  "assetBytes": 1173300
+}

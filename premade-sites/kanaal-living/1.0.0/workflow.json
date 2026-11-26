@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "kanaal-living",
+  "version": "1.0.0",
+  "sampleName": "KANAAL LIVING — Converted 1894 Canal Warehouse Lofts in Amsterdam East",
+  "packageSha256": "fbd95329136dc9f2b9fc2a8f0c246928d843ec215e415683f6978374e07a5fb5",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

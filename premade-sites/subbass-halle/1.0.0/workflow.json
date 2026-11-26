@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "subbass-halle",
+  "version": "1.0.0",
+  "sampleName": "SUBBASS HALLE — Spatial Sound System, Club Program & Vinyl Imprint",
+  "packageSha256": "0c104911cf6bc87710e970d1179138a558a54dd45369550f05b0c8f9d9210a61",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

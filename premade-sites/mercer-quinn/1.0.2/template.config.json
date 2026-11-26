@@ -1,0 +1,166 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "mercer-quinn",
+  "version": "1.0.2",
+  "name": "MERCER QUINN",
+  "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
+  "description": "Four-page cross-border patent, silicon architecture, and AI systems trial counsel site featuring a centered masthead header, centered broadsheet hero with three-plate architectural triptych, law-firm practice grid beside framed consultation plate, interactive trial-partner spotlight roster, client-tabbed GC endorsements, live three-chambers world clocks, photo-paired practice tabs, dark code-first SPDX 3.0 provenance split, four-stage sprint trial rows, law review broadsheet front page, oral-argument audio booth dispatch, year-grouped amicus archive, multi-currency USD/EUR/GBP retainer tiers, interactive question pills, and centered ethics-wall intake desk.",
+  "categories": [
+    "Legal & Advisory",
+    "Enterprise Tech"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "../1.0.0/assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "../1.0.0/assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "../1.0.0/assets/logo.svg",
+      "name": "logo.svg",
+      "width": 236,
+      "height": 40
+    },
+    {
+      "id": "chambers-seal",
+      "file": "../1.0.0/assets/chambers-seal.svg",
+      "name": "chambers-seal.svg",
+      "width": 240,
+      "height": 240
+    },
+    {
+      "id": "spdx-lineage",
+      "file": "../1.0.0/assets/spdx-lineage.svg",
+      "name": "spdx-lineage.svg",
+      "width": 680,
+      "height": 320
+    },
+    {
+      "id": "record-stacks",
+      "file": "../1.0.0/assets/record-stacks.webp",
+      "name": "record-stacks.webp",
+      "width": 848,
+      "height": 1264
+    },
+    {
+      "id": "courthouse-steps",
+      "file": "../1.0.0/assets/courthouse-steps.webp",
+      "name": "courthouse-steps.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "silicon-claim-chart",
+      "file": "../1.0.0/assets/silicon-claim-chart.webp",
+      "name": "silicon-claim-chart.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "compute-corridor",
+      "file": "../1.0.0/assets/compute-corridor.webp",
+      "name": "compute-corridor.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "cleanroom-node",
+      "file": "../1.0.0/assets/cleanroom-node.webp",
+      "name": "cleanroom-node.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "docket-worktable",
+      "file": "../1.0.0/assets/docket-worktable.webp",
+      "name": "docket-worktable.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "id": "client-consultation",
+      "file": "../1.0.0/assets/client-consultation.webp",
+      "name": "client-consultation.webp",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "dispatch-booth",
+      "file": "../1.0.0/assets/dispatch-booth.webp",
+      "name": "dispatch-booth.webp",
+      "width": 1000,
+      "height": 1250
+    },
+    {
+      "id": "partner-mercer",
+      "file": "../1.0.0/assets/partner-mercer.webp",
+      "name": "partner-mercer.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "partner-quinn",
+      "file": "../1.0.0/assets/partner-quinn.webp",
+      "name": "partner-quinn.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "partner-weber",
+      "file": "../1.0.0/assets/partner-weber.webp",
+      "name": "partner-weber.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "partner-rostova",
+      "file": "../1.0.0/assets/partner-rostova.webp",
+      "name": "partner-rostova.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "office-washington",
+      "file": "../1.0.0/assets/office-washington.webp",
+      "name": "office-washington.webp",
+      "width": 1200,
+      "height": 896
+    },
+    {
+      "id": "office-london",
+      "file": "../1.0.0/assets/office-london.webp",
+      "name": "office-london.webp",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "office-munich",
+      "file": "../1.0.0/assets/office-munich.webp",
+      "name": "office-munich.webp",
+      "width": 1280,
+      "height": 960
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:mercer-quinn:1.0.2",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "a469f39deee91bc69a77e59f5cb9cf560e6166c43782fbb8b458335d0dfebf42"
+}

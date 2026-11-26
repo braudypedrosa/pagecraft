@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "vesterport",
+  "version": "1.0.0",
+  "sampleName": "VESTERPORT — Autonomous Maritime Routing & Port Decarbonisation",
+  "packageSha256": "2e20a4eb4d2dc493d146731585dd35813f882774fc5bf0e90c571ec513590e7b",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

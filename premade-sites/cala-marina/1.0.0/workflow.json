@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "cala-marina",
+  "version": "1.0.0",
+  "sampleName": "CALA MARINA — Cliffside Aegean Sanctuary, Dining & Yacht Mooring",
+  "packageSha256": "495b65dd1d292e6a269fad0e06053d41f6087c6555a06a85fa18e585690f6486",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "skarven-alpine",
+  "version": "1.0.0",
+  "name": "SKARVEN · Technical Alpine Gear",
+  "sampleName": "SKARVEN — Technical Alpine Shells & Packs",
+  "description": "Four-page Norwegian technical storm shell and Dyneema pack workshop featuring a 100dvh obsidian photo-masked wordmark hero, fullscreen hover-preview navigation drawer, live colourway swatch catalog, horizontal snap engineering card rail, scroll-filled seam repair protocol, hydrostatic test ledger, and Tromsø repair intake.",
+  "categories": [
+    "Retail & Craft",
+    "Outdoor & Gear"
+  ],
+  "pages": [
+    {
+      "id": "skv-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "skv-page-shells",
+      "name": "Shell System",
+      "slug": "shells"
+    },
+    {
+      "id": "skv-page-repairs",
+      "name": "Repair Lab",
+      "slug": "repairs"
+    },
+    {
+      "id": "skv-page-stockists",
+      "name": "Stockists",
+      "slug": "stockists"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "3cb5f2ba3007bc62cb72388b2d9ac6b8504941b93b2becff97846d391a72d69d",
+  "previewPage": "index.html",
+  "assetCount": 28,
+  "assetBytes": 2687817
+}

@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "fieldwork-radio",
+  "version": "1.0.1",
+  "sampleName": "Fieldwork Radio",
+  "packageSha256": "a2e20cfb84a9179206260a7565c2d599faf8baaf3c664ae7a6be574eebac7745",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

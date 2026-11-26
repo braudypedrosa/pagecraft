@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "devon-park",
+  "version": "1.0.1",
+  "sampleName": "Devon Park · Systems Engineer",
+  "packageSha256": "c32526c4ce0ba73d3d89d09791045a59236c494110d8187a3670b827c928921c",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

@@ -183,7 +183,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 44 module renderers emit their representative authored value', () => {
+test('all 51 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -235,6 +235,21 @@ test('all 44 module renderers emit their representative authored value', () => {
     arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
     chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
     slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
+    typemask: { expected: /data-typemask.*QA-MASK/, configure: n => { n.props.wordmark = 'QA-MASK'; n.props.maskSrc = 'https://example.com/mask.jpg'; } },
+    fullmenu: { expected: /data-fullmenu.*QA drawer link/, configure: n => { n.props.menuItems = [{ label: 'QA drawer link', href: 'https://example.com/p', src: 'https://example.com/p.jpg' }]; } },
+    swatchshop: { expected: /data-swatchshop.*QA Jacket/, configure: n => { n.props.products = [{ prodName: 'QA Jacket', prodPrice: '$290', c1Name: 'Pine', c1Hex: '#145C3E', c1Src: 'https://example.com/j1.jpg' }]; } },
+    snaprail: { expected: /data-snaprail.*QA Rail Card/, configure: n => { n.props.railCards = [{ title: 'QA Rail Card', detail: 'Detail', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }]; } },
+    scrollsteps: { expected: /data-scrollsteps.*QA Seam Step/, configure: n => { n.props.steps = [{ title: 'QA Seam Step', badge: '48h', detail: 'Detail', src: 'https://example.com/st.jpg' }]; } },
+    dragstrip: { expected: /data-dragstrip.*QA Filmstrip Suite/, configure: n => { n.props.slides = [{ title: 'QA Filmstrip Suite', meta: 'Cliffside', src: 'https://example.com/ds.jpg' }]; } },
+    stayfilter: { expected: /data-stayfilter.*QA Cliff Villa/, configure: n => { n.props.stays = [{ stayName: 'QA Cliff Villa', sleeps: '4', lowRate: '420', midRate: '560', highRate: '720', src: 'https://example.com/v1.jpg' }]; } },
+    roicalc: { expected: /data-roicalc.*QA Bunker Model/, configure: n => { n.props.heading = 'QA Bunker Model'; } },
+    stackcards: { expected: /data-stackcards.*QA Protocol Card/, configure: n => { n.props.cards = [{ stepNum: '01', title: 'QA Protocol Card', detail: 'Step detail', src: 'https://example.com/sc.jpg' }]; } },
+    showbill: { expected: /data-showbill.*QA Club Night/, configure: n => { n.props.shows = [{ dayNum: '06', month: 'NOV', title: 'QA Club Night', room: 'Main' }]; } },
+    masonry: { expected: /data-masonry.*QA Vinyl Plate/, configure: n => { n.props.items = [{ src: 'https://example.com/v1.jpg', title: 'QA Vinyl Plate', ratio: '4 / 5' }]; } },
+    maplist: { expected: /data-maplist.*QA Canal Loft/, configure: n => { n.props.items = [{ pinLabel: '€2,150', price: '€2,150 / mo', title: 'QA Canal Loft', x: '40', y: '45', src: 'https://example.com/m1.jpg' }]; } },
+    thumbviewer: { expected: /data-thumbviewer.*QA South View/, configure: n => { n.props.items = [{ src: 'https://example.com/t1.jpg', label: '01 View', title: 'QA South View' }]; } },
+    financeswitch: { expected: /data-financeswitch.*QA NV-02/, configure: n => { n.props.items = [{ title: 'QA NV-02', leasePrice: '€649 / mo', cashPrice: '€64,900', src: 'https://example.com/nv2.jpg' }]; } },
+    rangeslider: { expected: /data-rangeslider.*QA Winter Range/, configure: n => { n.props.heading = 'QA Winter Range'; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -299,7 +314,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(176);
+  expect(declarations).toHaveLength(246);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -347,7 +362,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(276);
+  expect(declarations).toHaveLength(382);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

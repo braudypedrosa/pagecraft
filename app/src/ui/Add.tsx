@@ -61,7 +61,14 @@ const PAL: { g: string; items: [string, string][] }[] = [
     g: 'Special blocks', items: [
       ['slotpicker', 'Booking request'], ['dockbar', 'Docked bar'], ['tiers', 'Pricing table'], ['qapills', 'Question pills'],
       ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
-      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches']
+      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'],
+      ['arches', 'Fanned arches'], ['typemask', 'Masked wordmark'], ['fullmenu', 'Fullscreen menu'],
+      ['swatchshop', 'Product swatches'], ['snaprail', 'Snap card rail'], ['scrollsteps', 'Scroll steps'],
+      ['dragstrip', 'Draggable filmstrip'], ['stayfilter', 'Stay finder'],
+      ['roicalc', 'ROI calculator'], ['stackcards', 'Stacked cards'],
+      ['showbill', 'Venue bill'], ['masonry', 'Masonry archive'],
+      ['maplist', 'Map listings'], ['thumbviewer', 'Thumbnail viewer'],
+      ['financeswitch', 'Finance switch'], ['rangeslider', 'Range slider']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -81,7 +88,22 @@ export const PURPOSE: Record<string, string> = {
   scrolly: 'An image that stays in view and changes as visitors read.',
   chapters: 'A large image sequence that plays by itself, with titles.',
   exhibit: 'A project list that previews an image on hover.',
-  arches: 'Up to five photos in a decorative fan of arches.'
+  arches: 'Up to five photos in a decorative fan of arches.',
+  typemask: 'Large display letters filled with an image.',
+  fullmenu: 'A menu button that opens a full-screen link list with preview images.',
+  swatchshop: 'Product cards with colour dots that swap the image.',
+  snaprail: 'Colour cards in a horizontal row with next and back buttons.',
+  scrollsteps: 'Steps along a vertical line that fills as visitors scroll.',
+  dragstrip: 'A horizontal image strip visitors drag or scrub with a bar below.',
+  stayfilter: 'A list of rooms or houses filtered by guest count and season.',
+  roicalc: 'Dual range sliders that model annual savings and comparison bars live.',
+  stackcards: 'Protocol or feature cards that pin and stack neatly as you scroll.',
+  showbill: 'Date-block schedule of performances or sessions with room filter buttons.',
+  masonry: 'Mixed-aspect media archive grid with an integrated lightbox viewer.',
+  maplist: 'Synchronized residence cards paired with clickable price pins on a district map.',
+  thumbviewer: 'Large stage image with previous/next controls and synchronized thumbnail strip.',
+  financeswitch: 'Trim cards with a simultaneous lease vs. cash purchase mode switch.',
+  rangeslider: 'Interactive temperature and wheel simulator estimating winter highway range.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -139,6 +161,21 @@ const ALIASES: Record<string, string> = {
   arches: 'fanned arc collage arch showcase triptych wellness hero',
   chapters: 'cinematic frame chapters story progress showcase',
   slotpicker: 'booking appointment reservation session time slot form request',
+  typemask: 'cutout wordmark masked display typography poster hero',
+  fullmenu: 'overlay drawer fullscreen navigation index preview links',
+  swatchshop: 'product cards colourways swatches store gear shop',
+  snaprail: 'horizontal colour cards snap rail features',
+  scrollsteps: 'vertical line scroll steps process sequence',
+  dragstrip: 'filmstrip horizontal rooms scrubbar progress drag showcase',
+  stayfilter: 'villas houses rooms guests stepper season rates availability hospitality',
+  roicalc: 'roi savings calculator sliders fleet bunker emissions cost model',
+  stackcards: 'sticky stacking protocol cards scroll pin sequence deck',
+  showbill: 'events lineup concert club schedule date block tickets bill',
+  masonry: 'masonry gallery archive mixed aspect vinyl lookbook lightbox',
+  maplist: 'map pins listings apartments lofts residences neighborhood interactive split',
+  thumbviewer: 'thumbnail viewer gallery stage floorplan interior plates',
+  financeswitch: 'finance switch lease cash pricing trims vehicle ev purchase toggle',
+  rangeslider: 'range slider winter temperature ev autonomy simulator battery calculator',
   list: 'collection cms dynamic',
 };
 

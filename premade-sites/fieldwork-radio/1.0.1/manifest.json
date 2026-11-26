@@ -1,0 +1,24 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "fieldwork-radio",
+  "version": "1.0.1",
+  "name": "Fieldwork Radio",
+  "sampleName": "Fieldwork Radio",
+  "description": "Broadsheet single-page site for an investigative audio documentary series featuring an inline playable episode player, tag-filtered audio archive, host byline strip, ruled live tour table, and tip-line intake.",
+  "categories": [
+    "Media & Podcast",
+    "One Page"
+  ],
+  "pages": [
+    {
+      "id": "nfjw4j1vg2",
+      "name": "Home",
+      "slug": "index"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "a2e20cfb84a9179206260a7565c2d599faf8baaf3c664ae7a6be574eebac7745",
+  "previewPage": "index.html",
+  "assetCount": 7,
+  "assetBytes": 322143
+}

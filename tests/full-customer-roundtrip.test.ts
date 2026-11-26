@@ -211,6 +211,21 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('arches', { items: [{ src: 'https://example.test/a1.webp', alt: 'Arch 1' }] }),
     C.N('chapters', { frameRatio: '16 / 9', autoSeconds: '0', chapters: [{ chapterTitle: 'Caldarium', chapterSub: '40C', overlayText: 'Warm spring.', src: 'https://example.test/ch1.webp', alt: 'Caldarium' }] }),
     C.N('slotpicker', { action: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }], slots: [{ time: '06:30' }], fields: [{ type: 'email', label: 'Email', name: 'email', required: 1 }] }),
+    C.N('typemask', { wordmark: 'ROUNDTRIP', maskSrc: 'https://example.test/mask.webp', maskAlt: 'Roundtrip cutout' }),
+    C.N('fullmenu', { triggerLabel: 'Menu', closeLabel: 'Close', menuNote: 'Note', menuItems: [{ label: 'Overview', href: 'https://example.test/overview', meta: 'Main', src: 'https://example.test/m1.webp', alt: 'Overview' }] }),
+    C.N('swatchshop', { gridCols: '2', products: [{ prodName: 'Storm Jacket', prodPrice: '$480', prodSpec: '310 g', href: 'https://example.test/jacket', ctaLabel: 'Inspect', c1Name: 'Spruce', c1Hex: '#145C3E', c1Src: 'https://example.test/j1.webp', alt: 'Jacket' }] }),
+    C.N('snaprail', { prevLabel: 'Previous', nextLabel: 'Next', railCards: [{ cardTag: '01', title: 'Seam Weld', detail: 'Ultrasonic micro-tape.', stat: '28k mm', bgHex: '#14261F', fgHex: '#F2F6F3' }] }),
+    C.N('scrollsteps', { steps: [{ title: 'Batch Tag', badge: '48h', detail: 'Laser serial.', src: 'https://example.test/st1.webp', alt: 'Batch tag' }] }),
+    C.N('dragstrip', { cardRatio: '3 / 2', ariaLabel: 'Rooms', slides: [{ title: 'Caldera Suite', meta: 'Terrace', src: 'https://example.test/ds1.webp', alt: 'Suite' }] }),
+    C.N('stayfilter', { currencySymbol: '€', defaultGuests: '2', maxGuests: '8', stays: [{ stayName: 'Cliff Villa', location: 'West Ridge', summary: 'Plunge pool.', sleeps: '4', tags: 'Sleeps 4, Plunge pool', lowRate: '480', midRate: '640', highRate: '820', src: 'https://example.test/sf1.webp', alt: 'Cliff Villa' }] }),
+    C.N('roicalc', { heading: 'Bunker model', slider1Value: '16', slider2Value: '260', baseFactor: '1400', savingsPct: '31', co2Factor: '4.1', currencySymbol: '€', href: 'https://example.test/audit' }),
+    C.N('stackcards', { stickyOffset: '88px', cards: [{ stepNum: '01', badge: 'Telemetry', title: 'Slot sync', detail: 'Quay ETA lock.', stat: '14 ports', src: 'https://example.test/sc1.webp', alt: 'Quay sync' }] }),
+    C.N('showbill', { allLabel: 'All rooms', shows: [{ dayNum: '06', month: 'NOV', title: 'Rrose Live', artists: 'Rrose · Neel', room: 'Turbine Hall', doors: '23:30', price: '€24', ctaLabel: 'Passes', href: 'https://example.test/passes' }] }),
+    C.N('masonry', { cols: '3', items: [{ src: 'https://example.test/ms1.webp', alt: 'Vinyl 1', title: 'SUB-014', meta: '180 g', ratio: '4 / 5' }] }),
+    C.N('maplist', { mapSrc: 'https://example.test/map.svg', items: [{ pinLabel: '€2,150', price: '€2,150 / mo', title: 'Wharf Loft', meta: '94 m²', x: '34', y: '44', src: 'https://example.test/apt1.webp', alt: 'Wharf Loft', ctaLabel: 'Tour', href: 'https://example.test/tour' }] }),
+    C.N('thumbviewer', { ratio: '16 / 10', items: [{ src: 'https://example.test/tv1.webp', alt: 'Living', label: '01 Living', title: 'Living Hall', meta: 'South exposure' }] }),
+    C.N('financeswitch', { leaseLabel: 'Lease (36 mo)', cashLabel: 'Cash purchase', defaultMode: 'lease', items: [{ title: 'NV-01 Single Motor', badge: '590 km', specs: '220 kW · RWD', leasePrice: '€549 / mo', cashPrice: '€56,900', leaseNote: '0% deposit', cashNote: 'Excl. VAT', ctaLabel: 'Book Drive', href: 'https://example.test/drive', src: 'https://example.test/nv1.webp', alt: 'NV-01' }] }),
+    C.N('rangeslider', { heading: 'Winter simulator', defaultTemp: '-10', baseRangeKm: '640', href: 'https://example.test/range' }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -244,14 +259,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 47 Add choices map to stable persisted module shapes', () => {
+  test('all 54 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(47);
-    expect(new Set(choices)).toHaveLength(47);
+    expect(choices).toHaveLength(62);
+    expect(new Set(choices)).toHaveLength(62);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

@@ -1,0 +1,215 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "cala-marina",
+  "version": "1.0.0",
+  "name": "CALA MARINA · Cliffside Sanctuary & Moorings",
+  "sampleName": "CALA MARINA — Cliffside Aegean Sanctuary, Dining & Yacht Mooring",
+  "description": "Four-page Cycladic cliffside villa sanctuary, wood-fired sea table, and stern-to yacht mooring quay featuring a 100dvh sunset infinity horizon with docked availability form, mouse-draggable room filmstrip, interactive guest-stepper and seasonal villa rate finder, culinary bento showcase, and harbour sounding diagram.",
+  "categories": [
+    "Travel & Hospitality",
+    "Accommodation"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 242,
+      "height": 40
+    },
+    {
+      "id": "hero-horizon-bg",
+      "file": "assets/hero-horizon-bg.webp",
+      "name": "hero-horizon-bg.webp",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "id": "closing-cove-bg",
+      "file": "assets/closing-cove-bg.webp",
+      "name": "closing-cove-bg.webp",
+      "width": 1500,
+      "height": 760
+    },
+    {
+      "id": "banner-villas",
+      "file": "assets/banner-villas.webp",
+      "name": "banner-villas.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-dining",
+      "file": "assets/banner-dining.webp",
+      "name": "banner-dining.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "banner-moorings",
+      "file": "assets/banner-moorings.webp",
+      "name": "banner-moorings.webp",
+      "width": 1440,
+      "height": 620
+    },
+    {
+      "id": "strip-plunge",
+      "file": "assets/strip-plunge.webp",
+      "name": "strip-plunge.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "strip-salon",
+      "file": "assets/strip-salon.webp",
+      "name": "strip-salon.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "strip-bedroom",
+      "file": "assets/strip-bedroom.webp",
+      "name": "strip-bedroom.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "strip-bath",
+      "file": "assets/strip-bath.webp",
+      "name": "strip-bath.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "strip-courtyard",
+      "file": "assets/strip-courtyard.webp",
+      "name": "strip-courtyard.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "villa-kastro",
+      "file": "assets/villa-kastro.webp",
+      "name": "villa-kastro.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "villa-poulati",
+      "file": "assets/villa-poulati.webp",
+      "name": "villa-poulati.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "villa-vathi",
+      "file": "assets/villa-vathi.webp",
+      "name": "villa-vathi.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "villa-faros",
+      "file": "assets/villa-faros.webp",
+      "name": "villa-faros.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "bento-terrace",
+      "file": "assets/bento-terrace.webp",
+      "name": "bento-terrace.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "bento-scallops",
+      "file": "assets/bento-scallops.webp",
+      "name": "bento-scallops.webp",
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "bento-wine",
+      "file": "assets/bento-wine.webp",
+      "name": "bento-wine.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "bento-pasta",
+      "file": "assets/bento-pasta.webp",
+      "name": "bento-pasta.webp",
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "bento-kitchen",
+      "file": "assets/bento-kitchen.webp",
+      "name": "bento-kitchen.webp",
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "chef-nikos",
+      "file": "assets/chef-nikos.webp",
+      "name": "chef-nikos.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "somm-eleni",
+      "file": "assets/somm-eleni.webp",
+      "name": "somm-eleni.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "yacht-quay",
+      "file": "assets/yacht-quay.webp",
+      "name": "yacht-quay.webp",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "id": "cove-anchorage",
+      "file": "assets/cove-anchorage.webp",
+      "name": "cove-anchorage.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "footer-quay",
+      "file": "assets/footer-quay.webp",
+      "name": "footer-quay.webp",
+      "width": 720,
+      "height": 480
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:cala-marina:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "495b65dd1d292e6a269fad0e06053d41f6087c6555a06a85fa18e585690f6486"
+}

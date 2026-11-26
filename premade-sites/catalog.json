@@ -1908,6 +1908,516 @@
       "previewPage": "index.html",
       "assetCount": 25,
       "assetBytes": 2307376
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kestrel-cargo",
+      "version": "1.0.1",
+      "name": "KESTREL",
+      "sampleName": "KESTREL — Urban Cargo EV Engineering",
+      "description": "Four-page electric utility cargo bike and municipal fleet site featuring a 70vh full-bleed dark studio hero with docked 4-metric telemetry bar, standardized 44vh inner-page engineering headers, pixel-aligned exterior-to-X-Ray scrubber, CAN-Bus & dyno progress cards, 3 hardware macro cards, interactive hotspot chassis diagram, visual trim tabs, horizontal certification timeline, 6-hub depot network cards, and fleet pilot desk.",
+      "categories": [
+        "Hardware & Mobility",
+        "Industrial Craft"
+      ],
+      "pages": [
+        {
+          "id": "ksl-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "ksl-page-models",
+          "name": "Models & Specs",
+          "slug": "models"
+        },
+        {
+          "id": "ksl-page-drivetrain",
+          "name": "Drivetrain X-Ray",
+          "slug": "drivetrain"
+        },
+        {
+          "id": "ksl-page-fleet",
+          "name": "Test Ride & Fleet",
+          "slug": "fleet"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "61ef1199810462bdf231164a3a960458f9b3df0d35a95df54f731ef191e51841",
+      "previewPage": "index.html",
+      "assetCount": 11,
+      "assetBytes": 439767
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "alder-and-silt",
+      "version": "1.0.1",
+      "name": "ALDER & SILT",
+      "sampleName": "ALDER & SILT — Ecological Landscape Architecture",
+      "description": "Four-page ecological landscape architecture and watershed civil practice featuring a floating mineral pill header, coastal elevation transect hero, interactive hover-preview monograph index, pixel-aligned LiDAR floodway compare scrubber, sticky-photo scrolling stewardship steps, subsurface soil horizon schematics, and site walk brief intake.",
+      "categories": [
+        "Landscape & Ecology",
+        "Architecture"
+      ],
+      "pages": [
+        {
+          "id": "aldr-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "aldr-page-sites",
+          "name": "Selected Sites",
+          "slug": "sites"
+        },
+        {
+          "id": "aldr-page-process",
+          "name": "Ecology & Process",
+          "slug": "process"
+        },
+        {
+          "id": "aldr-page-consultation",
+          "name": "Site Walk",
+          "slug": "consultation"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "74b9fe024f762529533e87244d812831c6d14296997fee128fc078018422cbc7",
+      "previewPage": "index.html",
+      "assetCount": 17,
+      "assetBytes": 3333937
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "mercer-quinn",
+      "version": "1.0.2",
+      "name": "MERCER QUINN",
+      "sampleName": "MERCER QUINN — Patent & AI Litigation LLP",
+      "description": "Four-page cross-border patent, silicon architecture, and AI systems trial counsel site featuring a centered masthead header, centered broadsheet hero with three-plate architectural triptych, law-firm practice grid beside framed consultation plate, interactive trial-partner spotlight roster, client-tabbed GC endorsements, live three-chambers world clocks, photo-paired practice tabs, dark code-first SPDX 3.0 provenance split, four-stage sprint trial rows, law review broadsheet front page, oral-argument audio booth dispatch, year-grouped amicus archive, multi-currency USD/EUR/GBP retainer tiers, interactive question pills, and centered ethics-wall intake desk.",
+      "categories": [
+        "Legal & Advisory",
+        "Enterprise Tech"
+      ],
+      "pages": [
+        {
+          "id": "mrq-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "mrq-page-practice",
+          "name": "Practice Areas",
+          "slug": "practice"
+        },
+        {
+          "id": "mrq-page-briefings",
+          "name": "Briefings",
+          "slug": "briefings"
+        },
+        {
+          "id": "mrq-page-conflict-check",
+          "name": "Conflict Check",
+          "slug": "conflict-check"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a469f39deee91bc69a77e59f5cb9cf560e6166c43782fbb8b458335d0dfebf42",
+      "previewPage": "index.html",
+      "assetCount": 20,
+      "assetBytes": 1716233
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "soraia-thermal",
+      "version": "1.0.2",
+      "name": "SORAIA",
+      "sampleName": "SORAIA — Thermal Basalt Reserve",
+      "description": "Four-page Iberian mountain bathhouse and geothermal travertine sanctuary featuring a fanned five-arch editorial hero, obsidian chapter-progress sanctuary frame, sanctuary film lightbox, categorised bathhouse ritual menu, borehole hydrochemical assay, architectural chamber slideshow, material swatch gallery, interactive session slot configurator, and etiquette host desk.",
+      "categories": [
+        "Wellness & Hospitality",
+        "Architecture"
+      ],
+      "pages": [
+        {
+          "id": "sra-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "sra-page-circuit",
+          "name": "Thermal Circuit",
+          "slug": "circuit"
+        },
+        {
+          "id": "sra-page-architecture",
+          "name": "Architecture",
+          "slug": "architecture"
+        },
+        {
+          "id": "sra-page-reserve",
+          "name": "Reserve",
+          "slug": "reserve"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "3bab407d5e2acf9be887d12710f651d8b723cc67eff5270a8e0b6cc2ec09d524",
+      "previewPage": "index.html",
+      "assetCount": 25,
+      "assetBytes": 2307376
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "cala-marina",
+      "version": "1.0.0",
+      "name": "CALA MARINA · Cliffside Sanctuary & Moorings",
+      "sampleName": "CALA MARINA — Cliffside Aegean Sanctuary, Dining & Yacht Mooring",
+      "description": "Four-page Cycladic cliffside villa sanctuary, wood-fired sea table, and stern-to yacht mooring quay featuring a 100dvh sunset infinity horizon with docked availability form, mouse-draggable room filmstrip, interactive guest-stepper and seasonal villa rate finder, culinary bento showcase, and harbour sounding diagram.",
+      "categories": [
+        "Travel & Hospitality",
+        "Accommodation"
+      ],
+      "pages": [
+        {
+          "id": "cmr-page-index",
+          "name": "Sanctuary",
+          "slug": "index"
+        },
+        {
+          "id": "cmr-page-villas",
+          "name": "Villas",
+          "slug": "villas"
+        },
+        {
+          "id": "cmr-page-dining",
+          "name": "Table & Cellar",
+          "slug": "dining"
+        },
+        {
+          "id": "cmr-page-moorings",
+          "name": "Yacht Moorings",
+          "slug": "moorings"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "495b65dd1d292e6a269fad0e06053d41f6087c6555a06a85fa18e585690f6486",
+      "previewPage": "index.html",
+      "assetCount": 27,
+      "assetBytes": 2861881
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "subbass-halle",
+      "version": "1.0.0",
+      "name": "SUBBASS HALLE · Sound System & Vinyl Imprint",
+      "sampleName": "SUBBASS HALLE — Spatial Sound System, Club Program & Vinyl Imprint",
+      "description": "Four-page brutalist sound sanctuary and independent vinyl imprint featuring a 100dvh turbine-hall poster hero with live countdown, filterable date-block showbill schedule, dubplate calibration audio test, eight-stack horn hotspot diagram, mixed-aspect masonry vinyl archive with native lightbox, acoustic specification table, and season-pass booking.",
+      "categories": [
+        "Music & Culture",
+        "Events & Venues"
+      ],
+      "pages": [
+        {
+          "id": "sh-page-index",
+          "name": "Program",
+          "slug": "index"
+        },
+        {
+          "id": "sh-page-sound-system",
+          "name": "Sound System",
+          "slug": "sound-system"
+        },
+        {
+          "id": "sh-page-vinyl",
+          "name": "Vinyl Releases",
+          "slug": "vinyl"
+        },
+        {
+          "id": "sh-page-venue",
+          "name": "Venue Info",
+          "slug": "venue"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "0c104911cf6bc87710e970d1179138a558a54dd45369550f05b0c8f9d9210a61",
+      "previewPage": "index.html",
+      "assetCount": 21,
+      "assetBytes": 1376019
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kanaal-living",
+      "version": "1.0.0",
+      "name": "KANAAL LIVING · Canal Warehouse Lofts",
+      "sampleName": "KANAAL LIVING — Converted 1894 Canal Warehouse Lofts in Amsterdam East",
+      "description": "Four-page canal warehouse residential living site featuring a 100dvh south-facing warehouse stage with floating lot card, synchronized interactive Entrepotdok district map and price-pin residence switcher, five-plate architectural thumbnail viewer with 1:100 floor plan, neighbourhood walkability hotspots, CLT spruce before-and-after comparison slider, adaptive-reuse structural table, and private viewing booking form.",
+      "categories": [
+        "Real Estate",
+        "Residential"
+      ],
+      "pages": [
+        {
+          "id": "kl-page-index",
+          "name": "Residences",
+          "slug": "index"
+        },
+        {
+          "id": "kl-page-canal-map",
+          "name": "Canal Map",
+          "slug": "canal-map"
+        },
+        {
+          "id": "kl-page-timber-spec",
+          "name": "Timber Spec",
+          "slug": "timber-spec"
+        },
+        {
+          "id": "kl-page-viewings",
+          "name": "Viewings",
+          "slug": "viewings"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "fbd95329136dc9f2b9fc2a8f0c246928d843ec215e415683f6978374e07a5fb5",
+      "previewPage": "index.html",
+      "assetCount": 25,
+      "assetBytes": 2379616
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "nordvolt-ev",
+      "version": "1.0.0",
+      "name": "NORDVOLT · 800V Electric Shooting Brakes",
+      "sampleName": "NORDVOLT — 800-Volt Nordic Electric Shooting Brakes",
+      "description": "Four-page 800-volt electric shooting brake platform designed for sub-zero Nordic corridors, featuring a 100dvh studio fastback hero with bottom telemetry strip, simultaneous cash vs. lease trim switch (financeswitch), interactive winter highway range simulator (rangeslider), horizontal craft snap rail, 800V skateboard hotspot chassis diagram, thermal recovery progress gauges, 320 kW charging curve & corridor table, bi-directional V2H accordion, OTA telemetry FAQ, and 48-hour unaccompanied test drive flow.",
+      "categories": [
+        "Hardware & Mobility",
+        "Electric Vehicles"
+      ],
+      "pages": [
+        {
+          "id": "nv-page-index",
+          "name": "Vehicles",
+          "slug": "index"
+        },
+        {
+          "id": "nv-page-range",
+          "name": "Range & Cold Weather",
+          "slug": "range"
+        },
+        {
+          "id": "nv-page-charging",
+          "name": "Charging",
+          "slug": "charging"
+        },
+        {
+          "id": "nv-page-test-drive",
+          "name": "Test Drive",
+          "slug": "test-drive"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "cfa883565b4f47ec0ef90613091ce25faf87c2e7b7dbefcdbe71fdce93f422ec",
+      "previewPage": "index.html",
+      "assetCount": 20,
+      "assetBytes": 1492535
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "skarven-alpine",
+      "version": "1.0.0",
+      "name": "SKARVEN · Technical Alpine Gear",
+      "sampleName": "SKARVEN — Technical Alpine Shells & Packs",
+      "description": "Four-page Norwegian technical storm shell and Dyneema pack workshop featuring a 100dvh obsidian photo-masked wordmark hero, fullscreen hover-preview navigation drawer, live colourway swatch catalog, horizontal snap engineering card rail, scroll-filled seam repair protocol, hydrostatic test ledger, and Tromsø repair intake.",
+      "categories": [
+        "Retail & Craft",
+        "Outdoor & Gear"
+      ],
+      "pages": [
+        {
+          "id": "skv-page-index",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "skv-page-shells",
+          "name": "Shell System",
+          "slug": "shells"
+        },
+        {
+          "id": "skv-page-repairs",
+          "name": "Repair Lab",
+          "slug": "repairs"
+        },
+        {
+          "id": "skv-page-stockists",
+          "name": "Stockists",
+          "slug": "stockists"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "3cb5f2ba3007bc62cb72388b2d9ac6b8504941b93b2becff97846d391a72d69d",
+      "previewPage": "index.html",
+      "assetCount": 28,
+      "assetBytes": 2687817
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "vesterport",
+      "version": "1.0.0",
+      "name": "VESTERPORT · Maritime Routing & Port Decarbonisation",
+      "sampleName": "VESTERPORT — Autonomous Maritime Routing & Port Decarbonisation",
+      "description": "Four-page Nordic maritime routing and port decarbonisation platform featuring a 100vh dusk container port hero with monumental −31% telemetry typography, interactive dual-slider fleet fuel savings calculator, scroll-stacking operational protocol cards, live European port hub clocks, IMO CII & EU ETS compliance ledger, and fleet audit booking.",
+      "categories": [
+        "Maritime & Logistics",
+        "Enterprise Tech"
+      ],
+      "pages": [
+        {
+          "id": "vp-page-index",
+          "name": "Platform",
+          "slug": "index"
+        },
+        {
+          "id": "vp-page-voyage-ai",
+          "name": "Voyage AI",
+          "slug": "voyage-ai"
+        },
+        {
+          "id": "vp-page-compliance",
+          "name": "CII Compliance",
+          "slug": "compliance"
+        },
+        {
+          "id": "vp-page-ports",
+          "name": "Ports",
+          "slug": "ports"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "2e20a4eb4d2dc493d146731585dd35813f882774fc5bf0e90c571ec513590e7b",
+      "previewPage": "index.html",
+      "assetCount": 19,
+      "assetBytes": 1173300
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "bramble-vet",
+      "version": "1.0.1",
+      "name": "Bramble Vet",
+      "sampleName": "Bramble Vet",
+      "description": "Single-page fear-free veterinary clinic landing site featuring a friendly split phone header, arch-masked patient portrait hero, click-to-play clinic video tour facade, ruled care pricing, care team slider, pet parent quotes, and appointment picker.",
+      "categories": [
+        "Pet Care & Health",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjtxb1vxy",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9bb102143684976b931b41f3edf218df6e26a0d4beadc666d17029911663a7ff",
+      "previewPage": "index.html",
+      "assetCount": 9,
+      "assetBytes": 830192
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "devon-park",
+      "version": "1.0.1",
+      "name": "Devon Park",
+      "sampleName": "Devon Park · Systems Engineer",
+      "description": "Swiss grid single-page portfolio and CV for an independent distributed systems engineer, featuring a desktop sticky identity sidebar, impact metrics, tag-filtered systems work, copyable benchmark code block, chronological career spine, and inquiry form.",
+      "categories": [
+        "Personal & CV",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjuvs1vqr",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "c32526c4ce0ba73d3d89d09791045a59236c494110d8187a3670b827c928921c",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 131099
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "fieldwork-radio",
+      "version": "1.0.1",
+      "name": "Fieldwork Radio",
+      "sampleName": "Fieldwork Radio",
+      "description": "Broadsheet single-page site for an investigative audio documentary series featuring an inline playable episode player, tag-filtered audio archive, host byline strip, ruled live tour table, and tip-line intake.",
+      "categories": [
+        "Media & Podcast",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjw4j1vg2",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a2e20cfb84a9179206260a7565c2d599faf8baaf3c664ae7a6be574eebac7745",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 322143
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "kairn-climbing",
+      "version": "1.0.1",
+      "name": "Kairn Climbing",
+      "sampleName": "Kairn Climbing",
+      "description": "Single-page bouldering and strength gym landing site featuring an edge-to-edge split hero, dark sector telemetry strip, steep wall zone breakdowns, ruled drop-in ledger, and horizontal waiver booking form.",
+      "categories": [
+        "Sports & Fitness",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfjxvs1vb7",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a87bf7ed9a507e324ed4757d8432ba8ad5a4c117721dc67fd64d9dbb98d9d026",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 250157
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "maren-and-tomas",
+      "version": "1.0.1",
+      "name": "Maren & Tomás",
+      "sampleName": "Maren & Tomás · Lisbon 2027",
+      "description": "Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.",
+      "categories": [
+        "Weddings & Celebrations",
+        "One Page"
+      ],
+      "pages": [
+        {
+          "id": "nfk0me1vmk",
+          "name": "Home",
+          "slug": "index"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "5b76be7e4444322734fa16aef1e35c24a2961f47551d256f220122ac844beaa3",
+      "previewPage": "index.html",
+      "assetCount": 8,
+      "assetBytes": 1000856
     }
   ]
 }

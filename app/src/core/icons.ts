@@ -103,7 +103,22 @@ const IC: Record<string, string> = {
   dockbar: '<rect x="3" y="7" width="18" height="10" rx="2.5"/><path d="M9 7v10M15 7v10"/>',
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
-  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
+  slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>',
+  typemask: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M8 8.5h8M12 8.5v7"/>',
+  fullmenu: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M6.5 9h5M6.5 12h5M6.5 15h4"/><rect x="13.5" y="8.5" width="4" height="7" rx="1"/>',
+  swatchshop: '<rect x="4" y="4" width="16" height="10.5" rx="2"/><circle cx="7" cy="18.5" r="1.5"/><circle cx="12" cy="18.5" r="1.5"/><circle cx="17" cy="18.5" r="1.5"/>',
+  snaprail: '<rect x="3" y="5" width="7" height="14" rx="1.8"/><rect x="12.5" y="5" width="5.5" height="14" rx="1.8"/><path d="M21 7v10"/>',
+  scrollsteps: '<circle cx="6" cy="7.25" r="2"/><circle cx="6" cy="16.75" r="2"/><path d="M6 9.25v5.5"/><rect x="11" y="4" width="9" height="6.5" rx="1.6"/><rect x="11" y="13.5" width="9" height="6.5" rx="1.6"/>',
+  dragstrip: '<rect x="3" y="4" width="8" height="10.5" rx="1.8"/><rect x="13" y="4" width="8" height="10.5" rx="1.8"/><path d="M3 19h5.5M15.5 19H21"/><rect x="8.5" y="18" width="7" height="2" rx="1"/>',
+  stayfilter: '<rect x="3" y="4" width="18" height="6" rx="3"/><path d="M6.5 7h2.5M15 7h2.5M16.25 5.75v2.5"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M9.5 13v7"/>',
+  roicalc: '<path d="M3 6.5h18M3 12h18"/><rect x="7" y="4.5" width="3" height="4" rx="1"/><rect x="14" y="10" width="3" height="4" rx="1"/><rect x="3" y="16" width="18" height="3.5" rx="1.25"/>',
+  stackcards: '<path d="M6.5 4.5h11M5 8h14"/><rect x="3" y="11" width="18" height="8.5" rx="2"/>',
+  showbill: '<rect x="3.5" y="4" width="5" height="6.5" rx="1.2"/><path d="M11 6h9.5M11 9h7"/><rect x="3.5" y="13.5" width="5" height="6.5" rx="1.2"/><path d="M11 15.5h9.5M11 18.5h7"/>',
+  masonry: '<rect x="3" y="3.5" width="8" height="9.5" rx="1.6"/><rect x="13" y="3.5" width="8" height="6" rx="1.6"/><rect x="3" y="15" width="8" height="5.5" rx="1.6"/><rect x="13" y="11.5" width="8" height="9" rx="1.6"/>',
+  maplist: '<rect x="3" y="4.5" width="7.5" height="4" rx="1"/><rect x="3" y="10" width="7.5" height="4" rx="1"/><rect x="3" y="15.5" width="7.5" height="4" rx="1"/><rect x="12.5" y="4.5" width="8.5" height="15" rx="1.8"/><circle cx="16.75" cy="10.5" r="1.6"/>',
+  thumbviewer: '<rect x="3" y="3.5" width="18" height="11" rx="2"/><rect x="3" y="16.5" width="4.8" height="4" rx="1"/><rect x="9.6" y="16.5" width="4.8" height="4" rx="1"/><rect x="16.2" y="16.5" width="4.8" height="4" rx="1"/>',
+  financeswitch: '<rect x="6" y="4" width="12" height="5" rx="2.5"/><circle cx="8.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/><rect x="3" y="12" width="8" height="8" rx="1.6"/><rect x="13" y="12" width="8" height="8" rx="1.6"/>',
+  rangeslider: '<path d="M3 7h18"/><circle cx="15" cy="7" r="2.5"/><rect x="3" y="13.5" width="18" height="6" rx="2"/><rect x="4.5" y="15" width="10" height="3" rx="1" fill="currentColor" stroke="none"/>'
 };
 /* The grid's outer unit is spare, so it is cropped: 12px chrome icons stay legible. */
 const IC_VIEW = '1 1 22 22';

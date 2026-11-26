@@ -96,6 +96,7 @@ test("template picker renders the twelve named templates and represented facets"
     "ALDER & SILT · Landscape Architecture",
     "Common Ground · Architecture Studio",
     "Bramble Vet · Veterinary Clinic",
+    "CALA MARINA · Cliffside Sanctuary & Moorings",
     "Marea · Coastal Stays",
     "Sorrel & Stone · Culinary School",
     "Linden Dental · Dental Clinic",
@@ -103,12 +104,17 @@ test("template picker renders the twelve named templates and represented facets"
     "Fieldwork Radio · Podcast & Live Show",
     "Northline · Creative Studio",
     "Kairn Climbing · Bouldering Gym",
+    "KANAAL LIVING · Canal Warehouse Lofts",
     "KESTREL · Electric Cargo Mobility",
     "Maren & Tomás · Destination Wedding",
     "MASUDA / 04 · Titanium Eyewear",
     "MERCER QUINN · Patent & AI Litigation",
+    "NORDVOLT · 800V Electric Shooting Brakes",
+    "SKARVEN · Technical Alpine Gear",
     "SORAIA · Thermal Bathhouse",
+    "SUBBASS HALLE · Sound System & Vinyl Imprint",
     "Salt House · Holiday Homes",
+    "VESTERPORT · Maritime Routing & Port Decarbonisation",
     "Stillwood · Cabin Retreat",
   ]);
   a.deepEqual(
@@ -151,6 +157,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
     [
       "ALDER & SILT · Landscape Architecture",
       "Common Ground · Architecture Studio",
+      "KANAAL LIVING · Canal Warehouse Lofts",
       "KESTREL · Electric Cargo Mobility",
       "MASUDA / 04 · Titanium Eyewear",
       "MERCER QUINN · Patent & AI Litigation",
@@ -182,7 +189,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 17);
+  a.equal(visibleCards(document).length, 23);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

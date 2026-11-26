@@ -1,0 +1,222 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "skarven-alpine",
+  "version": "1.0.0",
+  "name": "SKARVEN · Technical Alpine Gear",
+  "sampleName": "SKARVEN — Technical Alpine Shells & Packs",
+  "description": "Four-page Norwegian technical storm shell and Dyneema pack workshop featuring a 100dvh obsidian photo-masked wordmark hero, fullscreen hover-preview navigation drawer, live colourway swatch catalog, horizontal snap engineering card rail, scroll-filled seam repair protocol, hydrostatic test ledger, and Tromsø repair intake.",
+  "categories": [
+    "Retail & Craft",
+    "Outdoor & Gear"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 218,
+      "height": 40
+    },
+    {
+      "id": "ridge-cutout",
+      "file": "assets/ridge-cutout.webp",
+      "name": "ridge-cutout.webp",
+      "width": 1536,
+      "height": 864
+    },
+    {
+      "id": "shell-spruce",
+      "file": "assets/shell-spruce.webp",
+      "name": "shell-spruce.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "shell-petrol",
+      "file": "assets/shell-petrol.webp",
+      "name": "shell-petrol.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "shell-rust",
+      "file": "assets/shell-rust.webp",
+      "name": "shell-rust.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "pack-lichen",
+      "file": "assets/pack-lichen.webp",
+      "name": "pack-lichen.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "pack-shale",
+      "file": "assets/pack-shale.webp",
+      "name": "pack-shale.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "pack-ochre",
+      "file": "assets/pack-ochre.webp",
+      "name": "pack-ochre.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "duffel-charcoal",
+      "file": "assets/duffel-charcoal.webp",
+      "name": "duffel-charcoal.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "duffel-spruce",
+      "file": "assets/duffel-spruce.webp",
+      "name": "duffel-spruce.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "sling-signal",
+      "file": "assets/sling-signal.webp",
+      "name": "sling-signal.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "sling-moss",
+      "file": "assets/sling-moss.webp",
+      "name": "sling-moss.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "sling-cobalt",
+      "file": "assets/sling-cobalt.webp",
+      "name": "sling-cobalt.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "tote-sand",
+      "file": "assets/tote-sand.webp",
+      "name": "tote-sand.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "tote-slate",
+      "file": "assets/tote-slate.webp",
+      "name": "tote-slate.webp",
+      "width": 960,
+      "height": 1200
+    },
+    {
+      "id": "step-shell-detail",
+      "file": "assets/step-shell-detail.webp",
+      "name": "step-shell-detail.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "step-pack-harness",
+      "file": "assets/step-pack-harness.webp",
+      "name": "step-pack-harness.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "step-folded-layers",
+      "file": "assets/step-folded-layers.webp",
+      "name": "step-folded-layers.webp",
+      "width": 1200,
+      "height": 750
+    },
+    {
+      "id": "ridge-closing-bg",
+      "file": "assets/ridge-closing-bg.webp",
+      "name": "ridge-closing-bg.webp",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "id": "banner-shells",
+      "file": "assets/banner-shells.webp",
+      "name": "banner-shells.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "banner-repairs",
+      "file": "assets/banner-repairs.webp",
+      "name": "banner-repairs.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "banner-stockists",
+      "file": "assets/banner-stockists.webp",
+      "name": "banner-stockists.webp",
+      "width": 1440,
+      "height": 640
+    },
+    {
+      "id": "outpost-tromso",
+      "file": "assets/outpost-tromso.webp",
+      "name": "outpost-tromso.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "outpost-narvik",
+      "file": "assets/outpost-narvik.webp",
+      "name": "outpost-narvik.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "outpost-bergen",
+      "file": "assets/outpost-bergen.webp",
+      "name": "outpost-bergen.webp",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "outpost-chamonix",
+      "file": "assets/outpost-chamonix.webp",
+      "name": "outpost-chamonix.webp",
+      "width": 1200,
+      "height": 800
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:skarven-alpine:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "3cb5f2ba3007bc62cb72388b2d9ac6b8504941b93b2becff97846d391a72d69d"
+}
