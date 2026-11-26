@@ -110,12 +110,16 @@ const conditionalSetup: Record<string, {
   },
   'table:Shading': { off: n => { n.props.zebra = 0; }, on: n => { n.props.zebra = 1; } },
   'table:Caption colour': { off: n => { n.props.caption = ''; }, on: n => { n.props.caption = 'Prices'; } },
+  'compare:Before badge': { off: n => { n.props.labels = 0; }, on: n => { n.props.labels = 1; } },
+  'compare:After badge': { off: n => { n.props.labels = 0; }, on: n => { n.props.labels = 1; } },
+  'strips:Text colour': { off: n => { n.props.captions = 0; }, on: n => { n.props.captions = 1; } },
+  'strips:Tag colour': { off: n => { n.props.captions = 0; }, on: n => { n.props.captions = 1; } },
   'shared:Size': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
   'shared:Position': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 50 conditional declarations render only in their applicable state', () => {
+test('all 54 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -124,7 +128,7 @@ test('all 50 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(50);
+  expect(declarations).toHaveLength(54);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );
@@ -235,6 +239,8 @@ test('all 44 module renderers emit their representative authored value', () => {
     arches: { expected: /data-arches/, configure: n => { n.props.items = [{ src: 'https://example.com/a1.jpg', alt: 'Arch 1' }]; } },
     chapters: { expected: /data-chapters/, configure: n => { n.props.chapters = [{ chapterTitle: 'Ch 1', chapterSub: 'Sub', overlayText: 'Note', src: 'https://example.com/c1.jpg', alt: 'Ch 1' }]; } },
     slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
+    reel: { expected: /data-reel/, configure: n => { n.props.reels = [{ title: 'QA reel', src: 'https://example.com/r1.jpg', alt: 'QA reel' }]; } },
+    grow: { expected: /data-grow/, configure: n => { n.props.cards = [{ title: 'QA card', subtitle: 'Series', src: 'https://example.com/g1.jpg', alt: 'QA card' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -299,7 +305,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(176);
+  expect(declarations).toHaveLength(184);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -347,7 +353,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(276);
+  expect(declarations).toHaveLength(290);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

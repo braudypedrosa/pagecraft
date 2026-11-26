@@ -211,6 +211,8 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('arches', { items: [{ src: 'https://example.test/a1.webp', alt: 'Arch 1' }] }),
     C.N('chapters', { frameRatio: '16 / 9', autoSeconds: '0', chapters: [{ chapterTitle: 'Caldarium', chapterSub: '40C', overlayText: 'Warm spring.', src: 'https://example.test/ch1.webp', alt: 'Caldarium' }] }),
     C.N('slotpicker', { action: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }], slots: [{ time: '06:30' }], fields: [{ type: 'email', label: 'Email', name: 'email', required: 1 }] }),
+    C.N('reel', { ratio: '9 / 16', arrows: 1, dots: 1, reels: [{ title: 'On the wheel', src: 'https://example.test/r1.webp', alt: 'Reel 1' }] }),
+    C.N('grow', { ratio: '3 / 4', speed: '36', cards: [{ title: 'Copper Light', subtitle: 'Portrait series', src: 'https://example.test/g1.webp', alt: 'Card 1' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -244,14 +246,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 47 Add choices map to stable persisted module shapes', () => {
+  test('all 49 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(47);
-    expect(new Set(choices)).toHaveLength(47);
+    expect(choices).toHaveLength(49);
+    expect(new Set(choices)).toHaveLength(49);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

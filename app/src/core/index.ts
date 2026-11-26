@@ -37,7 +37,7 @@ import {
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
-  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -1443,7 +1443,7 @@ const DEF: Record<string, WidgetDef> = {
       props: {
         beforeSrc: '', afterSrc: '',
         beforeAlt: 'Before comparison view', afterAlt: 'After comparison view',
-        beforeLabel: 'Before', afterLabel: 'After', ratio: '16 / 9', position: '50'
+        beforeLabel: 'Before', afterLabel: 'After', labels: 1, ratio: '16 / 9', position: '50'
       },
       css: {
         d: { width: '100%', '--cmp-accent': '#ffffff', '--cmp-ink': '#111311', '--cmp-radius': '12px' },
@@ -1454,11 +1454,12 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'img', k: 'beforeSrc', label: 'Before image' },
         { t: 'text', k: 'beforeAlt', label: 'Before alt text', ph: 'Describe before view' },
-        { t: 'text', k: 'beforeLabel', label: 'Before badge', ph: 'Before' },
+        { t: 'toggle', k: 'labels', label: 'Show labels' },
+        { t: 'text', k: 'beforeLabel', label: 'Before badge', ph: 'Before', when: n => n.props.labels !== 0 && n.props.labels !== false },
         { t: 'img', k: 'afterSrc', label: 'After image' },
         { t: 'text', k: 'afterAlt', label: 'After alt text', ph: 'Describe after view' },
-        { t: 'text', k: 'afterLabel', label: 'After badge', ph: 'After' },
-        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['1 / 1', 'Square'], ['21 / 9', '21:9']] },
+        { t: 'text', k: 'afterLabel', label: 'After badge', ph: 'After', when: n => n.props.labels !== 0 && n.props.labels !== false },
+        { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['3 / 2', '3:2'], ['3 / 4', '3:4 portrait'], ['1 / 1', 'Square'], ['21 / 9', '21:9']] },
         { t: 'unit', k: 'position', label: 'Initial split (%)', integer: 1, min: 0, max: 100, units: [''] }
       ],
       style: [
@@ -1613,6 +1614,11 @@ const DEF: Record<string, WidgetDef> = {
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
+        trigger: 'click',
+        captions: 1,
+        open: '50',
+        reach: '35',
+        bounce: '10',
         items: [
           { src: '', alt: '', tag: '', title: 'First panel', detail: 'Add a short description of what this image shows.' },
           { src: '', alt: '', tag: '', title: 'Second panel', detail: 'Visitors select a panel to expand it.' },
@@ -1629,6 +1635,8 @@ const DEF: Record<string, WidgetDef> = {
     }),
     controls: {
       content: [
+        { t: 'pick', k: 'trigger', label: 'Interaction', opts: [['click', 'Click'], ['hover', 'Hover']], text: 1 },
+        { t: 'toggle', k: 'captions', label: 'Show captions' },
         {
           t: 'qa', k: 'items', label: 'Strips', addLabel: 'Add strip',
           rowFields: [
@@ -1641,13 +1649,16 @@ const DEF: Record<string, WidgetDef> = {
         }
       ],
       style: [
+        { t: 'slider', k: 'open', label: 'Expand amount', min: 0, max: 100, step: 5, raw: 1 },
+        { t: 'slider', k: 'reach', label: 'Neighbor swell', min: 0, max: 100, step: 5, raw: 1 },
+        { t: 'slider', k: 'bounce', label: 'Spring bounce', min: 0, max: 100, step: 5, raw: 1 },
         { t: 'unit', c: '--st-height', label: 'Strip height', layout: 'inline', r: 1, units: U.size },
         { t: 'unit', c: '--st-gap', label: 'Panel gap', layout: 'inline', r: 1, units: U.space },
         { t: 'unit', c: '--st-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'color', c: '--st-bg', label: 'Backdrop', r: 1, layout: 'inline' },
-        { t: 'color', c: '--st-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--st-ink', label: 'Text colour', r: 1, layout: 'inline', when: n => n.props.captions !== 0 && n.props.captions !== false },
         { t: 'color', c: '--st-accent', label: 'Focus accent', r: 1, layout: 'inline' },
-        { t: 'color', c: '--st-tag', label: 'Tag colour', r: 1, layout: 'inline' }
+        { t: 'color', c: '--st-tag', label: 'Tag colour', r: 1, layout: 'inline', when: n => n.props.captions !== 0 && n.props.captions !== false }
       ]
     }
   },
@@ -2078,6 +2089,108 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'color', c: '--ar-frame', label: 'Frame border', r: 1, layout: 'inline' },
         { t: 'color', c: '--ar-bg', label: 'Placeholder fill', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  reel: {
+    label: 'Reel slider', icon: 'reel', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '9 / 16',
+        arrows: 1,
+        dots: 1,
+        reels: [
+          { title: 'Morning check-in', src: '', poster: '', alt: 'Reel 1' },
+          { title: 'Studio walk', src: '', poster: '', alt: 'Reel 2' },
+          { title: 'Plaza session', src: '', poster: '', alt: 'Reel 3' },
+          { title: 'Big canvas', src: '', poster: '', alt: 'Reel 4' },
+          { title: 'On the wheel', src: '', poster: '', alt: 'Reel 5' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--rl-height': '480px', '--rl-card-w': '220px',
+          '--rl-radius': '16px', '--rl-stage-radius': '20px',
+          '--rl-bg': '#F3F3F3', '--rl-accent': '#E04F3E', '--rl-ink': '#FFFFFF'
+        },
+        t: {}, m: { '--rl-height': '400px', '--rl-card-w': '180px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'ratio', label: 'Reel ratio', opts: [['9 / 16', '9:16 reel'], ['3 / 4', '3:4 portrait'], ['4 / 5', '4:5 vertical'], ['1 / 1', 'Square']] },
+        { t: 'toggle', k: 'arrows', label: 'Arrow buttons' },
+        { t: 'toggle', k: 'dots', label: 'Pagination dots' },
+        {
+          t: 'qa', k: 'reels', label: 'Reels', addLabel: 'Add reel',
+          rowFields: [
+            { k: 'title', label: 'Caption', ph: 'Short reel label', def: 'New reel' },
+            { k: 'src', label: 'Photo or video', ph: 'asset:photo or https://...mp4', def: '', img: 1 },
+            { k: 'poster', label: 'Video poster', ph: 'Optional poster image', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the reel', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--rl-height', label: 'Stage height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--rl-card-w', label: 'Reel width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--rl-radius', label: 'Card radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--rl-stage-radius', label: 'Stage radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--rl-bg', label: 'Stage surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rl-accent', label: 'Accent colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--rl-ink', label: 'Caption colour', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  grow: {
+    label: 'Grow carousel', icon: 'grow', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '3 / 4',
+        speed: '36',
+        cards: [
+          { title: 'Copper Light', subtitle: 'Portrait series', src: '', alt: 'Card 1' },
+          { title: 'Ribbon Fire', subtitle: 'Motion study', src: '', alt: 'Card 2' },
+          { title: 'Balance', subtitle: 'CGI loop', src: '', alt: 'Card 3' },
+          { title: 'Velvet Dusk', subtitle: 'Editorial', src: '', alt: 'Card 4' },
+          { title: 'Glass Bloom', subtitle: 'Still life', src: '', alt: 'Card 5' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--gc-height': '480px', '--gc-card-w': '200px',
+          '--gc-gap': '12px', '--gc-radius': '6px', '--gc-stage-radius': '22px',
+          '--gc-bg': '#E4E4E4', '--gc-ink': '#FFFFFF'
+        },
+        t: {}, m: { '--gc-height': '380px', '--gc-card-w': '160px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'ratio', label: 'Card ratio', opts: [['3 / 4', '3:4 portrait'], ['4 / 5', '4:5 vertical'], ['9 / 16', '9:16 reel'], ['1 / 1', 'Square']] },
+        { t: 'text', k: 'speed', label: 'Scroll speed (px/s)', ph: '36' },
+        {
+          t: 'qa', k: 'cards', label: 'Cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'title', label: 'Title', ph: 'Card title', def: 'New card' },
+            { k: 'subtitle', label: 'Subtitle', ph: 'Short subtitle', def: '' },
+            { k: 'src', label: 'Photo', ph: 'asset:photo', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--gc-height', label: 'Stage height', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--gc-card-w', label: 'Card width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--gc-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--gc-radius', label: 'Card radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'unit', c: '--gc-stage-radius', label: 'Stage radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--gc-bg', label: 'Resting backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--gc-ink', label: 'Caption colour', r: 1, layout: 'inline' }
       ]
     }
   },
@@ -2800,6 +2913,8 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'qapills') return `Q&A pills · ${((n.props.items as any[]) || []).length} item${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'dockbar' || n.type === 'slotpicker') { const count = formFieldsOf(n.type, n.props as PropBag).length; return `${n.type === 'dockbar' ? 'Docked bar' : 'Booking request'} · ${count} field${count === 1 ? '' : 's'}`; }
   if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'reel') return `Reel slider · ${((n.props.reels as any[]) || []).length} reel${((n.props.reels as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'grow') return `Grow carousel · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
@@ -6034,6 +6149,8 @@ const TEXT_SLOTS = {
   qapills: [['items', 'q', 'a', 'note', 'linkLabel']],
   dockbar: ['submit', 'aria', 'success', ['fields', 'label', 'ph']],
   arches: [['items', 'alt', 'caption']],
+  reel: [['reels', 'title', 'alt']],
+  grow: [['cards', 'title', 'subtitle', 'alt']],
   chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
   slotpicker: ['currencySymbol', 'submit', 'aria', 'success', 'note', 'summaryTitle', 'passHeading', 'guestHeading', 'slotHeading', 'contactHeading', 'serviceLabel', 'guestLabel', 'timeLabel', 'totalLabel', 'perGuestLabel', 'fixedLabel', ['passes', 'passName', 'passMeta', 'unitPrice'], ['slots', 'time'], ['fields', 'label', 'ph']],
 };
@@ -6089,6 +6206,8 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   clocks: [['items', 'src']],
   roster: [['items', 'src']],
   arches: [['items', 'src']],
+  reel: [['reels', 'src', 'poster']],
+  grow: [['cards', 'src']],
   chapters: [['chapters', 'src']]
 };
 
@@ -10509,7 +10628,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, reel = false, grow = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10533,14 +10652,16 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'arches') arches = true;
     else if (node.type === 'chapters') chapters = true;
     else if (node.type === 'slotpicker') slotpicker = true;
+    else if (node.type === 'reel') reel = true;
+    else if (node.type === 'grow') grow = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, reel, grow };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; reel?: boolean; grow?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10563,6 +10684,8 @@ function extraWidgetCss(used: {
     + (used.arches ? `\n${ARCHES_CSS}` : '')
     + (used.chapters ? `\n${CHAPTERS_CSS}` : '')
     + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
+    + (used.reel ? `\n${REEL_CSS}` : '')
+    + (used.grow ? `\n${GROW_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10613,6 +10736,8 @@ function wordpressStylesFor(pg: Page) {
         arches: pageExtra.arches && !globalExtra.arches,
         chapters: pageExtra.chapters && !globalExtra.chapters,
         slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
+        reel: pageExtra.reel && !globalExtra.reel,
+        grow: pageExtra.grow && !globalExtra.grow,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -12206,15 +12331,17 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const afterSrc = esc(String(p.afterSrc || PH));
       const beforeAlt = esc(String(p.beforeAlt ?? 'Before comparison view'));
       const afterAlt = esc(String(p.afterAlt ?? 'After comparison view'));
-      const beforeLabel = String(p.beforeLabel ?? '').trim();
-      const afterLabel = String(p.afterLabel ?? '').trim();
+      const showLabels = p.labels !== 0 && p.labels !== false;
+      const beforeLabel = showLabels ? String(p.beforeLabel ?? '').trim() : '';
+      const afterLabel = showLabels ? String(p.afterLabel ?? '').trim() : '';
       const lz = !o.edit ? ' loading="lazy" decoding="async"' : '';
-      const knobSvg = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>';
+      const knobSvg = '<svg width="16" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 1 1 5l4 4M11 1l4 4-4 4"/></svg>';
       return `<div ${at()} ${cx('pagecraft-compare')} data-compare${o.edit ? ' data-compare-edit' : ''} style="--cmp-pos:${pos}%;--cmp-ratio:${esc(ratio)}">`
-        + `<img class="pagecraft-compare-img pagecraft-compare-after" src="${afterSrc}" alt="${afterAlt}"${lz}>`
-        + `<img class="pagecraft-compare-img pagecraft-compare-before" src="${beforeSrc}" alt="${beforeAlt}"${lz}>`
-        + (beforeLabel ? `<span class="pagecraft-compare-tag" data-side="before">${esc(beforeLabel)}</span>` : '')
-        + (afterLabel ? `<span class="pagecraft-compare-tag" data-side="after">${esc(afterLabel)}</span>` : '')
+        + `<img class="pagecraft-compare-img pagecraft-compare-after" src="${afterSrc}" alt="${afterAlt}"${lz} draggable="false">`
+        + `<img class="pagecraft-compare-img pagecraft-compare-before" src="${beforeSrc}" alt="${beforeAlt}"${lz} draggable="false">`
+        + (beforeLabel ? `<span class="pagecraft-compare-tag" data-side="before"${pos < 30 ? ' data-off="1"' : ''}>${esc(beforeLabel)}</span>` : '')
+        + (afterLabel ? `<span class="pagecraft-compare-tag" data-side="after"${pos > 70 ? ' data-off="1"' : ''}>${esc(afterLabel)}</span>` : '')
+        + `<svg class="pagecraft-compare-line" aria-hidden="true"><path d=""/></svg>`
         + `<div class="pagecraft-compare-handle" aria-hidden="true"><span class="pagecraft-compare-knob">${knobSvg}</span></div>`
         + `<input type="range" class="pagecraft-compare-range" data-compare-range min="0" max="100" value="${pos}" aria-label="Comparison split percentage" aria-valuetext="${Math.round(pos)}%">`
         + `</div>`;
@@ -12293,6 +12420,16 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
     }
     case 'strips': {
       const items = (Array.isArray(p.items) ? p.items as any[] : []).filter(Boolean);
+      const trigger = p.trigger === 'hover' ? 'hover' : 'click';
+      const captions = (p.captions === 0 || p.captions === false) ? 'none' : 'overlay';
+      const clampPct = (v: unknown, def: number) => {
+        if (v === undefined || v === null || v === '') return def;
+        const n = Number(v);
+        return Number.isFinite(n) ? Math.min(100, Math.max(0, Math.round(n))) : def;
+      };
+      const open = clampPct(p.open, 50);
+      const reach = clampPct(p.reach, 35);
+      const bounce = clampPct(p.bounce, 10);
       const strips = items.map((it, i) => {
         const src = esc(String(it.src || PH));
         const alt = esc(String(it.alt || it.title || `Panel ${i + 1}`));
@@ -12300,16 +12437,23 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         const title = String(it.title || `Panel ${i + 1}`);
         const detail = String(it.detail || '');
         const tag = String(it.tag || '');
-        return `<button type="button" class="pagecraft-strip" aria-expanded="${i === 0 ? 'true' : 'false'}">`
-          + `<img class="pagecraft-strip-img" src="${src}" alt="${alt}"${dim} decoding="async">`
-          + `<span class="pagecraft-strip-scrim" aria-hidden="true"></span>`
-          + `<span class="pagecraft-strip-body">`
-          + `<span class="pagecraft-strip-title">${esc(title)}</span>`
-          + (detail ? `<span class="pagecraft-strip-detail">${esc(detail)}</span>` : '')
-          + (tag ? `<span class="pagecraft-strip-tag">${esc(tag)}</span>` : '')
-          + `</span></button>`;
+        const expanded = trigger === 'hover' ? 'false' : (i === 0 ? 'true' : 'false');
+        const ariaLabel = captions === 'none' ? ` aria-label="${alt}"` : '';
+        const overlay = captions === 'none'
+          ? ''
+          : `<span class="pagecraft-strip-scrim" aria-hidden="true"></span>`
+            + `<span class="pagecraft-strip-rail" aria-hidden="true">${esc(title)}</span>`
+            + `<span class="pagecraft-strip-body">`
+            + `<span class="pagecraft-strip-title">${esc(title)}</span>`
+            + (detail ? `<span class="pagecraft-strip-detail">${esc(detail)}</span>` : '')
+            + (tag ? `<span class="pagecraft-strip-tag">${esc(tag)}</span>` : '')
+            + `</span>`;
+        return `<button type="button" class="pagecraft-strip" aria-expanded="${expanded}"${ariaLabel}>`
+          + `<img class="pagecraft-strip-img" src="${src}" alt="${captions === 'none' ? '' : alt}"${dim} decoding="async" draggable="false">`
+          + overlay
+          + `</button>`;
       }).join('');
-      return `<div ${at()} ${cx('pagecraft-strips')} data-strips${o.edit ? ' data-strips-edit' : ''}>${strips}</div>`;
+      return `<div ${at()} ${cx('pagecraft-strips')} data-strips data-trigger="${trigger}" data-captions="${captions}" data-open="${open}" data-reach="${reach}" data-bounce="${bounce}"${o.edit ? ' data-strips-edit' : ''}>${strips}</div>`;
     }
     case 'switcher': {
       const layout = p.stageLayout === 'tabs' ? 'tabs' : 'rail';
@@ -12578,6 +12722,81 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         return `<li class="pagecraft-arches-item"><img class="pagecraft-arches-img" src="${src}" alt="${alt}"${dim} decoding="async"></li>`;
       }).join('');
       return `<div ${at()} ${cx('pagecraft-arches')} data-arches><ul class="pagecraft-arches-list">${frames}</ul></div>`;
+    }
+    case 'reel': {
+      const items = (Array.isArray(p.reels) ? p.reels as any[] : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || '9 / 16';
+      const showArrows = p.arrows !== 0 && items.length > 1;
+      const showDots = p.dots !== 0 && items.length > 1;
+      const nCount = items.length;
+      const slotOf = (i: number) => {
+        if (!nCount) return 'far';
+        let d = ((i % nCount) + nCount) % nCount;
+        if (d > nCount / 2) d -= nCount;
+        if (d === 0 || d === 1 || d === -1 || d === 2 || d === -2) return String(d);
+        return 'far';
+      };
+      const cards = items.map((it, i) => {
+        const rawSrc = String(it.src || '');
+        const src = esc(rawSrc || PH);
+        const poster = it.poster ? esc(String(it.poster)) : '';
+        const title = String(it.title || '').trim();
+        const alt = esc(String(it.alt || title || `Reel ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const isVideo = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(rawSrc);
+        const media = isVideo
+          ? `<video class="pagecraft-reel-media" src="${src}"${poster ? ` poster="${poster}"` : ''} muted loop playsinline preload="metadata" aria-label="${alt}"></video>`
+          : `<img class="pagecraft-reel-media" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false">`;
+        return `<div class="pagecraft-reel-card" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${nCount}" data-reel-idx="${i}" data-slot="${slotOf(i)}">`
+          + media
+          + (title ? `<span class="pagecraft-reel-scrim" aria-hidden="true"></span><span class="pagecraft-reel-caption">${esc(title)}</span>` : '')
+          + `</div>`;
+      }).join('');
+      const prevSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5"/></svg>';
+      const nextSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>';
+      const navBtns = showArrows
+        ? `<button type="button" class="pagecraft-reel-nav" data-reel-prev aria-label="Previous reel">${prevSvg}</button>`
+          + `<button type="button" class="pagecraft-reel-nav" data-reel-next aria-label="Next reel">${nextSvg}</button>`
+        : '';
+      const dotNav = showDots
+        ? `<nav class="pagecraft-reel-dots" aria-label="Choose a reel">`
+          + items.map((_, i) => `<button type="button" class="pagecraft-reel-dot" data-reel-dot="${i}" aria-label="Go to reel ${i + 1}" aria-current="${i === 0 ? 'true' : 'false'}"><span></span></button>`).join('')
+          + `</nav>`
+        : '';
+      return `<section ${at()} ${cx('pagecraft-reel')} data-reel${o.edit ? ' data-reel-edit' : ''} role="region" aria-roledescription="carousel" aria-label="Reel slider" style="--rl-ratio:${esc(ratio)}">`
+        + `<div class="pagecraft-reel-stage">${navBtns}<div class="pagecraft-reel-track">${cards}</div></div>`
+        + dotNav
+        + `<p class="pagecraft-reel-status" role="status" aria-live="polite"></p>`
+        + `</section>`;
+    }
+    case 'grow': {
+      const items = (Array.isArray(p.cards) ? p.cards as any[] : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || '3 / 4';
+      const rawSpeed = parseFloat(String(p.speed ?? '36'));
+      const speed = Number.isFinite(rawSpeed) && rawSpeed >= 0 ? String(Math.round(rawSpeed)) : '36';
+      const renderCard = (it: any, i: number, clone: boolean) => {
+        const src = esc(String(it.src || PH));
+        const title = String(it.title || '').trim();
+        const sub = String(it.subtitle || '').trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const cap = (title || sub)
+          ? `<span class="pagecraft-grow-scrim" aria-hidden="true"></span><span class="pagecraft-grow-cap">`
+            + (title ? `<span class="pagecraft-grow-title">${esc(title)}</span>` : '')
+            + (sub ? `<span class="pagecraft-grow-sub">${esc(sub)}</span>` : '')
+            + `</span>`
+          : '';
+        return `<button type="button" class="pagecraft-grow-card"${clone ? ' aria-hidden="true" tabindex="-1"' : ` aria-label="${alt}"`}>`
+          + `<img class="pagecraft-grow-img" src="${src}" alt="${clone ? '' : alt}"${dim} decoding="async" draggable="false">`
+          + cap
+          + `</button>`;
+      };
+      const primary = items.map((it, i) => renderCard(it, i, false)).join('');
+      const clones = (!o.edit && items.length > 1) ? items.map((it, i) => renderCard(it, i, true)).join('') : '';
+      return `<div ${at()} ${cx('pagecraft-grow')} data-grow data-grow-count="${items.length}" data-grow-speed="${esc(speed)}"${o.edit ? ' data-grow-edit' : ''} style="--gc-ratio:${esc(ratio)}">`
+        + `<div class="pagecraft-grow-bg" aria-hidden="true"><img class="pagecraft-grow-bg-img" src="${esc(String(items[0]?.src || PH))}" alt=""></div>`
+        + `<div class="pagecraft-grow-track">${primary}${clones}</div>`
+        + `</div>`;
     }
     case 'chapters': {
       const ratio = cssRatio(p.frameRatio);
@@ -13234,7 +13453,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-reel/.test(body) ? REEL_JS : ''}${/data-grow/.test(body) ? GROW_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -13744,7 +13963,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

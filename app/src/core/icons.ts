@@ -102,6 +102,8 @@ const IC: Record<string, string> = {
   qapills: '<rect x="3" y="4" width="8" height="5" rx="2.5"/><rect x="13" y="4" width="8" height="5" rx="2.5"/><rect x="3" y="12.5" width="18" height="7.5" rx="2"/>',
   dockbar: '<rect x="3" y="7" width="18" height="10" rx="2.5"/><path d="M9 7v10M15 7v10"/>',
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
+  reel: '<rect x="8.5" y="4.5" width="7" height="15" rx="1.6"/><path d="M6.2 6.8l-2.4.9v8.6l2.4.9M17.8 6.8l2.4.9v8.6l-2.4.9" opacity=".65"/>',
+  grow: '<rect x="8.5" y="4" width="7" height="16" rx="1.3"/><rect x="3" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/><rect x="17.2" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
   slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
 };

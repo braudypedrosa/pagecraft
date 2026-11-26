@@ -421,7 +421,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(C.U.len).toContain('svh');
     expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
 
-    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker'] as const) {
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker', 'reel', 'grow'] as const) {
       expect(C.DEF[type]).toBeTruthy();
       expect(C.DEF[type].caps).toContain('spacing');
       expect(C.DEF[type].caps).toContain('animation');
@@ -443,7 +443,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const rsNode = C.N('roster', { items: [{ name: 'Claire', src: 'asset:roster-partner', alt: 'Claire' }] });
     const arNode = C.N('arches', { items: [{ src: 'asset:arch-frame', alt: 'Arch' }] });
     const chNode = C.N('chapters', { chapters: [{ chapterTitle: 'Ch', src: 'asset:chapter-frame', alt: 'Ch' }] });
-    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode])])])];
+    const rlNode = C.N('reel', { reels: [{ title: 'On the wheel', src: 'asset:reel-clip', poster: 'asset:reel-poster', alt: 'Wheel' }] });
+    const gcNode = C.N('grow', { cards: [{ title: 'Copper Light', subtitle: 'Portrait series', src: 'asset:grow-card', alt: 'Copper Light' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode, rlNode, gcNode])])])];
     const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
     expect(assetIds).toContain('cmp-before');
     expect(assetIds).toContain('cmp-after');
@@ -456,6 +458,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(assetIds).toContain('roster-partner');
     expect(assetIds).toContain('arch-frame');
     expect(assetIds).toContain('chapter-frame');
+    expect(assetIds).toContain('reel-clip');
+    expect(assetIds).toContain('reel-poster');
+    expect(assetIds).toContain('grow-card');
 
     // Zero-drift when absent
     const plainHtml = C.buildPage(C.state.pages[0]);
@@ -476,6 +481,8 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(plainHtml).not.toContain('.pagecraft-arches');
     expect(plainHtml).not.toContain('.pagecraft-chapters');
     expect(plainHtml).not.toContain('.pagecraft-slotpicker');
+    expect(plainHtml).not.toContain('.pagecraft-reel');
+    expect(plainHtml).not.toContain('.pagecraft-grow');
 
     // Floating header & 100dvh hero
     const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
@@ -486,9 +493,11 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(pubHdr).toContain('data-floating="1"');
     expect(pubHdr).not.toContain('data-floating-edit');
 
-    // Compare interaction
+    // Compare interaction (range input, smart label auto-hide, labels toggle, SVG jelly line)
     const cmpHtml = C.renderNode(cmpNode, { edit: false });
     expect(cmpHtml).toContain('style="--cmp-pos:50%;--cmp-ratio:16 / 9"');
+    expect(cmpHtml).toContain('pagecraft-compare-line');
+    expect(cmpHtml).toContain('draggable="false"');
     expect(C.COMPARE_CSS).toContain('clip-path:inset(0 calc(100% - var(--cmp-pos,50%)) 0 0)');
     const cmpDom = domFor(cmpHtml);
     const cmpWin = cmpDom.window as any;
@@ -497,13 +506,31 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     cmpWin.eval(scriptBody(C.COMPARE_JS));
     const cmpRoot = cmpWin.document.querySelector('.pagecraft-compare') as HTMLElement;
     const range = cmpWin.document.querySelector('[data-compare-range]') as HTMLInputElement;
+    const beforeTag = cmpWin.document.querySelector('.pagecraft-compare-tag[data-side="before"]') as HTMLElement;
+    const afterTag = cmpWin.document.querySelector('.pagecraft-compare-tag[data-side="after"]') as HTMLElement;
+    expect(beforeTag.hasAttribute('data-off')).toBe(false);
+    expect(afterTag.hasAttribute('data-off')).toBe(false);
     range.value = '74';
     range.dispatchEvent(new cmpWin.Event('input', { bubbles: true }));
     expect(cmpRoot.style.getPropertyValue('--cmp-pos')).toBe('74%');
     expect(range.getAttribute('aria-valuetext')).toBe('74%');
+    expect(beforeTag.hasAttribute('data-off')).toBe(false);
+    expect(afterTag.hasAttribute('data-off')).toBe(true);
+    range.value = '20';
+    range.dispatchEvent(new cmpWin.Event('input', { bubbles: true }));
+    expect(beforeTag.hasAttribute('data-off')).toBe(true);
+    expect(afterTag.hasAttribute('data-off')).toBe(false);
     cmpDispose!();
     expect(cmpRoot.hasAttribute('data-pc-cmp-ready')).toBe(false);
     cmpDom.window.close();
+
+    // Compare labels=0 hides pills and 3/4 portrait ratio works
+    const cmpNoLabels = C.renderNode(C.N('compare', {
+      beforeSrc: 'https://example.test/b.jpg', afterSrc: 'https://example.test/a.jpg',
+      labels: 0, ratio: '3 / 4', position: '25'
+    }), { edit: false });
+    expect(cmpNoLabels).toContain('--cmp-ratio:3 / 4');
+    expect(cmpNoLabels).not.toContain('pagecraft-compare-tag');
 
     // Progress + Timeline
     const tlHtml = C.renderNode(C.N('timeline', {
@@ -566,7 +593,144 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(strips[0].getAttribute('aria-expanded')).toBe('true');
     stDispose!();
     expect(stWin.document.querySelector('.pagecraft-strips')?.hasAttribute('data-pc-st-ready')).toBe(false);
+    expect(stWin.document.querySelector('.pagecraft-strips')?.hasAttribute('data-pc-st-spring')).toBe(false);
     stDom.window.close();
+
+    // Expanding strips hover + Gaussian neighbor swell + unobstructed photo mode
+    const stHoverHtml = C.renderNode(C.N('strips', {
+      trigger: 'hover', captions: 0, open: '50', reach: '35', bounce: '10',
+      items: [
+        { src: 'https://example.test/1.jpg', alt: 'Bird', title: 'Bird' },
+        { src: 'https://example.test/2.jpg', alt: 'Cow', title: 'Cow' },
+        { src: 'https://example.test/3.jpg', alt: 'House', title: 'House' },
+        { src: 'https://example.test/4.jpg', alt: 'Man', title: 'Man' },
+        { src: 'https://example.test/5.jpg', alt: 'Queue', title: 'Queue' },
+      ]
+    }), { edit: false });
+    expect(stHoverHtml).toContain('data-trigger="hover"');
+    expect(stHoverHtml).toContain('data-captions="none"');
+    expect(stHoverHtml).toContain('data-open="50"');
+    expect(stHoverHtml).toContain('data-reach="35"');
+    expect(stHoverHtml).toContain('data-bounce="10"');
+    expect(stHoverHtml).toContain('draggable="false"');
+    expect(stHoverHtml).toContain('aria-label="House"');
+    expect(stHoverHtml).not.toContain('pagecraft-strip-scrim');
+    expect(stHoverHtml).not.toContain('pagecraft-strip-body');
+    const stHoverDom = domFor(stHoverHtml);
+    const stHoverWin = stHoverDom.window as any;
+    stHoverWin.matchMedia = () => ({ matches: true });
+    let stHoverDispose: (() => void) | null = null;
+    stHoverWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { stHoverDispose = fn; };
+    stHoverWin.eval(scriptBody(C.STRIPS_JS));
+    const hoverRoot = stHoverWin.document.querySelector('.pagecraft-strips') as HTMLElement;
+    const hoverPanels = [...hoverRoot.querySelectorAll('.pagecraft-strip')] as HTMLButtonElement[];
+    expect(hoverPanels.every(p => p.getAttribute('aria-expanded') === 'false')).toBe(true);
+    expect(hoverPanels.every(p => p.style.flexGrow === '1')).toBe(true);
+    hoverPanels[2].dispatchEvent(new stHoverWin.Event('pointerenter', { bubbles: false }));
+    expect(hoverPanels[2].getAttribute('aria-expanded')).toBe('true');
+    const centerGrow = parseFloat(hoverPanels[2].style.flexGrow);
+    const neighborGrow = parseFloat(hoverPanels[1].style.flexGrow);
+    const outerGrow = parseFloat(hoverPanels[0].style.flexGrow);
+    expect(centerGrow).toBeCloseTo(2.8, 2);
+    expect(neighborGrow).toBeGreaterThan(1.1);
+    expect(neighborGrow).toBeLessThan(centerGrow);
+    expect(outerGrow).toBeLessThan(neighborGrow);
+    hoverRoot.dispatchEvent(new stHoverWin.Event('pointerout', { bubbles: true }));
+    expect(hoverPanels.every(p => p.getAttribute('aria-expanded') === 'false')).toBe(true);
+    expect(hoverPanels.every(p => p.style.flexGrow === '1')).toBe(true);
+    hoverPanels[1].dispatchEvent(new stHoverWin.Event('focus', { bubbles: false }));
+    expect(hoverPanels[1].getAttribute('aria-expanded')).toBe('true');
+    hoverPanels[1].dispatchEvent(new stHoverWin.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(hoverPanels[1].getAttribute('aria-expanded')).toBe('false');
+    stHoverDispose!();
+    expect(hoverRoot.hasAttribute('data-pc-st-ready')).toBe(false);
+    expect(hoverPanels[0].style.flexGrow).toBe('');
+    stHoverDom.window.close();
+
+    // 3D Reel slider cyclic coverflow, side-card click, dots, keyboard, and active-only video playback
+    const rlHtml = C.renderNode(C.N('reel', {
+      ratio: '9 / 16', arrows: 1, dots: 1,
+      reels: [
+        { title: 'Morning check-in', src: 'https://example.test/r1.mp4', poster: 'https://example.test/p1.jpg', alt: 'Reel 1' },
+        { title: 'Studio walk', src: 'https://example.test/r2.mp4', alt: 'Reel 2' },
+        { title: 'Plaza session', src: 'https://example.test/r3.jpg', alt: 'Reel 3' },
+        { title: 'Big canvas', src: 'https://example.test/r4.jpg', alt: 'Reel 4' },
+        { title: 'On the wheel', src: 'https://example.test/r5.jpg', alt: 'Reel 5' },
+      ]
+    }), { edit: false });
+    expect(rlHtml).toContain('data-reel');
+    expect(rlHtml).toContain('aria-roledescription="carousel"');
+    expect(rlHtml).toContain('<video class="pagecraft-reel-media"');
+    const rlDom = domFor(rlHtml);
+    const rlWin = rlDom.window as any;
+    let rlDispose: (() => void) | null = null;
+    rlWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { rlDispose = fn; };
+    const played: string[] = [];
+    const paused: string[] = [];
+    rlWin.document.querySelectorAll('video').forEach((v: any) => {
+      v.play = () => { played.push(v.getAttribute('src')); return Promise.resolve(); };
+      v.pause = () => { paused.push(v.getAttribute('src')); };
+      Object.defineProperty(v, 'paused', { value: false, configurable: true });
+    });
+    rlWin.eval(scriptBody(C.REEL_JS));
+    const rlRoot = rlWin.document.querySelector('.pagecraft-reel') as HTMLElement;
+    const rlCards = [...rlRoot.querySelectorAll('.pagecraft-reel-card')] as HTMLElement[];
+    const rlDots = [...rlRoot.querySelectorAll('[data-reel-dot]')] as HTMLButtonElement[];
+    const rlStatus = rlRoot.querySelector('.pagecraft-reel-status') as HTMLElement;
+    expect(rlCards.map(c => c.getAttribute('data-slot'))).toEqual(['0', '1', '2', '-2', '-1']);
+    expect(rlDots[0].getAttribute('aria-current')).toBe('true');
+    expect(rlStatus.textContent).toBe('');
+    expect(played).toContain('https://example.test/r1.mp4');
+    expect(paused).toContain('https://example.test/r2.mp4');
+    (rlRoot.querySelector('[data-reel-next]') as HTMLButtonElement).click();
+    expect(rlCards.map(c => c.getAttribute('data-slot'))).toEqual(['-1', '0', '1', '2', '-2']);
+    expect(rlDots[1].getAttribute('aria-current')).toBe('true');
+    expect(rlStatus.textContent).toBe('Reel 2 of 5');
+    expect(played).toContain('https://example.test/r2.mp4');
+    rlCards[3].click();
+    expect(rlCards[3].getAttribute('data-slot')).toBe('0');
+    rlDots[0].click();
+    expect(rlCards[0].getAttribute('data-slot')).toBe('0');
+    rlRoot.dispatchEvent(new rlWin.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(rlCards[4].getAttribute('data-slot')).toBe('0');
+    rlDispose!();
+    expect(rlRoot.hasAttribute('data-pc-rl-ready')).toBe(false);
+    rlDom.window.close();
+
+    // Grow carousel hover expansion, neighbor parting, and ambient blurred backdrop
+    const gcHtml = C.renderNode(C.N('grow', {
+      ratio: '3 / 4', speed: '36',
+      cards: [
+        { title: 'Copper Light', subtitle: 'Portrait series', src: 'https://example.test/g1.jpg', alt: 'Copper Light' },
+        { title: 'Ribbon Fire', subtitle: 'Motion study', src: 'https://example.test/g2.jpg', alt: 'Ribbon Fire' },
+        { title: 'Balance', subtitle: 'CGI loop', src: 'https://example.test/g3.jpg', alt: 'Balance' },
+      ]
+    }), { edit: false });
+    expect(gcHtml).toContain('data-grow');
+    expect(gcHtml).toContain('data-grow-count="3"');
+    const gcDom = domFor(gcHtml);
+    const gcWin = gcDom.window as any;
+    let gcDispose: (() => void) | null = null;
+    gcWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { gcDispose = fn; };
+    gcWin.eval(scriptBody(C.GROW_JS));
+    const gcRoot = gcWin.document.querySelector('.pagecraft-grow') as HTMLElement;
+    const gcCards = [...gcRoot.querySelectorAll('.pagecraft-grow-card')] as HTMLButtonElement[];
+    const gcBg = gcRoot.querySelector('.pagecraft-grow-bg') as HTMLElement;
+    const gcBgImg = gcRoot.querySelector('.pagecraft-grow-bg-img') as HTMLImageElement;
+    expect(gcCards).toHaveLength(6); // 3 primary + 3 seamless loop clones
+    gcCards[1].dispatchEvent(new gcWin.Event('pointerenter', { bubbles: false }));
+    expect(gcRoot.getAttribute('data-has-active')).toBe('1');
+    expect(gcCards[0].getAttribute('data-grow-state')).toBe('left');
+    expect(gcCards[1].getAttribute('data-grow-state')).toBe('active');
+    expect(gcCards[2].getAttribute('data-grow-state')).toBe('right');
+    expect(gcBg.getAttribute('data-on')).toBe('1');
+    expect(gcBgImg.getAttribute('src')).toBe('https://example.test/g2.jpg');
+    gcRoot.dispatchEvent(new gcWin.Event('pointerleave', { bubbles: false }));
+    expect(gcRoot.hasAttribute('data-has-active')).toBe(false);
+    expect(gcBg.hasAttribute('data-on')).toBe(false);
+    gcDispose!();
+    expect(gcRoot.hasAttribute('data-pc-gc-ready')).toBe(false);
+    gcDom.window.close();
 
     // Stage switcher click + keyboard interaction
     const swHtml = C.renderNode(C.N('switcher', {

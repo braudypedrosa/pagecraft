@@ -61,7 +61,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
     g: 'Special blocks', items: [
       ['slotpicker', 'Booking request'], ['dockbar', 'Docked bar'], ['tiers', 'Pricing table'], ['qapills', 'Question pills'],
       ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
-      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches']
+      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches'], ['reel', 'Reel slider'], ['grow', 'Grow carousel']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -81,7 +81,9 @@ export const PURPOSE: Record<string, string> = {
   scrolly: 'An image that stays in view and changes as visitors read.',
   chapters: 'A large image sequence that plays by itself, with titles.',
   exhibit: 'A project list that previews an image on hover.',
-  arches: 'Up to five photos in a decorative fan of arches.'
+  arches: 'Up to five photos in a decorative fan of arches.',
+  reel: 'A 3D coverflow of portrait reels; with video, only the active reel plays.',
+  grow: 'An endless card strip where the hovered card grows and its neighbours part evenly.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -137,6 +139,8 @@ const ALIASES: Record<string, string> = {
   qapills: 'faq questions pills answers selector help desk',
   dockbar: 'form enquiry intake lead contact bar horizontal hero dock',
   arches: 'fanned arc collage arch showcase triptych wellness hero',
+  reel: 'reel slider 3d coverflow carousel portrait video stories',
+  grow: 'grow carousel hover strip cards endless marquee ambient backdrop',
   chapters: 'cinematic frame chapters story progress showcase',
   slotpicker: 'booking appointment reservation session time slot form request',
   list: 'collection cms dynamic',

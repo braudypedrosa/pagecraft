@@ -73,6 +73,8 @@ const runtimeSource = [
   Core.QAPILLS_JS,
   Core.CHAPTERS_JS,
   Core.SLOTPICKER_JS,
+  Core.REEL_JS,
+  Core.GROW_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {

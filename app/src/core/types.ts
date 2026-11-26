@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'reel' | 'grow'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -255,7 +255,7 @@ export interface FilterProps {
 }
 export interface CompareProps {
   beforeSrc?: string; afterSrc?: string; beforeAlt?: string; afterAlt?: string;
-  beforeLabel?: string; afterLabel?: string; ratio?: string; position?: string;
+  beforeLabel?: string; afterLabel?: string; labels?: 0 | 1 | boolean; ratio?: string; position?: string;
 }
 export interface TimelineItem { tag?: string; title?: string; detail?: string }
 export interface TimelineProps {
@@ -272,7 +272,14 @@ export interface HotspotProps {
   items?: HotspotItem[];
 }
 export interface StripsItem { src?: string; alt?: string; tag?: string; title?: string; detail?: string; w?: string; h?: string }
-export interface StripsProps { items?: StripsItem[] }
+export interface StripsProps {
+  trigger?: 'click' | 'hover';
+  captions?: 0 | 1 | boolean;
+  open?: string;
+  reach?: string;
+  bounce?: string;
+  items?: StripsItem[];
+}
 export interface SwitcherItem { label?: string; meta?: string; title?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string; pos?: string }
 export interface SwitcherProps { stageLayout?: string; ratio?: string; items?: SwitcherItem[] }
 export interface ExhibitItem { title?: string; location?: string; scope?: string; year?: string; href?: string; src?: string; alt?: string; w?: string; h?: string }
@@ -300,6 +307,10 @@ export interface SlotpickerProps extends FormBlockProps {
   serviceLabel?: string; guestLabel?: string; timeLabel?: string; totalLabel?: string; perGuestLabel?: string; fixedLabel?: string;
   passes?: SlotpickerItem[]; slots?: { time?: string }[];
 }
+export interface ReelItem { title?: string; src?: string; poster?: string; alt?: string; w?: string; h?: string }
+export interface ReelProps { ratio?: string; arrows?: 0 | 1; dots?: 0 | 1; reels?: ReelItem[] }
+export interface GrowItem { title?: string; subtitle?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface GrowProps { ratio?: string; speed?: string; cards?: GrowItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -310,7 +321,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; reel: ReelProps; grow: GrowProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
