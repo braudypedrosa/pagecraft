@@ -381,6 +381,9 @@ function packageRegistry() {
 }
 const packages = packageRegistry();
 
+/* Connected-WordPress mode is retired. Its routes and webhook outbox stay off unless a
+   deployment explicitly opts back in (see CONNECTED-MODE-RETIREMENT.md). */
+const legacyConnectedRoutes = process.env.PAGECRAFT_LEGACY_CONNECTED === "1";
 const webhookWorker = `pagecraft-${process.pid}-${crypto.randomUUID()}`;
 let webhookDrainRunning = false;
 async function drainWordPressWebhooks() {
@@ -432,7 +435,7 @@ async function drainWordPressWebhooks() {
   }
 }
 const backgroundWorkers = process.env.PAGECRAFT_BACKGROUND_WORKERS !== "0";
-if (backgroundWorkers) {
+if (backgroundWorkers && legacyConnectedRoutes) {
   const webhookTimer = setInterval(drainWordPressWebhooks, 15_000);
   webhookTimer.unref();
   void drainWordPressWebhooks();
@@ -611,6 +614,14 @@ if (process.env.PAGECRAFT_TEMPLATE_AUTHORING === '1') {
 }
 analytics.start();
 
+if (process.env.NODE_ENV === "production" && !process.env.PAGECRAFT_COOKIE_SECRET) {
+  /* Not fatal, so a deploy without it keeps serving, but password-recovery cookies then use a
+     per-process key that breaks across workers and restarts. See server/AUTH_SETUP.md. */
+  console.warn(
+    "PAGECRAFT_COOKIE_SECRET is not set: recovery cookies use a per-process key. Set it in production.",
+  );
+}
+
 /* Paddle billing needs the database gateway: plan changes happen only there. Without both, every
    billing route stays off and Free remains the only plan anyone can reach on their own. */
 const paddle = paddleBillingConfig(process.env);
@@ -668,6 +679,7 @@ const app = createApp({
   sendNotice,
   secureCookies: process.env.NODE_ENV === "production",
   connected,
+  legacyConnectedRoutes,
   packages,
   accountAuth,
   ownedSites: owned,

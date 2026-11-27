@@ -66,7 +66,7 @@ async function rig(
   const session = 'owner-session';
   await auth.putSession(hashToken(session), owner.id, Date.now() + 60_000);
   const options = {
-    store, auth, assets, connected,
+    store, auth, assets, connected, legacyConnectedRoutes: true,
     editorHtml: '<html><head><title>Editor</title></head><body></body></html>',
     editorHost: 'admin.test', editorOrigin: 'http://admin.test', releaseSigning, keysetEnvelope,
     ...(fontFetch ? { fontFetch } : {})
@@ -2522,4 +2522,29 @@ test('disconnect racing a CMS write creates no draft revision', async () => {
   const final = await store.byId(site.id);
   a.equal(final?.version, 2);
   a.equal(final?.doc.meta.collections?.[0].items[0].values.title, 'Initial title');
+});
+
+test('retired Connected routes are unmounted unless a deployment opts back in', async () => {
+  const store = new MemoryStore(), auth = new MemoryAuthStore();
+  const site = await store.create({ host: 'site.test', name: 'Site', doc: blankDoc('Site') });
+  const app = createApp({
+    store, auth, assets: new MemoryAssetStore(), connected: new MemoryConnectedStore(),
+    editorHtml: '<html><head></head><body></body></html>',
+    editorHost: 'admin.test', editorOrigin: 'http://admin.test', releaseSigning, keysetEnvelope,
+  });
+  const call = (path: string, method = 'GET') => app.request(new Request(`http://admin.test${path}`, {
+    method, headers: { host: 'admin.test', origin: 'http://admin.test' },
+  }));
+  for (const [path, method] of [
+    ['/v1/oauth/authorize?client_id=x', 'GET'], ['/v1/oauth/authorize', 'POST'], ['/v1/oauth/token', 'POST'],
+    ['/v1/connections/abc/confirm', 'POST'], ['/v1/connections/abc', 'DELETE'],
+    ['/v1/connections/abc/desired-release', 'GET'], ['/v1/editor/session?code=x', 'GET'],
+    ['/v1/releases/abc/artifact', 'GET'], ['/v1/packages/pagecraft-connector', 'GET'],
+    [`/v1/sites/${site.id}/releases`, 'GET'], [`/v1/sites/${site.id}/releases`, 'POST'],
+    [`/v1/sites/${site.id}/connections`, 'GET'], [`/v1/sites/${site.id}/wordpress-content`, 'GET'],
+    [`/v1/sites/${site.id}/cms`, 'PATCH'], [`/v1/sites/${site.id}/cms-assets`, 'POST'],
+  ] as const) a.equal((await call(path, method)).status, 404, `${method} ${path}`);
+  // Manual import and its stable integration namespace stay mounted.
+  a.notEqual((await call('/v1/integrations/wordpress/connection')).status, 404);
+  a.notEqual((await call('/v1/wordpress-import/projects')).status, 404);
 });

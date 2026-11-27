@@ -217,6 +217,12 @@ import { requestSourceFrom } from "./request-source.ts";
 
 export const SESSION_COOKIE = "pc_session";
 
+/** Routes of the retired Connected-WordPress mode, mounted only with `legacyConnectedRoutes`. */
+export const isLegacyConnectedPath = (path: string) =>
+  /^\/v1\/(?:oauth|connections|releases|packages)(?:\/|$)/.test(path) ||
+  path === "/v1/editor/session" ||
+  /^\/v1\/sites\/[^/]+\/(?:connections|releases|wordpress-content|cms-assets|cms)(?:\/|$)/.test(path);
+
 export type HostedPublishPreparation =
   | {
     status: "ok";
@@ -350,6 +356,9 @@ export interface Options {
   secureCookies?: boolean;
   /** Immutable releases, WordPress targets, and deployment acknowledgements. */
   connected?: ConnectedStore;
+  /** Mount the retired Connected-WordPress routes (OAuth pairing, connections, releases,
+      CMS write-back). Off unless explicitly enabled; see CONNECTED-MODE-RETIREMENT.md. */
+  legacyConnectedRoutes?: boolean;
   /** Online release key. The offline root key is never a runtime option. */
   releaseSigning?: ReleaseSigningKey;
   /** Offline root-signed public release-key set returned to connectors unchanged. */
@@ -547,6 +556,16 @@ export function createApp(o: Options) {
   app.use("/auth/*", editorOnly);
   app.use("/api/*", editorOnly);
   app.use("/v1/*", editorOnly);
+  /* Connected mode is retired (CONNECTED-MODE-RETIREMENT.md). Its pairing flow accepted
+     caller-chosen webhook targets, so unless a deployment opts back in, its routes answer 404.
+     Manual import (`/v1/wordpress-import`, `/v1/integrations/wordpress`), portable packages and
+     the public WordPress distribution stay mounted. */
+  if (!o.legacyConnectedRoutes) {
+    app.use("/v1/*", async (c, next) => {
+      if (isLegacyConnectedPath(new URL(c.req.url).pathname)) return c.notFound();
+      await next();
+    });
+  }
   app.use("/sign-up", editorOnly);
   app.use("/sign-in", editorOnly);
   app.use("/forgot-password", editorOnly);

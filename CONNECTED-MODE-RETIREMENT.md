@@ -51,6 +51,8 @@ These systems solve remote deployment and shared ownership problems that no long
 
 This issue does not remove the live Pagecraft server, Supabase gateway, or applied database migrations. Connected endpoints, stores, and tables are dormant legacy code after the WordPress connector is retired. They remain temporarily to avoid changing production while the new package export and manual account import contracts are built.
 
+Since the November 2026 security review, the server no longer mounts the Connected routes (`/v1/oauth/*`, `/v1/connections/*`, `/v1/releases/*`, `/v1/packages/*`, `/v1/editor/session`, and the site `releases`, `connections`, `wordpress-content`, `cms` and `cms-assets` routes) and does not drain the WordPress webhook outbox. Their pairing flow accepted caller-chosen webhook targets, including `localhost`. Setting `PAGECRAFT_LEGACY_CONNECTED=1` restores both for a deployment that still needs them. Manual import (`/v1/wordpress-import/*` and `/v1/integrations/wordpress/*`) is unaffected.
+
 Their bounded removal sequence is:
 
 1. Define and test the new package formats in Issue #3.
