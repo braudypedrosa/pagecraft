@@ -61,7 +61,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
     g: 'Special blocks', items: [
       ['slotpicker', 'Booking request'], ['dockbar', 'Docked bar'], ['tiers', 'Pricing table'], ['qapills', 'Question pills'],
       ['roster', 'Team spotlight'], ['clocks', 'Office clocks'], ['hotspot', 'Image hotspots'], ['strips', 'Expanding strips'],
-      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches'], ['reel', 'Reel slider'], ['grow', 'Grow carousel']
+      ['switcher', 'Stage switcher'], ['scrolly', 'Sticky steps'], ['chapters', 'Chapter frame'], ['exhibit', 'Exhibit index'], ['arches', 'Fanned arches'], ['reel', 'Reel slider'], ['grow', 'Grow carousel'], ['deck', 'Card deck'], ['metrics', 'Odometer metrics'], ['spotlight', 'Spotlight cards'], ['terminal', 'Command terminal'], ['tilt', '3D tilt cards'], ['flip', '3D flip cards']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -83,7 +83,13 @@ export const PURPOSE: Record<string, string> = {
   exhibit: 'A project list that previews an image on hover.',
   arches: 'Up to five photos in a decorative fan of arches.',
   reel: 'A 3D coverflow of portrait reels; with video, only the active reel plays.',
-  grow: 'An endless card strip where the hovered card grows and its neighbours part evenly.'
+  grow: 'An endless card strip where the hovered card grows and its neighbours part evenly.',
+  deck: 'A swipeable stack of tilted cards that peel off and cycle to the back.',
+  metrics: 'Scroll-triggered KPI counters with rolling odometer digits.',
+  spotlight: 'A feature card grid with a cursor-following radial border and surface glow.',
+  terminal: 'A tabbed command terminal with live typing output and one-click copy.',
+  tilt: 'Visual cards that tilt in 3D with a cursor-tracking specular glare sweep.',
+  flip: 'Front-and-back 3D cards that flip on click or hover to reveal details.'
 };
 
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
@@ -141,6 +147,12 @@ const ALIASES: Record<string, string> = {
   arches: 'fanned arc collage arch showcase triptych wellness hero',
   reel: 'reel slider 3d coverflow carousel portrait video stories',
   grow: 'grow carousel hover strip cards endless marquee ambient backdrop',
+  deck: 'card deck swipe stack tilted cards peel gallery shuffle',
+  metrics: 'odometer metrics stats counter kpi numbers rolling digits',
+  spotlight: 'spotlight feature cards bento grid cursor glow hover radial',
+  terminal: 'command terminal cli shell console typewriter copy snippet',
+  tilt: '3d tilt cards perspective glare holographic showcase hover',
+  flip: '3d flip cards front back reveal rotate interactive',
   chapters: 'cinematic frame chapters story progress showcase',
   slotpicker: 'booking appointment reservation session time slot form request',
   list: 'collection cms dynamic',

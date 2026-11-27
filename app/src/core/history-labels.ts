@@ -7,7 +7,7 @@ const KIND: Record<string, string> = {
   accordion: 'accordion', tabs: 'tabs', table: 'table', code: 'code', crumbs: 'breadcrumbs', slider: 'slider',
   embed: 'embed', countdown: 'countdown', marquee: 'marquee', filter: 'tag filter',
   compare: 'image compare', timeline: 'timeline', progress: 'progress bars', hotspot: 'image hotspots',
-  strips: 'expanding strips', switcher: 'stage switcher', exhibit: 'exhibit index', scrolly: 'sticky steps', clocks: 'office clocks', roster: 'team spotlight', tiers: 'pricing table', qapills: 'question pills', dockbar: 'docked bar', arches: 'fanned arches', chapters: 'chapter frame', slotpicker: 'booking request', reel: 'reel slider', grow: 'grow carousel',
+  strips: 'expanding strips', switcher: 'stage switcher', exhibit: 'exhibit index', scrolly: 'sticky steps', clocks: 'office clocks', roster: 'team spotlight', tiers: 'pricing table', qapills: 'question pills', dockbar: 'docked bar', arches: 'fanned arches', chapters: 'chapter frame', slotpicker: 'booking request', reel: 'reel slider', grow: 'grow carousel', deck: 'card deck', metrics: 'odometer metrics', spotlight: 'spotlight cards', terminal: 'command terminal', tilt: '3D tilt cards', flip: '3D flip cards',
   spacer: 'spacer', divider: 'divider', list: 'list'
 };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);

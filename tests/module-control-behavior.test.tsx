@@ -241,6 +241,12 @@ test('all 44 module renderers emit their representative authored value', () => {
     slotpicker: { expected: /data-slotpicker/, configure: n => { n.props.passes = [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95' }]; } },
     reel: { expected: /data-reel/, configure: n => { n.props.reels = [{ title: 'QA reel', src: 'https://example.com/r1.jpg', alt: 'QA reel' }]; } },
     grow: { expected: /data-grow/, configure: n => { n.props.cards = [{ title: 'QA card', subtitle: 'Series', src: 'https://example.com/g1.jpg', alt: 'QA card' }]; } },
+    deck: { expected: /data-deck/, configure: n => { n.props.deckCards = [{ tag: '01', title: 'QA deck', src: 'https://example.com/d1.jpg', alt: 'QA deck' }]; } },
+    metrics: { expected: /data-metrics/, configure: n => { n.props.stats = [{ value: '99', suffix: '%', label: 'QA metric' }]; } },
+    spotlight: { expected: /data-spotlight/, configure: n => { n.props.tiles = [{ tag: 'QA', title: 'QA spot', detail: 'Detail' }]; } },
+    terminal: { expected: /data-terminal/, configure: n => { n.props.commands = [{ label: 'Run', cmd: 'npm test', output: '✓ OK' }]; } },
+    tilt: { expected: /data-tilt/, configure: n => { n.props.tiltCards = [{ tag: '01', title: 'QA tilt', detail: 'Detail', src: 'https://example.com/t1.jpg', alt: 'QA tilt' }]; } },
+    flip: { expected: /data-flip/, configure: n => { n.props.flipCards = [{ tag: '01', title: 'QA flip', backTitle: 'Back', detail: 'Detail', src: 'https://example.com/f1.jpg', alt: 'QA flip' }]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -305,7 +311,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(186);
+  expect(declarations).toHaveLength(192);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
@@ -353,7 +359,7 @@ test('all 197 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(290);
+  expect(declarations).toHaveLength(330);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

@@ -104,6 +104,12 @@ const IC: Record<string, string> = {
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
   reel: '<rect x="8.5" y="4.5" width="7" height="15" rx="1.6"/><path d="M6.2 6.8l-2.4.9v8.6l2.4.9M17.8 6.8l2.4.9v8.6l-2.4.9" opacity=".65"/>',
   grow: '<rect x="8.5" y="4" width="7" height="16" rx="1.3"/><rect x="3" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/><rect x="17.2" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/>',
+  deck: '<rect x="6.5" y="4.5" width="11" height="14" rx="1.8"/><path d="M5 7.5l-1.5 1v10.5a1.5 1.5 0 0 0 1.5 1.5h9.5" opacity=".55"/>',
+  metrics: '<rect x="3.5" y="6" width="4.5" height="12" rx="1.2"/><rect x="9.8" y="6" width="4.5" height="12" rx="1.2"/><rect x="16" y="6" width="4.5" height="12" rx="1.2" opacity=".6"/>',
+  spotlight: '<rect x="3.5" y="4.5" width="7.5" height="6.8" rx="1.2"/><rect x="13" y="4.5" width="7.5" height="6.8" rx="1.2" opacity=".6"/><rect x="3.5" y="13" width="7.5" height="6.8" rx="1.2" opacity=".6"/><rect x="13" y="13" width="7.5" height="6.8" rx="1.2"/>',
+  terminal: '<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M7.2 10l2.8 2.4-2.8 2.4M12 14.8h4.8"/>',
+  tilt: '<path d="M5.5 6.5l13-2.2v13.2l-13 2.2z"/><path d="M9 12.2l6-1" opacity=".65"/>',
+  flip: '<rect x="4" y="5" width="12" height="14" rx="2"/><path d="M16 8.5h2a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-8" opacity=".6"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
   slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
 };

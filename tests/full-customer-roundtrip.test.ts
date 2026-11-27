@@ -213,6 +213,12 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('slotpicker', { action: 'https://example.test/book', passes: [{ passName: 'Circuit', passMeta: '90m', unitPrice: '95', fixedTotal: 0 }], slots: [{ time: '06:30' }], fields: [{ type: 'email', label: 'Email', name: 'email', required: 1 }] }),
     C.N('reel', { ratio: '9 / 16', arrows: 1, dots: 1, reels: [{ title: 'On the wheel', src: 'https://example.test/r1.webp', alt: 'Reel 1' }] }),
     C.N('grow', { ratio: '3 / 4', speed: '36', cards: [{ title: 'Copper Light', subtitle: 'Portrait series', src: 'https://example.test/g1.webp', alt: 'Card 1' }] }),
+    C.N('deck', { ratio: '4 / 5', arrows: 1, deckCards: [{ tag: '01', title: 'Basalt', src: 'https://example.test/d1.webp', alt: 'Deck 1' }] }),
+    C.N('metrics', { stats: [{ prefix: '$', value: '4.2', suffix: 'M', label: 'Savings' }] }),
+    C.N('spotlight', { tiles: [{ tag: 'Edge', title: 'Static export', detail: 'Zero runtime.' }] }),
+    C.N('terminal', { title: 'cli — zsh', commands: [{ label: 'Install', cmd: 'npm i pagecraft', output: '✓ Ready' }] }),
+    C.N('tilt', { ratio: '4 / 5', tiltCards: [{ tag: '01', title: 'Cedar', detail: 'Timber.', src: 'https://example.test/t1.webp', alt: 'Cedar' }] }),
+    C.N('flip', { trigger: 'click', ratio: '4 / 5', flipCards: [{ tag: 'Spec', title: 'Pavilion', backTitle: 'Materials', detail: 'Basalt.', src: 'https://example.test/f1.webp', alt: 'Pavilion' }] }),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -246,14 +252,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 49 Add choices map to stable persisted module shapes', () => {
+  test('all 55 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(49);
-    expect(new Set(choices)).toHaveLength(49);
+    expect(choices).toHaveLength(55);
+    expect(new Set(choices)).toHaveLength(55);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();

@@ -421,7 +421,7 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(C.U.len).toContain('svh');
     expect(C.parseU('100dvh')).toEqual({ n: '100', u: 'dvh' });
 
-    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker', 'reel', 'grow'] as const) {
+    for (const type of ['compare', 'timeline', 'progress', 'hotspot', 'strips', 'switcher', 'exhibit', 'scrolly', 'clocks', 'roster', 'tiers', 'qapills', 'dockbar', 'arches', 'chapters', 'slotpicker', 'reel', 'grow', 'deck', 'metrics', 'spotlight', 'terminal', 'tilt', 'flip'] as const) {
       expect(C.DEF[type]).toBeTruthy();
       expect(C.DEF[type].caps).toContain('spacing');
       expect(C.DEF[type].caps).toContain('animation');
@@ -445,7 +445,10 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     const chNode = C.N('chapters', { chapters: [{ chapterTitle: 'Ch', src: 'asset:chapter-frame', alt: 'Ch' }] });
     const rlNode = C.N('reel', { reels: [{ title: 'On the wheel', src: 'asset:reel-clip', poster: 'asset:reel-poster', alt: 'Wheel' }] });
     const gcNode = C.N('grow', { cards: [{ title: 'Copper Light', subtitle: 'Portrait series', src: 'asset:grow-card', alt: 'Copper Light' }] });
-    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode, rlNode, gcNode])])])];
+    const dkNode = C.N('deck', { deckCards: [{ tag: '01', title: 'Deck card', src: 'asset:deck-photo', alt: 'Deck' }] });
+    const tlNode = C.N('tilt', { tiltCards: [{ tag: '01', title: 'Tilt card', src: 'asset:tilt-photo', alt: 'Tilt' }] });
+    const flNode = C.N('flip', { flipCards: [{ tag: '01', title: 'Flip card', src: 'asset:flip-photo', alt: 'Flip' }] });
+    mediaDoc.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [cmpNode, hsNode, stNode, swNode, exNode, scNode, ckNode, rsNode, arNode, chNode, rlNode, gcNode, dkNode, tlNode, flNode])])])];
     const assetIds = mediaReferences(mediaDoc).map(r => r.assetId);
     expect(assetIds).toContain('cmp-before');
     expect(assetIds).toContain('cmp-after');
@@ -461,6 +464,9 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(assetIds).toContain('reel-clip');
     expect(assetIds).toContain('reel-poster');
     expect(assetIds).toContain('grow-card');
+    expect(assetIds).toContain('deck-photo');
+    expect(assetIds).toContain('tilt-photo');
+    expect(assetIds).toContain('flip-photo');
 
     // Zero-drift when absent
     const plainHtml = C.buildPage(C.state.pages[0]);
@@ -483,6 +489,12 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(plainHtml).not.toContain('.pagecraft-slotpicker');
     expect(plainHtml).not.toContain('.pagecraft-reel');
     expect(plainHtml).not.toContain('.pagecraft-grow');
+    expect(plainHtml).not.toContain('.pagecraft-deck');
+    expect(plainHtml).not.toContain('.pagecraft-metrics');
+    expect(plainHtml).not.toContain('.pagecraft-spotlight');
+    expect(plainHtml).not.toContain('.pagecraft-terminal');
+    expect(plainHtml).not.toContain('.pagecraft-tilt');
+    expect(plainHtml).not.toContain('.pagecraft-flip');
 
     // Floating header & 100dvh hero
     const hdr = C.N('section', { tag: 'header', width: 'full', floating: 1 }, {}, [C.N('row')]);
@@ -770,6 +782,102 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     tbWin.eval(scriptBody(C.TABS_JS));
     expect(tbWin.document.querySelector('.pagecraft-tab-indicator')).toBeTruthy();
     tbDom.window.close();
+
+    // Card deck, odometer metrics, and spotlight cards
+    const dkHtml = C.renderNode(C.N('deck', {
+      ratio: '4 / 5', arrows: 1,
+      deckCards: [
+        { tag: '01', title: 'First', src: 'https://example.test/d1.jpg', alt: 'First' },
+        { tag: '02', title: 'Second', src: 'https://example.test/d2.jpg', alt: 'Second' },
+      ]
+    }), { edit: false });
+    const dkDom = domFor(dkHtml);
+    const dkWin = dkDom.window as any;
+    dkWin.matchMedia = () => ({ matches: true });
+    let dkDispose: (() => void) | null = null;
+    dkWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { dkDispose = fn; };
+    dkWin.eval(scriptBody(C.DECK_JS));
+    const dkCards = [...dkWin.document.querySelectorAll('.pagecraft-deck-card')] as HTMLElement[];
+    expect(dkCards[0].getAttribute('data-depth')).toBe('0');
+    (dkWin.document.querySelector('[data-deck-next]') as HTMLButtonElement).click();
+    expect(dkCards[1].getAttribute('data-depth')).toBe('0');
+    expect(dkWin.document.querySelector('[data-deck-count]')?.textContent).toBe('2 / 2');
+    dkDispose!();
+    dkDom.window.close();
+
+    const mtHtml = C.renderNode(C.N('metrics', {
+      stats: [{ prefix: '$', value: '4.2', suffix: 'M', label: 'Savings', detail: 'Verified' }]
+    }), { edit: false });
+    expect(mtHtml).toContain('aria-label="$4.2M"');
+    expect(mtHtml).toContain('pagecraft-metric-drum');
+
+    const spotHtml = C.renderNode(C.N('spotlight', {
+      tiles: [{ tag: 'Fast', title: 'Zero bloat', detail: 'Clean HTML', href: 'https://example.test', linkLabel: 'Read' }]
+    }), { edit: false });
+    const spotDom = domFor(spotHtml);
+    const spotWin = spotDom.window as any;
+    let spotDispose: (() => void) | null = null;
+    spotWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { spotDispose = fn; };
+    spotWin.eval(scriptBody(C.SPOTLIGHT_JS));
+    const spotRoot = spotWin.document.querySelector('.pagecraft-spotlight') as HTMLElement;
+    spotRoot.dispatchEvent(new spotWin.MouseEvent('pointermove', { clientX: 50, clientY: 60 }));
+    expect(spotRoot.getAttribute('data-spot-lit')).toBe('1');
+    spotDispose!();
+    expect(spotRoot.hasAttribute('data-pc-sp-ready')).toBe(false);
+    spotDom.window.close();
+
+    // Command terminal tabs + copy, 3D tilt glare, and 3D flip toggle
+    const tmHtml = C.renderNode(C.N('terminal', {
+      title: 'cli — zsh',
+      commands: [
+        { label: 'Install', cmd: 'npm i pagecraft', output: '✓ Ready', note: 'Fast' },
+        { label: 'Deploy', cmd: 'npx pagecraft deploy', output: '✓ Live', note: 'Edge' }
+      ]
+    }), { edit: false });
+    const tmDom = domFor(tmHtml);
+    const tmWin = tmDom.window as any;
+    let tmDispose: (() => void) | null = null;
+    tmWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { tmDispose = fn; };
+    tmWin.eval(scriptBody(C.TERMINAL_JS));
+    const tmTabs = [...tmWin.document.querySelectorAll('.pagecraft-term-tab')] as HTMLButtonElement[];
+    tmTabs[1].click();
+    expect(tmTabs[1].getAttribute('aria-selected')).toBe('true');
+    const tmCopy = tmWin.document.querySelector('.pagecraft-term-copy') as HTMLButtonElement;
+    tmCopy.click();
+    expect(tmCopy.getAttribute('data-copied')).toBe('1');
+    tmDispose!();
+    tmDom.window.close();
+
+    const tiltHtml = C.renderNode(C.N('tilt', {
+      tiltCards: [{ tag: '01', title: 'Cedar', detail: 'Timber.', src: 'https://example.test/t1.jpg', alt: 'Cedar' }]
+    }), { edit: false });
+    const tiltDom = domFor(tiltHtml);
+    const tiltWin = tiltDom.window as any;
+    let tiltDispose: (() => void) | null = null;
+    tiltWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { tiltDispose = fn; };
+    tiltWin.eval(scriptBody(C.TILT_JS));
+    const tiltCard = tiltWin.document.querySelector('.pagecraft-tilt-card') as HTMLElement;
+    tiltCard.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 250, right: 200, bottom: 250, x: 0, y: 0, toJSON() {} } as DOMRect);
+    tiltCard.dispatchEvent(new tiltWin.MouseEvent('pointermove', { clientX: 160, clientY: 60 }));
+    expect(tiltCard.getAttribute('data-tilting')).toBe('1');
+    tiltDispose!();
+    tiltDom.window.close();
+
+    const flipHtml = C.renderNode(C.N('flip', {
+      trigger: 'click',
+      flipCards: [{ tag: 'Spec', title: 'Pavilion', backTitle: 'Materials', detail: 'Basalt.', src: 'https://example.test/f1.jpg', alt: 'Pavilion' }]
+    }), { edit: false });
+    const flipDom = domFor(flipHtml);
+    const flipWin = flipDom.window as any;
+    let flipDispose: (() => void) | null = null;
+    flipWin.__pagecraftRegisterPreviewDispose = (fn: () => void) => { flipDispose = fn; };
+    flipWin.eval(scriptBody(C.FLIP_JS));
+    const flipCard = flipWin.document.querySelector('.pagecraft-flip-card') as HTMLElement;
+    flipCard.click();
+    expect(flipCard.getAttribute('data-flipped')).toBe('1');
+    expect(flipCard.getAttribute('aria-pressed')).toBe('true');
+    flipDispose!();
+    flipDom.window.close();
 
     // Stage switcher click + keyboard interaction
     const swHtml = C.renderNode(C.N('switcher', {

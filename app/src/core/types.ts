@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
-  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'reel' | 'grow'
+  | 'countdown' | 'marquee' | 'filter' | 'compare' | 'timeline' | 'progress' | 'hotspot' | 'strips' | 'switcher' | 'exhibit' | 'scrolly' | 'clocks' | 'roster' | 'tiers' | 'qapills' | 'dockbar' | 'arches' | 'chapters' | 'slotpicker' | 'reel' | 'grow' | 'deck' | 'metrics' | 'spotlight' | 'terminal' | 'tilt' | 'flip'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -312,6 +312,18 @@ export interface ReelItem { title?: string; src?: string; poster?: string; alt?:
 export interface ReelProps { ratio?: string; arrows?: 0 | 1; dots?: 0 | 1; reels?: ReelItem[] }
 export interface GrowItem { title?: string; subtitle?: string; src?: string; alt?: string; w?: string; h?: string }
 export interface GrowProps { ratio?: string; speed?: string; cards?: GrowItem[] }
+export interface DeckItem { title?: string; tag?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface DeckProps { ratio?: string; arrows?: 0 | 1; deckCards?: DeckItem[] }
+export interface MetricItem { value?: string; prefix?: string; suffix?: string; label?: string; detail?: string }
+export interface MetricsProps { stats?: MetricItem[] }
+export interface SpotlightItem { tag?: string; title?: string; detail?: string; href?: string; linkLabel?: string }
+export interface SpotlightProps { tiles?: SpotlightItem[] }
+export interface TerminalCommand { label?: string; cmd?: string; output?: string; note?: string }
+export interface TerminalProps { title?: string; commands?: TerminalCommand[] }
+export interface TiltCardItem { tag?: string; title?: string; detail?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface TiltProps { ratio?: string; tiltCards?: TiltCardItem[] }
+export interface FlipCardItem { tag?: string; title?: string; frontNote?: string; backTitle?: string; detail?: string; href?: string; linkLabel?: string; src?: string; alt?: string; w?: string; h?: string }
+export interface FlipProps { trigger?: 'click' | 'hover'; ratio?: string; flipCards?: FlipCardItem[] }
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -322,7 +334,7 @@ export interface PropsByType {
   video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
-  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; reel: ReelProps; grow: GrowProps;
+  compare: CompareProps; timeline: TimelineProps; progress: ProgressProps; hotspot: HotspotProps; strips: StripsProps; switcher: SwitcherProps; exhibit: ExhibitProps; scrolly: ScrollyProps; clocks: ClocksProps; roster: RosterProps; tiers: TiersProps; qapills: QapillsProps; dockbar: DockbarProps; arches: ArchesProps; chapters: ChaptersProps; slotpicker: SlotpickerProps; reel: ReelProps; grow: GrowProps; deck: DeckProps; metrics: MetricsProps; spotlight: SpotlightProps; terminal: TerminalProps; tilt: TiltProps; flip: FlipProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

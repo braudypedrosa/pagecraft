@@ -2538,6 +2538,12 @@ var IC = {
   arches: '<path d="M8.5 19V8.5a3.5 3.5 0 0 1 7 0V19z"/><path d="M8.5 19H4.5a1 1 0 0 1-1-1v-6.5a2.5 2.5 0 0 1 5-.5M15.5 19h4a1 1 0 0 0 1-1v-6.5a2.5 2.5 0 0 0-5-.5"/>',
   reel: '<rect x="8.5" y="4.5" width="7" height="15" rx="1.6"/><path d="M6.2 6.8l-2.4.9v8.6l2.4.9M17.8 6.8l2.4.9v8.6l-2.4.9" opacity=".65"/>',
   grow: '<rect x="8.5" y="4" width="7" height="16" rx="1.3"/><rect x="3" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/><rect x="17.2" y="6.8" width="3.8" height="10.4" rx=".9" opacity=".55"/>',
+  deck: '<rect x="6.5" y="4.5" width="11" height="14" rx="1.8"/><path d="M5 7.5l-1.5 1v10.5a1.5 1.5 0 0 0 1.5 1.5h9.5" opacity=".55"/>',
+  metrics: '<rect x="3.5" y="6" width="4.5" height="12" rx="1.2"/><rect x="9.8" y="6" width="4.5" height="12" rx="1.2"/><rect x="16" y="6" width="4.5" height="12" rx="1.2" opacity=".6"/>',
+  spotlight: '<rect x="3.5" y="4.5" width="7.5" height="6.8" rx="1.2"/><rect x="13" y="4.5" width="7.5" height="6.8" rx="1.2" opacity=".6"/><rect x="3.5" y="13" width="7.5" height="6.8" rx="1.2" opacity=".6"/><rect x="13" y="13" width="7.5" height="6.8" rx="1.2"/>',
+  terminal: '<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M7.2 10l2.8 2.4-2.8 2.4M12 14.8h4.8"/>',
+  tilt: '<path d="M5.5 6.5l13-2.2v13.2l-13 2.2z"/><path d="M9 12.2l6-1" opacity=".65"/>',
+  flip: '<rect x="4" y="5" width="12" height="14" rx="2"/><path d="M16 8.5h2a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-8" opacity=".6"/>',
   chapters: '<rect x="3" y="4" width="18" height="11.5" rx="2.5"/><path d="M3 20h4M10 20h4M17 20h4"/>',
   slotpicker: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V7M16 2.8V7M9 15.5l2 2 4-4"/>'
 };
@@ -4172,6 +4178,12 @@ var KIND = {
   slotpicker: "booking request",
   reel: "reel slider",
   grow: "grow carousel",
+  deck: "card deck",
+  metrics: "odometer metrics",
+  spotlight: "spotlight cards",
+  terminal: "command terminal",
+  tilt: "3D tilt cards",
+  flip: "3D flip cards",
   spacer: "spacer",
   divider: "divider",
   list: "list"
@@ -6270,6 +6282,489 @@ var GROW_JS = `<script>
 })();
 <\/script>
 `;
+var DECK_CSS = `.pagecraft-deck{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;padding:18px 0 8px;-webkit-user-select:none;user-select:none}
+.pagecraft-deck-stage{position:relative;width:min(var(--dk-card-w,320px),86vw);aspect-ratio:var(--dk-ratio,4 / 5);touch-action:pan-y}
+.pagecraft-deck-card{position:absolute;inset:0;margin:0;border-radius:var(--dk-radius,18px);overflow:hidden;background:var(--dk-bg,#181a20);box-shadow:0 18px 42px rgba(10,12,18,.26);transform-origin:center 72%;transition:transform .5s cubic-bezier(.22,1.12,.36,1),opacity .4s ease,filter .4s ease;will-change:transform,opacity}
+.pagecraft-deck-card[data-depth="0"]{transform:translate3d(0,0,0) rotate(0deg) scale(1);z-index:5;opacity:1;cursor:grab}
+.pagecraft-deck-card[data-depth="0"][data-dragging]{transition:none;cursor:grabbing}
+.pagecraft-deck-card[data-depth="1"]{transform:translate3d(14px,8px,0) rotate(3.8deg) scale(.95);z-index:4;opacity:.92;filter:brightness(.88)}
+.pagecraft-deck-card[data-depth="2"]{transform:translate3d(-14px,15px,0) rotate(-4.2deg) scale(.90);z-index:3;opacity:.78;filter:brightness(.76)}
+.pagecraft-deck-card[data-depth="3"]{transform:translate3d(10px,21px,0) rotate(6deg) scale(.85);z-index:2;opacity:.55;filter:brightness(.66)}
+.pagecraft-deck-card[data-depth="back"]{transform:translate3d(0,24px,0) rotate(0deg) scale(.8);z-index:1;opacity:0;pointer-events:none}
+.pagecraft-deck-card[data-fling="right"]{transform:translate3d(120%,-18px,0) rotate(18deg) scale(.96);opacity:0;z-index:6;transition:transform .34s cubic-bezier(.32,0,.67,0),opacity .28s ease}
+.pagecraft-deck-card[data-fling="left"]{transform:translate3d(-120%,-18px,0) rotate(-18deg) scale(.96);opacity:0;z-index:6;transition:transform .34s cubic-bezier(.32,0,.67,0),opacity .28s ease}
+.pagecraft-deck[data-deck-edit] .pagecraft-deck-card,.pagecraft-deck[data-deck-edit] .pagecraft-deck-btn{pointer-events:none}
+.pagecraft-deck-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none}
+.pagecraft-deck-scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(10,12,18,.76) 100%);pointer-events:none}
+.pagecraft-deck-cap{position:absolute;inset-inline:18px;inset-block-end:18px;display:flex;flex-direction:column;gap:4px;color:var(--dk-ink,#fff);pointer-events:none}
+.pagecraft-deck-tag{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dk-accent,#f59e0b)}
+.pagecraft-deck-title{font-size:18px;line-height:1.25;font-weight:600;letter-spacing:-.01em}
+.pagecraft-deck-controls{display:inline-flex;align-items:center;gap:12px}
+.pagecraft-deck-btn{width:38px;height:38px;border-radius:999px;border:1px solid var(--dk-line,rgba(0,0,0,.14));background:var(--dk-btn-bg,#fff);color:var(--dk-btn-ink,#18181b);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation;transition:transform .18s ease,border-color .18s ease}
+.pagecraft-deck-btn:hover{transform:scale(1.06)}
+.pagecraft-deck-btn:active{transform:scale(.94)}
+.pagecraft-deck-btn:focus-visible{outline:2px solid var(--dk-accent,#f59e0b);outline-offset:2px}
+.pagecraft-deck-count{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--dk-muted,inherit);min-width:44px;text-align:center}
+@media (prefers-reduced-motion:reduce){.pagecraft-deck-card,.pagecraft-deck-btn{transition:none}}`;
+var DECK_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-deck[data-deck]').forEach(function(root){
+    if(root.hasAttribute('data-pc-dk-ready')||root.hasAttribute('data-deck-edit'))return;
+    var cards=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-deck-card'));
+    if(!cards.length)return;
+    root.setAttribute('data-pc-dk-ready','1');
+    var prevBtn=root.querySelector('[data-deck-prev]');
+    var nextBtn=root.querySelector('[data-deck-next]');
+    var countEl=root.querySelector('[data-deck-count]');
+    var n=cards.length,top=0,busy=false,timer=0;
+    function isReducedMotion(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+    function paint(){
+      cards.forEach(function(c,i){
+        var d=((i-top)%n+n)%n;
+        c.removeAttribute('data-fling');
+        c.removeAttribute('data-dragging');
+        c.style.transform='';
+        c.setAttribute('data-depth',d<=3?String(d):'back');
+        c.setAttribute('aria-hidden',d===0?'false':'true');
+      });
+      if(countEl)countEl.textContent=(top+1)+' / '+n;
+    }
+    function step(dir){
+      if(n<2||busy)return;
+      if(isReducedMotion()){top=((top+dir)%n+n)%n;paint();return;}
+      busy=true;
+      var activeCard=cards[top];
+      activeCard.style.transform='';
+      activeCard.removeAttribute('data-dragging');
+      activeCard.setAttribute('data-fling',dir>0?'right':'left');
+      timer=setTimeout(function(){
+        top=((top+dir)%n+n)%n;
+        busy=false;
+        paint();
+      },240);
+    }
+    var offs=[];
+    if(prevBtn){var onP=function(){step(-1);};prevBtn.addEventListener('click',onP);offs.push(function(){prevBtn.removeEventListener('click',onP);});}
+    if(nextBtn){var onN=function(){step(1);};nextBtn.addEventListener('click',onN);offs.push(function(){nextBtn.removeEventListener('click',onN);});}
+    var stage=root.querySelector('.pagecraft-deck-stage');
+    if(stage){
+      var drag=null;
+      function onDown(e){
+        if(busy||n<2||(e.button!==undefined&&e.button!==0))return;
+        var card=cards[top];
+        if(!card||!card.contains(e.target))return;
+        drag={x:e.clientX,y:e.clientY,dx:0,dy:0,id:e.pointerId,moved:false};
+        try{card.setPointerCapture(e.pointerId);}catch(_){}
+      }
+      function onMove(e){
+        if(!drag)return;
+        drag.dx=e.clientX-drag.x;drag.dy=e.clientY-drag.y;
+        if(!drag.moved&&Math.abs(drag.dx)+Math.abs(drag.dy)>6){drag.moved=true;cards[top].setAttribute('data-dragging','1');}
+        if(!drag.moved)return;
+        var rot=Math.max(-20,Math.min(20,drag.dx*0.065));
+        cards[top].style.transform='translate3d('+drag.dx.toFixed(1)+'px,'+(drag.dy*0.35).toFixed(1)+'px,0) rotate('+rot.toFixed(1)+'deg)';
+      }
+      function onUp(){
+        if(!drag)return;
+        var d0=drag;drag=null;
+        var card=cards[top];
+        try{card.releasePointerCapture(d0.id);}catch(_){}
+        card.removeAttribute('data-dragging');
+        if(!d0.moved){step(1);return;}
+        if(Math.abs(d0.dx)>68){step(d0.dx>0?1:-1);}
+        else{card.style.transform='';}
+      }
+      stage.addEventListener('pointerdown',onDown);
+      window.addEventListener('pointermove',onMove);
+      window.addEventListener('pointerup',onUp);
+      stage.addEventListener('pointercancel',onUp);
+      offs.push(function(){
+        stage.removeEventListener('pointerdown',onDown);
+        window.removeEventListener('pointermove',onMove);
+        window.removeEventListener('pointerup',onUp);
+        stage.removeEventListener('pointercancel',onUp);
+      });
+    }
+    function onKey(e){
+      if(e.key==='ArrowRight'){e.preventDefault();step(1);}
+      else if(e.key==='ArrowLeft'){e.preventDefault();step(-1);}
+    }
+    root.addEventListener('keydown',onKey);
+    offs.push(function(){root.removeEventListener('keydown',onKey);});
+    paint();
+    disposers.push(function(){
+      if(timer){clearTimeout(timer);timer=0;}
+      offs.forEach(function(off){off();});
+      cards.forEach(function(c){c.style.transform='';c.removeAttribute('data-fling');c.removeAttribute('data-dragging');});
+      root.removeAttribute('data-pc-dk-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
+var METRICS_CSS = `.pagecraft-metrics{display:grid;grid-template-columns:repeat(var(--mt-cols,3),minmax(0,1fr));gap:var(--mt-gap,18px);width:100%}
+.pagecraft-metric-card{padding:24px 22px;border-radius:var(--mt-radius,14px);background:var(--mt-bg,#f6f6f3);border:1px solid var(--mt-line,rgba(0,0,0,.1));display:flex;flex-direction:column;gap:8px;min-width:0}
+.pagecraft-metric-val{display:inline-flex;align-items:baseline;font-size:clamp(30px,3.6vw,46px);line-height:1.05;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--mt-accent,#18181b)}
+.pagecraft-metric-affix{font-weight:600;opacity:.85}
+.pagecraft-metric-drum{display:inline-block;height:1.05em;overflow:hidden;vertical-align:baseline}
+.pagecraft-metric-reel{display:flex;flex-direction:column;transform:translateY(calc(var(--mt-d,0) * -1.05em));transition:transform var(--mt-dur,.95s) cubic-bezier(.16,1,.3,1)}
+.pagecraft-metrics[data-metrics-idle] .pagecraft-metric-reel{transform:translateY(0);transition:none}
+.pagecraft-metric-reel span{display:block;height:1.05em;line-height:1.05em}
+.pagecraft-metric-label{font-size:15px;line-height:1.35;font-weight:600;color:var(--mt-ink,#18181b)}
+.pagecraft-metric-detail{margin:0;font-size:13.5px;line-height:1.48;color:var(--mt-muted,#666)}
+@media (max-width:768px){.pagecraft-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}}
+@media (prefers-reduced-motion:reduce){.pagecraft-metric-reel{transition:none !important}}`;
+var METRICS_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-metrics[data-metrics]').forEach(function(root){
+    if(root.hasAttribute('data-pc-mt-ready')||root.hasAttribute('data-metrics-edit'))return;
+    root.setAttribute('data-pc-mt-ready','1');
+    var rm=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if(rm||typeof IntersectionObserver!=='function'){
+      root.removeAttribute('data-metrics-idle');
+      disposers.push(function(){root.removeAttribute('data-pc-mt-ready');});
+      return;
+    }
+    root.setAttribute('data-metrics-idle','1');
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting)return;
+        if(typeof requestAnimationFrame==='function'){
+          requestAnimationFrame(function(){root.removeAttribute('data-metrics-idle');});
+        }else{
+          root.removeAttribute('data-metrics-idle');
+        }
+        io.disconnect();
+      });
+    },{threshold:0.2});
+    io.observe(root);
+    disposers.push(function(){
+      io.disconnect();
+      root.removeAttribute('data-metrics-idle');
+      root.removeAttribute('data-pc-mt-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
+var SPOTLIGHT_CSS = `.pagecraft-spotlight{display:grid;grid-template-columns:repeat(var(--sp-cols,3),minmax(0,1fr));gap:var(--sp-gap,18px);width:100%}
+.pagecraft-spot-card{position:relative;padding:28px 26px;border-radius:var(--sp-radius,18px);background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.045),transparent 55%),var(--sp-bg,#111318);border:1px solid var(--sp-line,rgba(255,255,255,.1));color:var(--sp-ink,#f4f5f7);display:flex;flex-direction:column;gap:12px;overflow:hidden;isolation:isolate;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.22);transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s ease,border-color .28s ease;--mx:-999px;--my:-999px}
+.pagecraft-spot-card[data-spot-over="1"],.pagecraft-spot-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 36px -14px rgba(0,0,0,.55)}
+.pagecraft-spot-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:radial-gradient(240px circle at var(--mx) var(--my),var(--sp-glow,rgba(56,189,248,.92)),rgba(56,189,248,.18) 42%,transparent 72%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;pointer-events:none;z-index:3;opacity:0;transition:opacity .26s ease}
+.pagecraft-spot-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx) var(--my),var(--sp-sheen,rgba(56,189,248,.18)),transparent 68%);pointer-events:none;z-index:1;opacity:0;transition:opacity .26s ease}
+.pagecraft-spot-grid{position:absolute;inset:0;border-radius:inherit;background-image:radial-gradient(rgba(255,255,255,.22) 1px,transparent 1px);background-size:18px 18px;-webkit-mask-image:radial-gradient(220px circle at var(--mx) var(--my),#000 0%,rgba(0,0,0,.45) 45%,transparent 75%);mask-image:radial-gradient(220px circle at var(--mx) var(--my),#000 0%,rgba(0,0,0,.45) 45%,transparent 75%);pointer-events:none;z-index:0;opacity:0;transition:opacity .26s ease}
+.pagecraft-spotlight[data-spot-lit] .pagecraft-spot-card::before,.pagecraft-spotlight[data-spot-lit] .pagecraft-spot-card::after,.pagecraft-spotlight[data-spot-lit] .pagecraft-spot-grid{opacity:1}
+.pagecraft-spot-tag{position:relative;z-index:2;display:inline-flex;align-items:center;gap:6px;width:fit-content;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--sp-accent,#38bdf8)}
+.pagecraft-spot-tag::before{content:"";width:5px;height:5px;border-radius:999px;background:currentColor;opacity:.85}
+.pagecraft-spot-title{position:relative;z-index:2;margin:2px 0 0;font-size:19px;line-height:1.28;font-weight:600;letter-spacing:-.015em;color:var(--sp-ink,#f4f5f7)}
+.pagecraft-spot-detail{position:relative;z-index:2;margin:0;font-size:14px;line-height:1.58;color:var(--sp-muted,#9aa3b2)}
+.pagecraft-spot-link{position:relative;z-index:2;margin-top:auto;padding-top:8px;font-size:13.5px;font-weight:600;color:var(--sp-accent,#38bdf8);text-decoration:none;display:inline-flex;align-items:center;gap:6px;width:fit-content}
+.pagecraft-spot-link span{display:inline-block;transition:transform .22s cubic-bezier(.22,1,.36,1)}
+.pagecraft-spot-link:hover span{transform:translateX(4px)}
+.pagecraft-spot-link:focus-visible{outline:2px solid var(--sp-accent,#38bdf8);outline-offset:3px;border-radius:4px}
+@media (max-width:720px){.pagecraft-spotlight{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.pagecraft-spot-card,.pagecraft-spot-card::before,.pagecraft-spot-card::after,.pagecraft-spot-grid,.pagecraft-spot-link span{transition:none}}`;
+var SPOTLIGHT_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-spotlight[data-spotlight]').forEach(function(root){
+    if(root.hasAttribute('data-pc-sp-ready')||root.hasAttribute('data-spotlight-edit'))return;
+    var cards=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-spot-card'));
+    if(!cards.length)return;
+    root.setAttribute('data-pc-sp-ready','1');
+    function onMove(e){
+      root.setAttribute('data-spot-lit','1');
+      cards.forEach(function(card){
+        var r=card.getBoundingClientRect();
+        var x=e.clientX-r.left,y=e.clientY-r.top;
+        card.style.setProperty('--mx',x.toFixed(1)+'px');
+        card.style.setProperty('--my',y.toFixed(1)+'px');
+        var over=x>=0&&x<=r.width&&y>=0&&y<=r.height;
+        if(over)card.setAttribute('data-spot-over','1');
+        else card.removeAttribute('data-spot-over');
+      });
+    }
+    function onLeave(){
+      root.removeAttribute('data-spot-lit');
+      cards.forEach(function(card){card.removeAttribute('data-spot-over');});
+    }
+    root.addEventListener('pointermove',onMove);
+    root.addEventListener('pointerleave',onLeave);
+    disposers.push(function(){
+      root.removeEventListener('pointermove',onMove);
+      root.removeEventListener('pointerleave',onLeave);
+      root.removeAttribute('data-spot-lit');
+      cards.forEach(function(card){card.removeAttribute('data-spot-over');});
+      root.removeAttribute('data-pc-sp-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
+var TERMINAL_CSS = `.pagecraft-terminal{width:100%;border-radius:var(--tm-radius,16px);background:var(--tm-bg,#0d1016);border:1px solid var(--tm-line,rgba(255,255,255,.11));color:var(--tm-ink,#e6ebf2);overflow:hidden;box-shadow:0 22px 48px -20px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.pagecraft-term-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:rgba(255,255,255,.035);border-bottom:1px solid var(--tm-line,rgba(255,255,255,.09))}
+.pagecraft-term-dots{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto}
+.pagecraft-term-dots i{display:block;width:10px;height:10px;border-radius:999px;opacity:.85}
+.pagecraft-term-dots i:nth-child(1){background:#ff5f57}
+.pagecraft-term-dots i:nth-child(2){background:#febc2e}
+.pagecraft-term-dots i:nth-child(3){background:#28c840}
+.pagecraft-term-title{font-family:system-ui,-apple-system,sans-serif;font-size:12.5px;font-weight:500;color:var(--tm-muted,#8b95a5);letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pagecraft-term-copy{appearance:none;border:1px solid var(--tm-line,rgba(255,255,255,.12));background:rgba(255,255,255,.05);color:var(--tm-ink,#e6ebf2);border-radius:7px;padding:4px 10px;font-family:system-ui,-apple-system,sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease}
+.pagecraft-term-copy:hover{background:rgba(255,255,255,.11)}
+.pagecraft-term-copy[data-copied="1"]{border-color:var(--tm-accent,#34d399);color:var(--tm-accent,#34d399)}
+.pagecraft-term-tabs{display:flex;align-items:center;gap:6px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none}
+.pagecraft-term-tabs::-webkit-scrollbar{display:none}
+.pagecraft-term-tab{appearance:none;border:1px solid transparent;background:transparent;color:var(--tm-muted,#8b95a5);font-family:system-ui,-apple-system,sans-serif;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .18s ease,color .18s ease,border-color .18s ease}
+.pagecraft-term-tab:hover{color:var(--tm-ink,#e6ebf2);background:rgba(255,255,255,.05)}
+.pagecraft-term-tab[aria-selected="true"]{color:var(--tm-ink,#e6ebf2);background:rgba(255,255,255,.09);border-color:var(--tm-line,rgba(255,255,255,.12))}
+.pagecraft-term-body{padding:18px 20px 22px;min-height:152px;display:flex;flex-direction:column;gap:12px}
+.pagecraft-term-cmd{margin:0;display:flex;align-items:center;gap:10px;font-size:14px;line-height:1.55;word-break:break-word}
+.pagecraft-term-prompt{color:var(--tm-accent,#34d399);font-weight:700;user-select:none;flex:0 0 auto}
+.pagecraft-term-text{color:var(--tm-ink,#f4f7fb)}
+.pagecraft-term-caret{display:inline-block;width:8px;height:1.15em;margin-left:2px;vertical-align:-2px;background:var(--tm-accent,#34d399);animation:pc-term-blink 1.05s steps(1) infinite}
+@keyframes pc-term-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.pagecraft-term-out{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.6;color:var(--tm-muted,#96a1b2);opacity:1;transform:translateY(0);transition:opacity .28s ease,transform .28s ease}
+.pagecraft-term-out[data-pending="1"]{opacity:0;transform:translateY(4px)}
+.pagecraft-term-line-ok{color:var(--tm-accent,#34d399)}
+.pagecraft-term-note{padding:10px 20px;border-top:1px solid var(--tm-line,rgba(255,255,255,.08));background:rgba(255,255,255,.02);font-family:system-ui,-apple-system,sans-serif;font-size:12.5px;color:var(--tm-muted,#8b95a5)}
+.pagecraft-term-panel[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.pagecraft-term-caret{animation:none}.pagecraft-term-out{transition:none}}`;
+var TERMINAL_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-terminal[data-terminal]').forEach(function(root){
+    if(root.hasAttribute('data-pc-tm-ready')||root.hasAttribute('data-terminal-edit'))return;
+    var tabs=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-term-tab'));
+    var panels=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-term-panel'));
+    var copyBtn=root.querySelector('.pagecraft-term-copy');
+    if(!panels.length)return;
+    root.setAttribute('data-pc-tm-ready','1');
+    var rm=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var active=0,typeTimer=0,copyTimer=0;
+    function stopTyping(){if(typeTimer){clearTimeout(typeTimer);typeTimer=0;}}
+    function show(idx,animate){
+      stopTyping();
+      active=((idx%panels.length)+panels.length)%panels.length;
+      tabs.forEach(function(t,i){
+        var on=i===active;
+        t.setAttribute('aria-selected',on?'true':'false');
+        t.tabIndex=on?0:-1;
+      });
+      panels.forEach(function(p,i){
+        var on=i===active;
+        p.hidden=!on;
+      });
+      var panel=panels[active];
+      var textEl=panel.querySelector('.pagecraft-term-text');
+      var outEl=panel.querySelector('.pagecraft-term-out');
+      var full=(panel.getAttribute('data-cmd')||'');
+      if(!textEl)return;
+      if(!animate||rm||!full){
+        textEl.textContent=full;
+        if(outEl)outEl.removeAttribute('data-pending');
+        return;
+      }
+      textEl.textContent='';
+      if(outEl)outEl.setAttribute('data-pending','1');
+      var pos=0;
+      function tick(){
+        pos+=1;
+        textEl.textContent=full.slice(0,pos);
+        if(pos<full.length){
+          typeTimer=setTimeout(tick,18);
+        }else{
+          typeTimer=0;
+          if(outEl)outEl.removeAttribute('data-pending');
+        }
+      }
+      typeTimer=setTimeout(tick,24);
+    }
+    var offs=[];
+    tabs.forEach(function(t,i){
+      function onClick(){show(i,true);}
+      t.addEventListener('click',onClick);
+      offs.push(function(){t.removeEventListener('click',onClick);});
+    });
+    if(copyBtn){
+      function onCopy(){
+        var cmd=(panels[active]&&panels[active].getAttribute('data-cmd'))||'';
+        if(!cmd)return;
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(cmd).catch(function(){});
+        }
+        copyBtn.textContent='Copied';
+        copyBtn.setAttribute('data-copied','1');
+        if(copyTimer)clearTimeout(copyTimer);
+        copyTimer=setTimeout(function(){
+          copyBtn.textContent='Copy';
+          copyBtn.removeAttribute('data-copied');
+          copyTimer=0;
+        },1600);
+      }
+      copyBtn.addEventListener('click',onCopy);
+      offs.push(function(){copyBtn.removeEventListener('click',onCopy);});
+    }
+    show(0,false);
+    disposers.push(function(){
+      stopTyping();
+      if(copyTimer){clearTimeout(copyTimer);copyTimer=0;}
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-tm-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
+var TILT_CSS = `.pagecraft-tilt{display:grid;grid-template-columns:repeat(var(--tl-cols,3),minmax(0,1fr));gap:var(--tl-gap,20px);width:100%}
+.pagecraft-tilt-wrap{perspective:1000px;min-width:0}
+.pagecraft-tilt-card{position:relative;aspect-ratio:var(--tl-ratio,4/5);border-radius:var(--tl-radius,18px);overflow:hidden;background:var(--tl-bg,#12151c);border:1px solid var(--tl-line,rgba(255,255,255,.12));transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale3d(var(--sc,1),var(--sc,1),1);transition:transform .42s cubic-bezier(.22,1,.36,1),box-shadow .32s ease;box-shadow:0 16px 36px -18px rgba(0,0,0,.45);display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;cursor:default}
+.pagecraft-tilt-card[data-tilting="1"]{transition:transform .08s linear,box-shadow .2s ease;box-shadow:0 28px 54px -18px rgba(0,0,0,.62)}
+.pagecraft-tilt-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.04);pointer-events:none}
+.pagecraft-tilt-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.06) 0%,rgba(8,10,14,.28) 46%,rgba(8,10,14,.86) 100%);pointer-events:none;z-index:1}
+.pagecraft-tilt-glare{position:absolute;inset:0;background:radial-gradient(280px circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.28),rgba(255,255,255,.06) 42%,transparent 70%);mix-blend-mode:overlay;pointer-events:none;z-index:2;opacity:var(--go,0);transition:opacity .28s ease}
+.pagecraft-tilt-body{position:relative;z-index:3;padding:22px 22px 24px;display:flex;flex-direction:column;gap:8px;transform:translateZ(26px)}
+.pagecraft-tilt-tag{display:inline-flex;align-items:center;width:fit-content;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.pagecraft-tilt-title{margin:0;font-size:20px;line-height:1.22;font-weight:600;letter-spacing:-.015em;color:#fff}
+.pagecraft-tilt-detail{margin:0;font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.8)}
+@media (max-width:720px){.pagecraft-tilt{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.pagecraft-tilt-card,.pagecraft-tilt-glare{transition:none;transform:none}}`;
+var TILT_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-tilt[data-tilt]').forEach(function(root){
+    if(root.hasAttribute('data-pc-tl-ready')||root.hasAttribute('data-tilt-edit'))return;
+    var rm=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var cards=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-tilt-card'));
+    if(!cards.length)return;
+    root.setAttribute('data-pc-tl-ready','1');
+    if(rm){
+      disposers.push(function(){root.removeAttribute('data-pc-tl-ready');});
+      return;
+    }
+    var offs=[];
+    cards.forEach(function(card){
+      function onMove(e){
+        var r=card.getBoundingClientRect();
+        if(!r.width||!r.height)return;
+        var px=(e.clientX-r.left)/r.width;
+        var py=(e.clientY-r.top)/r.height;
+        var ry=((px-0.5)*16).toFixed(2)+'deg';
+        var rx=((0.5-py)*14).toFixed(2)+'deg';
+        card.setAttribute('data-tilting','1');
+        card.style.setProperty('--rx',rx);
+        card.style.setProperty('--ry',ry);
+        card.style.setProperty('--sc','1.02');
+        card.style.setProperty('--gx',(px*100).toFixed(1)+'%');
+        card.style.setProperty('--gy',(py*100).toFixed(1)+'%');
+        card.style.setProperty('--go','1');
+      }
+      function onLeave(){
+        card.removeAttribute('data-tilting');
+        card.style.setProperty('--rx','0deg');
+        card.style.setProperty('--ry','0deg');
+        card.style.setProperty('--sc','1');
+        card.style.setProperty('--go','0');
+      }
+      card.addEventListener('pointermove',onMove);
+      card.addEventListener('pointerleave',onLeave);
+      offs.push(function(){
+        card.removeEventListener('pointermove',onMove);
+        card.removeEventListener('pointerleave',onLeave);
+        onLeave();
+      });
+    });
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-tl-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
+var FLIP_CSS = `.pagecraft-flip{display:grid;grid-template-columns:repeat(var(--fl-cols,3),minmax(0,1fr));gap:var(--fl-gap,18px);width:100%}
+.pagecraft-flip-card{position:relative;perspective:1100px;aspect-ratio:var(--fl-ratio,4/5);min-height:280px;min-width:0;cursor:pointer;outline:none}
+.pagecraft-flip-card:focus-visible .pagecraft-flip-inner{box-shadow:0 0 0 3px var(--fl-accent,#2563eb)}
+.pagecraft-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .64s cubic-bezier(.22,1,.36,1);border-radius:var(--fl-radius,18px)}
+.pagecraft-flip-card[data-flipped="1"] .pagecraft-flip-inner{transform:rotateY(180deg)}
+.pagecraft-flip[data-flip-trigger="hover"] .pagecraft-flip-card:hover .pagecraft-flip-inner{transform:rotateY(180deg)}
+.pagecraft-flip-face{position:absolute;inset:0;border-radius:inherit;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column}
+.pagecraft-flip-front{background:var(--fl-front-bg,#13161d);color:#fff;justify-content:flex-end;border:1px solid rgba(255,255,255,.1)}
+.pagecraft-flip-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.pagecraft-flip-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,16,.08) 0%,rgba(10,12,16,.34) 48%,rgba(10,12,16,.88) 100%);pointer-events:none}
+.pagecraft-flip-front-body{position:relative;z-index:1;padding:22px;display:flex;flex-direction:column;gap:8px}
+.pagecraft-flip-tag{display:inline-flex;width:fit-content;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.15);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.pagecraft-flip-title{margin:0;font-size:20px;line-height:1.22;font-weight:600;letter-spacing:-.015em;color:#fff}
+.pagecraft-flip-hint{margin-top:4px;font-size:12px;font-weight:500;color:rgba(255,255,255,.78);display:inline-flex;align-items:center;gap:5px}
+.pagecraft-flip-back{transform:rotateY(180deg);background:var(--fl-back-bg,#ffffff);color:var(--fl-ink,#18181b);border:1px solid var(--fl-line,rgba(0,0,0,.1));padding:24px;justify-content:space-between;box-shadow:0 16px 36px -16px rgba(0,0,0,.14)}
+.pagecraft-flip-back-top{display:flex;flex-direction:column;gap:10px}
+.pagecraft-flip-back-tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--fl-accent,#2563eb)}
+.pagecraft-flip-back-title{margin:0;font-size:19px;line-height:1.28;font-weight:650;letter-spacing:-.015em;color:var(--fl-ink,#18181b)}
+.pagecraft-flip-detail{margin:0;font-size:14px;line-height:1.58;color:var(--fl-muted,#52525b)}
+.pagecraft-flip-back-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--fl-line,rgba(0,0,0,.08))}
+.pagecraft-flip-link{font-size:13.5px;font-weight:600;color:var(--fl-accent,#2563eb);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.pagecraft-flip-link:hover{text-decoration:underline}
+.pagecraft-flip-return{font-size:12px;font-weight:600;color:var(--fl-muted,#71717a)}
+@media (max-width:720px){.pagecraft-flip{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.pagecraft-flip-inner{transition:none}}`;
+var FLIP_JS = `<script>
+(function(){
+  var disposers=[];
+  document.querySelectorAll('.pagecraft-flip[data-flip]').forEach(function(root){
+    if(root.hasAttribute('data-pc-fl-ready')||root.hasAttribute('data-flip-edit'))return;
+    var cards=Array.prototype.slice.call(root.querySelectorAll('.pagecraft-flip-card'));
+    if(!cards.length)return;
+    root.setAttribute('data-pc-fl-ready','1');
+    var offs=[];
+    cards.forEach(function(card){
+      function toggle(e){
+        if(e&&e.target&&e.target.closest&&e.target.closest('a'))return;
+        var on=card.getAttribute('data-flipped')==='1';
+        card.setAttribute('data-flipped',on?'0':'1');
+        card.setAttribute('aria-pressed',on?'false':'true');
+      }
+      function onKey(e){
+        if(e.key==='Enter'||e.key===' '){
+          e.preventDefault();
+          toggle(e);
+        }
+      }
+      card.addEventListener('click',toggle);
+      card.addEventListener('keydown',onKey);
+      offs.push(function(){
+        card.removeEventListener('click',toggle);
+        card.removeEventListener('keydown',onKey);
+        card.setAttribute('data-flipped','0');
+        card.setAttribute('aria-pressed','false');
+      });
+    });
+    disposers.push(function(){
+      offs.forEach(function(off){off();});
+      root.removeAttribute('data-pc-fl-ready');
+    });
+  });
+  if(disposers.length&&typeof window.__pagecraftRegisterPreviewDispose==='function'){
+    window.__pagecraftRegisterPreviewDispose(function(){disposers.forEach(function(d){d();});});
+  }
+})();
+<\/script>
+`;
 
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
@@ -6306,6 +6801,9 @@ function mediaReferences(document) {
       scan(item?.poster, [...base, "props", "reels", j, "poster"], where);
     });
     if (node.type === "grow" && Array.isArray(props.cards)) props.cards.forEach((item, j) => scan(item?.src, [...base, "props", "cards", j, "src"], where));
+    if (node.type === "deck" && Array.isArray(props.deckCards)) props.deckCards.forEach((item, j) => scan(item?.src, [...base, "props", "deckCards", j, "src"], where));
+    if (node.type === "tilt" && Array.isArray(props.tiltCards)) props.tiltCards.forEach((item, j) => scan(item?.src, [...base, "props", "tiltCards", j, "src"], where));
+    if (node.type === "flip" && Array.isArray(props.flipCards)) props.flipCards.forEach((item, j) => scan(item?.src, [...base, "props", "flipCards", j, "src"], where));
     if (node.type === "chapters" && Array.isArray(props.chapters)) props.chapters.forEach((item, j) => scan(item?.src, [...base, "props", "chapters", j, "src"], where));
     const definition = document.meta.components?.find((def) => def.id === node.use);
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
@@ -8952,6 +9450,398 @@ var DEF = {
       ]
     }
   },
+  deck: {
+    label: "Card deck",
+    icon: "deck",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        ratio: "4 / 5",
+        arrows: 1,
+        deckCards: [
+          { tag: "01 \xB7 Architecture", title: "Basalt & Cedar", src: "", alt: "Card 1" },
+          { tag: "02 \xB7 Daylight", title: "Clerestory Light", src: "", alt: "Card 2" },
+          { tag: "03 \xB7 Material", title: "Raw Flax Linen", src: "", alt: "Card 3" },
+          { tag: "04 \xB7 Ritual", title: "Thermal Plunge", src: "", alt: "Card 4" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--dk-card-w": "320px",
+          "--dk-radius": "18px",
+          "--dk-bg": "#181A20",
+          "--dk-ink": "#FFFFFF",
+          "--dk-accent": cvar("brand"),
+          "--dk-btn-bg": cvar("surface"),
+          "--dk-btn-ink": cvar("ink"),
+          "--dk-line": cvar("line")
+        },
+        t: {},
+        m: { "--dk-card-w": "280px" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "select", k: "ratio", label: "Card ratio", opts: [["4 / 5", "4:5 portrait"], ["3 / 4", "3:4 portrait"], ["1 / 1", "Square"], ["4 / 3", "4:3 landscape"]] },
+        { t: "toggle", k: "arrows", label: "Show controls" },
+        {
+          t: "qa",
+          k: "deckCards",
+          label: "Deck cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "tag", label: "Eyebrow tag", ph: "01 \xB7 Chapter", def: "" },
+            { k: "title", label: "Title", ph: "Card headline", def: "New card" },
+            { k: "src", label: "Photo", ph: "asset:photo", def: "", img: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe the photo", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--dk-card-w", label: "Card width", layout: "inline", r: 1, units: U.size },
+        { t: "unit", c: "--dk-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--dk-bg", label: "Card backdrop", r: 1, layout: "inline" },
+        { t: "color", c: "--dk-ink", label: "Caption colour", r: 1, layout: "inline" },
+        { t: "color", c: "--dk-accent", label: "Tag accent", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  metrics: {
+    label: "Odometer metrics",
+    icon: "metrics",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        stats: [
+          { prefix: "", value: "99.8", suffix: "%", label: "Uptime SLA", detail: "Verified across edge regions." },
+          { prefix: "$", value: "4.2", suffix: "M", label: "Annual savings", detail: "Measured across client teams." },
+          { prefix: "", value: "140", suffix: "+", label: "Studios shipped", detail: "Static HTML with zero lock-in." }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--mt-cols": "3",
+          "--mt-gap": "18px",
+          "--mt-radius": "14px",
+          "--mt-bg": cvar("surface"),
+          "--mt-line": cvar("line"),
+          "--mt-accent": cvar("ink"),
+          "--mt-ink": cvar("ink"),
+          "--mt-muted": cvar("muted")
+        },
+        t: { "--mt-cols": "2" },
+        m: { "--mt-cols": "1" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "unit", c: "--mt-cols", label: "Columns", r: 1, min: 1, max: 6, integer: 1, units: [""] },
+        {
+          t: "qa",
+          k: "stats",
+          label: "Metrics",
+          addLabel: "Add metric",
+          rowFields: [
+            { k: "prefix", label: "Prefix", ph: "$ or ~", def: "" },
+            { k: "value", label: "Number", ph: "120", def: "100" },
+            { k: "suffix", label: "Suffix", ph: "+, %, k, M", def: "" },
+            { k: "label", label: "Label", ph: "Metric title", def: "New metric" },
+            { k: "detail", label: "Caption", ph: "Optional footnote", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--mt-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--mt-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--mt-bg", label: "Card fill", r: 1, layout: "inline" },
+        { t: "color", c: "--mt-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "color", c: "--mt-accent", label: "Number colour", r: 1, layout: "inline" },
+        { t: "color", c: "--mt-ink", label: "Label colour", r: 1, layout: "inline" },
+        { t: "color", c: "--mt-muted", label: "Caption colour", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  spotlight: {
+    label: "Spotlight cards",
+    icon: "spotlight",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        tiles: [
+          { tag: "Zero runtime bloat", title: "Static HTML export", detail: "Every page compiles to clean, self-contained HTML and CSS with no framework runtime.", href: "", linkLabel: "" },
+          { tag: "Design tokens", title: "Shared styles & variants", detail: "Update a single token or component definition and every instance stays in sync.", href: "", linkLabel: "" },
+          { tag: "Edge ready", title: "Instant global publish", detail: "Deploy immutable signed releases directly to Cloud or WordPress in one click.", href: "", linkLabel: "" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--sp-cols": "3",
+          "--sp-gap": "18px",
+          "--sp-radius": "18px",
+          "--sp-bg": "#111318",
+          "--sp-line": "rgba(255,255,255,.1)",
+          "--sp-ink": "#F4F5F7",
+          "--sp-muted": "#9AA3B2",
+          "--sp-accent": "#38BDF8",
+          "--sp-glow": "rgba(56,189,248,.92)",
+          "--sp-sheen": "rgba(56,189,248,.18)"
+        },
+        t: { "--sp-cols": "3" },
+        m: { "--sp-cols": "1" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "unit", c: "--sp-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+        {
+          t: "qa",
+          k: "tiles",
+          label: "Cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "tag", label: "Eyebrow tag", ph: "Feature category", def: "" },
+            { k: "title", label: "Title", ph: "Card headline", def: "New feature" },
+            { k: "detail", label: "Description", ph: "Short explanation", def: "", area: 1 },
+            { k: "href", label: "Link URL (optional)", ph: "https://...", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Learn more", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--sp-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--sp-bg", label: "Card fill", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-ink", label: "Title colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-muted", label: "Body colour", r: 1, layout: "inline" },
+        { t: "color", c: "--sp-accent", label: "Accent & glow", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  terminal: {
+    label: "Command terminal",
+    icon: "terminal",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        title: "pagecraft-cli \u2014 zsh",
+        commands: [
+          {
+            label: "Install",
+            cmd: "npx create-pagecraft@latest studio-site",
+            output: "\u2713 Created studio-site in 1.2s\n\u2713 Installed static compiler & tokens\n\u2192 Ready: cd studio-site && npm run dev",
+            note: "Zero framework runtime \u2014 outputs clean HTML & CSS."
+          },
+          {
+            label: "Build",
+            cmd: "npm run build -- --target=static",
+            output: "\u2713 Compiled 14 pages & 22 assets\n\u2713 Tree-shook widget CSS (8.4 KB gzipped)\n\u2713 Verified 0 broken links",
+            note: "Every page ships only the CSS and scripts it actually uses."
+          },
+          {
+            label: "Deploy",
+            cmd: "npx pagecraft deploy --prod",
+            output: "\u2713 Signed immutable release v2.4.1\n\u2713 Propagated to 38 edge regions in 410ms\n\u2713 Live at https://studio.itspagecraft.com",
+            note: "Instant rollback to any previous signed release."
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tm-radius": "16px",
+          "--tm-bg": "#0D1016",
+          "--tm-line": "rgba(255,255,255,.11)",
+          "--tm-ink": "#E6EBF2",
+          "--tm-muted": "#8B95A5",
+          "--tm-accent": "#34D399"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: "text", k: "title", label: "Window title", ph: "terminal \u2014 zsh" },
+        {
+          t: "qa",
+          k: "commands",
+          label: "Commands",
+          addLabel: "Add command",
+          rowFields: [
+            { k: "label", label: "Tab label", ph: "Install", def: "Step" },
+            { k: "cmd", label: "Command", ph: "npm install ...", def: "npm run dev" },
+            { k: "output", label: "Output lines", ph: "One line per output row", def: "\u2713 Done", area: 1 },
+            { k: "note", label: "Footer note", ph: "Optional hint below terminal", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--tm-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--tm-bg", label: "Surface", r: 1, layout: "inline" },
+        { t: "color", c: "--tm-line", label: "Border line", r: 1, layout: "inline" },
+        { t: "color", c: "--tm-ink", label: "Text colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tm-muted", label: "Output colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tm-accent", label: "Prompt & success", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  tilt: {
+    label: "3D tilt cards",
+    icon: "tilt",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        ratio: "4 / 5",
+        tiltCards: [
+          { tag: "01 \xB7 Craft", title: "Cedar Courtyard", detail: "Hand-milled timber eaves framing the morning light.", src: PH, alt: "Cedar Courtyard" },
+          { tag: "02 \xB7 Material", title: "Basalt Basin", detail: "Thermal stone carved in a single continuous pour.", src: PH, alt: "Basalt Basin" },
+          { tag: "03 \xB7 Atmosphere", title: "Linen Pavilion", detail: "Acoustic plaster walls with quiet garden sightlines.", src: PH, alt: "Linen Pavilion" }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tl-cols": "3",
+          "--tl-gap": "20px",
+          "--tl-radius": "18px",
+          "--tl-bg": "#12151C",
+          "--tl-line": "rgba(255,255,255,.12)"
+        },
+        t: { "--tl-cols": "3" },
+        m: { "--tl-cols": "1" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "unit", c: "--tl-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+        { t: "select", k: "ratio", label: "Card aspect", opts: [["3 / 4", "Portrait 3:4"], ["4 / 5", "Portrait 4:5"], ["1 / 1", "Square 1:1"], ["4 / 3", "Landscape 4:3"]] },
+        {
+          t: "qa",
+          k: "tiltCards",
+          label: "Cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "src", label: "Image", img: 1, def: "" },
+            { k: "tag", label: "Badge tag", ph: "01 \xB7 Craft", def: "" },
+            { k: "title", label: "Title", ph: "Card title", def: "New card" },
+            { k: "detail", label: "Caption", ph: "Short caption", def: "", area: 1 },
+            { k: "alt", label: "Alt text", ph: "Describe image", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--tl-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--tl-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--tl-bg", label: "Card backdrop", r: 1, layout: "inline" },
+        { t: "color", c: "--tl-line", label: "Border line", r: 1, layout: "inline" }
+      ]
+    }
+  },
+  flip: {
+    label: "3D flip cards",
+    icon: "flip",
+    level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({
+      props: {
+        trigger: "click",
+        ratio: "4 / 5",
+        flipCards: [
+          {
+            tag: "Architecture",
+            title: "Thermal Pavilion",
+            frontNote: "Tap to inspect specs",
+            backTitle: "Materials & footprint",
+            detail: "420 m\xB2 of local basalt, untreated hinoki cedar, and radiant floor heating fed by natural spring water.",
+            href: "#pavilion",
+            linkLabel: "View floor plan",
+            src: PH,
+            alt: "Thermal Pavilion"
+          },
+          {
+            tag: "Hospitality",
+            title: "Quiet Rest Rooms",
+            frontNote: "Tap to inspect specs",
+            backTitle: "Designed for stillness",
+            detail: "Eight acoustic suites overlooking the cedar grove with woven flax drapery and zero ambient glare.",
+            href: "#suites",
+            linkLabel: "Explore suites",
+            src: PH,
+            alt: "Quiet Rest Rooms"
+          },
+          {
+            tag: "Botanical",
+            title: "Evening Tisane Bar",
+            frontNote: "Tap to inspect specs",
+            backTitle: "Seasonal infusions",
+            detail: "Wild-harvested mountain herbs steeped to order beside the central river-stone hearth.",
+            href: "#tisane",
+            linkLabel: "See menu",
+            src: PH,
+            alt: "Evening Tisane Bar"
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--fl-cols": "3",
+          "--fl-gap": "18px",
+          "--fl-radius": "18px",
+          "--fl-front-bg": "#13161D",
+          "--fl-back-bg": "#FFFFFF",
+          "--fl-ink": "#18181B",
+          "--fl-muted": "#52525B",
+          "--fl-line": "rgba(0,0,0,.1)",
+          "--fl-accent": "#2563EB"
+        },
+        t: { "--fl-cols": "3" },
+        m: { "--fl-cols": "1" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "unit", c: "--fl-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+        { t: "pick", k: "trigger", label: "Flip on", opts: [["click", "Click / Tap"], ["hover", "Hover"]] },
+        { t: "select", k: "ratio", label: "Card aspect", opts: [["3 / 4", "Portrait 3:4"], ["4 / 5", "Portrait 4:5"], ["1 / 1", "Square 1:1"], ["4 / 3", "Landscape 4:3"]] },
+        {
+          t: "qa",
+          k: "flipCards",
+          label: "Cards",
+          addLabel: "Add card",
+          rowFields: [
+            { k: "src", label: "Front image", img: 1, def: "" },
+            { k: "tag", label: "Eyebrow tag", ph: "Category", def: "" },
+            { k: "title", label: "Front title", ph: "Card headline", def: "New card" },
+            { k: "frontNote", label: "Front hint", ph: "Tap to flip", def: "Tap to flip" },
+            { k: "backTitle", label: "Back heading", ph: "Back face headline", def: "Details" },
+            { k: "detail", label: "Back description", ph: "Full explanation shown after flip", def: "", area: 1 },
+            { k: "href", label: "Link URL (optional)", ph: "https://...", def: "" },
+            { k: "linkLabel", label: "Link label", ph: "Learn more", def: "" },
+            { k: "alt", label: "Alt text", ph: "Describe front image", def: "" }
+          ]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--fl-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--fl-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--fl-front-bg", label: "Front fill", r: 1, layout: "inline" },
+        { t: "color", c: "--fl-back-bg", label: "Back fill", r: 1, layout: "inline" },
+        { t: "color", c: "--fl-ink", label: "Back title", r: 1, layout: "inline" },
+        { t: "color", c: "--fl-muted", label: "Back body", r: 1, layout: "inline" },
+        { t: "color", c: "--fl-accent", label: "Accent", r: 1, layout: "inline" }
+      ]
+    }
+  },
   chapters: {
     label: "Chapter frame",
     icon: "chapters",
@@ -9650,6 +10540,12 @@ var nameOf = (n) => {
   if (n.type === "arches") return `Arches \xB7 ${(n.props.items || []).length} frame${(n.props.items || []).length === 1 ? "" : "s"}`;
   if (n.type === "reel") return `Reel slider \xB7 ${(n.props.reels || []).length} reel${(n.props.reels || []).length === 1 ? "" : "s"}`;
   if (n.type === "grow") return `Grow carousel \xB7 ${(n.props.cards || []).length} card${(n.props.cards || []).length === 1 ? "" : "s"}`;
+  if (n.type === "deck") return `Card deck \xB7 ${(n.props.deckCards || []).length} card${(n.props.deckCards || []).length === 1 ? "" : "s"}`;
+  if (n.type === "metrics") return `Odometer metrics \xB7 ${(n.props.stats || []).length} stat${(n.props.stats || []).length === 1 ? "" : "s"}`;
+  if (n.type === "spotlight") return `Spotlight cards \xB7 ${(n.props.tiles || []).length} card${(n.props.tiles || []).length === 1 ? "" : "s"}`;
+  if (n.type === "terminal") return `Command terminal \xB7 ${(n.props.commands || []).length} tab${(n.props.commands || []).length === 1 ? "" : "s"}`;
+  if (n.type === "tilt") return `3D tilt cards \xB7 ${(n.props.tiltCards || []).length} card${(n.props.tiltCards || []).length === 1 ? "" : "s"}`;
+  if (n.type === "flip") return `3D flip cards \xB7 ${(n.props.flipCards || []).length} card${(n.props.flipCards || []).length === 1 ? "" : "s"}`;
   if (n.type === "chapters") return `Chapters \xB7 ${(n.props.chapters || []).length} scene${(n.props.chapters || []).length === 1 ? "" : "s"}`;
   return d.label;
 };
@@ -12346,6 +13242,12 @@ var TEXT_SLOTS = {
   arches: [["items", "alt", "caption"]],
   reel: [["reels", "title", "alt"]],
   grow: [["cards", "title", "subtitle", "alt"]],
+  deck: [["deckCards", "tag", "title", "alt"]],
+  metrics: [["stats", "prefix", "value", "suffix", "label", "detail"]],
+  spotlight: [["tiles", "tag", "title", "detail", "linkLabel"]],
+  terminal: ["title", ["commands", "label", "cmd", "output", "note"]],
+  tilt: [["tiltCards", "tag", "title", "detail", "alt"]],
+  flip: [["flipCards", "tag", "title", "frontNote", "backTitle", "detail", "linkLabel", "alt"]],
   chapters: [["chapters", "chapterTitle", "chapterSub", "overlayText", "alt"]],
   slotpicker: ["currencySymbol", "submit", "aria", "success", "note", "summaryTitle", "passHeading", "guestHeading", "slotHeading", "contactHeading", "serviceLabel", "guestLabel", "timeLabel", "totalLabel", "perGuestLabel", "fixedLabel", ["passes", "passName", "passMeta", "unitPrice"], ["slots", "time"], ["fields", "label", "ph"]]
 };
@@ -12441,6 +13343,9 @@ var ASSET_SLOTS = {
   arches: [["items", "src"]],
   reel: [["reels", "src", "poster"]],
   grow: [["cards", "src"]],
+  deck: [["deckCards", "src"]],
+  tilt: [["tiltCards", "src"]],
+  flip: [["flipCards", "src"]],
   chapters: [["chapters", "src"]]
 };
 function contentKeys(type) {
@@ -16362,7 +17267,7 @@ var VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 }`;
 function extraWidgetsUsed(lists) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, reel = false, grow = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, reel = false, grow = false, deck = false, metrics = false, spotlight = false, terminal = false, tilt = false, flip = false;
   const rendered = [...usedComponents(lists).map((component) => [component.node]), ...lists];
   rendered.forEach((list) => eachNode(list, (node) => {
     if (node.type === "section" && (node.props.floating || node.bind?.floating)) floating = true;
@@ -16388,9 +17293,15 @@ function extraWidgetsUsed(lists) {
     else if (node.type === "slotpicker") slotpicker = true;
     else if (node.type === "reel") reel = true;
     else if (node.type === "grow") grow = true;
+    else if (node.type === "deck") deck = true;
+    else if (node.type === "metrics") metrics = true;
+    else if (node.type === "spotlight") spotlight = true;
+    else if (node.type === "terminal") terminal = true;
+    else if (node.type === "tilt") tilt = true;
+    else if (node.type === "flip") flip = true;
     else if (node.type === "video" && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, reel, grow };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, reel, grow, deck, metrics, spotlight, terminal, tilt, flip };
 }
 function extraWidgetCss(used) {
   return (used.floating ? `
@@ -16416,7 +17327,13 @@ ${ARCHES_CSS}` : "") + (used.chapters ? `
 ${CHAPTERS_CSS}` : "") + (used.slotpicker ? `
 ${SLOTPICKER_CSS}` : "") + (used.reel ? `
 ${REEL_CSS}` : "") + (used.grow ? `
-${GROW_CSS}` : "") + (used.videoLightbox ? `
+${GROW_CSS}` : "") + (used.deck ? `
+${DECK_CSS}` : "") + (used.metrics ? `
+${METRICS_CSS}` : "") + (used.spotlight ? `
+${SPOTLIGHT_CSS}` : "") + (used.terminal ? `
+${TERMINAL_CSS}` : "") + (used.tilt ? `
+${TILT_CSS}` : "") + (used.flip ? `
+${FLIP_CSS}` : "") + (used.videoLightbox ? `
 ${VIDEO_LIGHTBOX_CSS}` : "");
 }
 function extraWidgetCssFor(lists, _editing) {
@@ -16464,6 +17381,12 @@ ${ANIM_CALM}` : "")),
       slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
       reel: pageExtra.reel && !globalExtra.reel,
       grow: pageExtra.grow && !globalExtra.grow,
+      deck: pageExtra.deck && !globalExtra.deck,
+      metrics: pageExtra.metrics && !globalExtra.metrics,
+      spotlight: pageExtra.spotlight && !globalExtra.spotlight,
+      terminal: pageExtra.terminal && !globalExtra.terminal,
+      tilt: pageExtra.tilt && !globalExtra.tilt,
+      flip: pageExtra.flip && !globalExtra.flip,
       videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox
     }) + (pageMoves && !globalMoves ? `
 ${ANIM_CSS}
@@ -18045,6 +18968,109 @@ function renderNode(n, o) {
       const clones = !o.edit && items.length > 1 ? items.map((it, i) => renderCard(it, i, true)).join("") : "";
       return `<div ${at()} ${cx("pagecraft-grow")} data-grow data-grow-count="${items.length}" data-grow-speed="${esc(speed)}"${o.edit ? " data-grow-edit" : ""} style="--gc-ratio:${esc(ratio)}"><div class="pagecraft-grow-bg" aria-hidden="true"><img class="pagecraft-grow-bg-img" src="${esc(String(items[0]?.src || PH))}" alt=""></div><div class="pagecraft-grow-track">${primary}${clones}</div></div>`;
     }
+    case "deck": {
+      const items = (Array.isArray(p.deckCards) ? p.deckCards : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || "4 / 5";
+      const showArrows = p.arrows !== 0 && items.length > 1;
+      const cards = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const title = String(it.title || "").trim();
+        const tag = String(it.tag || "").trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        const depth = i <= 3 ? String(i) : "back";
+        const cap = title || tag ? `<span class="pagecraft-deck-scrim" aria-hidden="true"></span><figcaption class="pagecraft-deck-cap">` + (tag ? `<span class="pagecraft-deck-tag">${esc(tag)}</span>` : "") + (title ? `<span class="pagecraft-deck-title">${esc(title)}</span>` : "") + `</figcaption>` : "";
+        return `<figure class="pagecraft-deck-card" data-depth="${depth}" aria-hidden="${i === 0 ? "false" : "true"}"><img class="pagecraft-deck-img" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false">` + cap + `</figure>`;
+      }).join("");
+      const prevSvg = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5"/></svg>';
+      const nextSvg = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>';
+      const controls = showArrows ? `<div class="pagecraft-deck-controls"><button type="button" class="pagecraft-deck-btn" data-deck-prev aria-label="Previous card">${prevSvg}</button><span class="pagecraft-deck-count" data-deck-count aria-live="polite">1 / ${items.length}</span><button type="button" class="pagecraft-deck-btn" data-deck-next aria-label="Next card">${nextSvg}</button></div>` : "";
+      return `<div ${at()} ${cx("pagecraft-deck")} data-deck${o.edit ? " data-deck-edit" : ""} tabindex="0" role="region" aria-roledescription="carousel" aria-label="Card deck" style="--dk-ratio:${esc(ratio)}"><div class="pagecraft-deck-stage">${cards}</div>` + controls + `</div>`;
+    }
+    case "metrics": {
+      const items = (Array.isArray(p.stats) ? p.stats : []).filter(Boolean);
+      const digits = "<span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>";
+      const cards = items.map((it) => {
+        const prefix = String(it.prefix || "");
+        const rawVal = String(it.value || "0");
+        const suffix = String(it.suffix || "");
+        const label = String(it.label || "");
+        const detail = String(it.detail || "");
+        const spoken = `${prefix}${rawVal}${suffix}`;
+        let dIdx = 0;
+        const glyphs = Array.from(rawVal).map((ch) => {
+          if (ch >= "0" && ch <= "9") {
+            const dur = (0.82 + dIdx * 0.09).toFixed(2);
+            dIdx++;
+            return `<span class="pagecraft-metric-drum"><span class="pagecraft-metric-reel" style="--mt-d:${ch};--mt-dur:${dur}s">${digits}</span></span>`;
+          }
+          return `<span>${esc(ch)}</span>`;
+        }).join("");
+        return `<div class="pagecraft-metric-card"><div class="pagecraft-metric-val" aria-label="${esc(spoken)}">` + (prefix ? `<span class="pagecraft-metric-affix" aria-hidden="true">${esc(prefix)}</span>` : "") + `<span aria-hidden="true" style="display:inline-flex">${glyphs}</span>` + (suffix ? `<span class="pagecraft-metric-affix" aria-hidden="true">${esc(suffix)}</span>` : "") + `</div>` + (label ? `<div class="pagecraft-metric-label">${esc(label)}</div>` : "") + (detail ? `<p class="pagecraft-metric-detail">${esc(detail)}</p>` : "") + `</div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-metrics")} data-metrics${o.edit ? " data-metrics-edit" : ""}>${cards}</div>`;
+    }
+    case "spotlight": {
+      const items = (Array.isArray(p.tiles) ? p.tiles : []).filter(Boolean);
+      const cards = items.map((it) => {
+        const tag = String(it.tag || "").trim();
+        const title = String(it.title || "").trim();
+        const detail = String(it.detail || "").trim();
+        const href = safeUrl(String(it.href || ""));
+        const linkLabel = String(it.linkLabel || "Learn more").trim();
+        return `<article class="pagecraft-spot-card"><span class="pagecraft-spot-grid" aria-hidden="true"></span>` + (tag ? `<span class="pagecraft-spot-tag">${esc(tag)}</span>` : "") + (title ? `<h3 class="pagecraft-spot-title">${esc(title)}</h3>` : "") + (detail ? `<p class="pagecraft-spot-detail">${esc(detail)}</p>` : "") + (href ? `<a class="pagecraft-spot-link" href="${esc(href)}">${esc(linkLabel)} <span aria-hidden="true">&rarr;</span></a>` : "") + `</article>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-spotlight")} data-spotlight${o.edit ? " data-spotlight-edit" : ""}>${cards}</div>`;
+    }
+    case "terminal": {
+      const title = String(p.title || "terminal \u2014 zsh").trim();
+      const items = (Array.isArray(p.commands) ? p.commands : []).filter(Boolean);
+      const baseId = domId();
+      const tabs = items.length > 1 ? `<div class="pagecraft-term-tabs" role="tablist" aria-label="Terminal commands">` + items.map((it, i) => `<button type="button" class="pagecraft-term-tab" id="${baseId}-tm-t-${i}" role="tab" aria-controls="${baseId}-tm-p-${i}" aria-selected="${i === 0 ? "true" : "false"}" tabindex="${i === 0 ? "0" : "-1"}">${esc(String(it.label || `Step ${i + 1}`))}</button>`).join("") + `</div>` : "";
+      const panels = items.map((it, i) => {
+        const cmd = String(it.cmd || "").trim();
+        const lines = String(it.output || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        const note = String(it.note || "").trim();
+        const outHtml = lines.length ? `<ul class="pagecraft-term-out">${lines.map((line) => `<li${/^[✓✔]/.test(line) ? ' class="pagecraft-term-line-ok"' : ""}>${esc(line)}</li>`).join("")}</ul>` : "";
+        return `<div class="pagecraft-term-panel" id="${baseId}-tm-p-${i}" role="tabpanel" aria-labelledby="${baseId}-tm-t-${i}" data-cmd="${esc(cmd)}"${i === 0 ? "" : " hidden"}><div class="pagecraft-term-body"><p class="pagecraft-term-cmd"><span class="pagecraft-term-prompt" aria-hidden="true">$</span><span class="pagecraft-term-text">${esc(cmd)}</span><span class="pagecraft-term-caret" aria-hidden="true"></span></p>` + outHtml + `</div>` + (note ? `<div class="pagecraft-term-note">${esc(note)}</div>` : "") + `</div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-terminal")} data-terminal${o.edit ? " data-terminal-edit" : ""}><div class="pagecraft-term-bar"><span class="pagecraft-term-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="pagecraft-term-title">${esc(title)}</span><button type="button" class="pagecraft-term-copy" aria-label="Copy command">Copy</button></div>` + tabs + panels + `</div>`;
+    }
+    case "tilt": {
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--tl-ratio:${esc(ratio)}"` : "";
+      const items = (Array.isArray(p.tiltCards) ? p.tiltCards : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const title = String(it.title || "").trim();
+        const tag = String(it.tag || "").trim();
+        const detail = String(it.detail || "").trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        return `<div class="pagecraft-tilt-wrap"><article class="pagecraft-tilt-card"><img class="pagecraft-tilt-img" src="${src}" alt="${alt}"${dim} decoding="async"><span class="pagecraft-tilt-scrim" aria-hidden="true"></span><span class="pagecraft-tilt-glare" aria-hidden="true"></span><div class="pagecraft-tilt-body">` + (tag ? `<span class="pagecraft-tilt-tag">${esc(tag)}</span>` : "") + (title ? `<h3 class="pagecraft-tilt-title">${esc(title)}</h3>` : "") + (detail ? `<p class="pagecraft-tilt-detail">${esc(detail)}</p>` : "") + `</div></article></div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-tilt")}${ratioStyle} data-tilt${o.edit ? " data-tilt-edit" : ""}>${cards}</div>`;
+    }
+    case "flip": {
+      const trigger = p.trigger === "hover" ? "hover" : "click";
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--fl-ratio:${esc(ratio)}"` : "";
+      const items = (Array.isArray(p.flipCards) ? p.flipCards : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const src = String(it.src || "").trim();
+        const tag = String(it.tag || "").trim();
+        const title = String(it.title || "").trim();
+        const frontNote = String(it.frontNote || (trigger === "hover" ? "Hover to flip" : "Tap to flip")).trim();
+        const backTitle = String(it.backTitle || title).trim();
+        const detail = String(it.detail || "").trim();
+        const href = safeUrl(String(it.href || ""));
+        const linkLabel = String(it.linkLabel || "Learn more").trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = it.w && it.h ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : "";
+        return `<div class="pagecraft-flip-card" role="button" tabindex="0" aria-pressed="false" data-flipped="0"><div class="pagecraft-flip-inner"><div class="pagecraft-flip-face pagecraft-flip-front">` + (src ? `<img class="pagecraft-flip-img" src="${esc(src)}" alt="${alt}"${dim} decoding="async"><span class="pagecraft-flip-scrim" aria-hidden="true"></span>` : "") + `<div class="pagecraft-flip-front-body">` + (tag ? `<span class="pagecraft-flip-tag">${esc(tag)}</span>` : "") + (title ? `<h3 class="pagecraft-flip-title">${esc(title)}</h3>` : "") + (frontNote ? `<span class="pagecraft-flip-hint">${esc(frontNote)} <span aria-hidden="true">&#8635;</span></span>` : "") + `</div></div><div class="pagecraft-flip-face pagecraft-flip-back"><div class="pagecraft-flip-back-top">` + (tag ? `<span class="pagecraft-flip-back-tag">${esc(tag)}</span>` : "") + (backTitle ? `<h3 class="pagecraft-flip-back-title">${esc(backTitle)}</h3>` : "") + (detail ? `<p class="pagecraft-flip-detail">${esc(detail)}</p>` : "") + `</div><div class="pagecraft-flip-back-foot">` + (href ? `<a class="pagecraft-flip-link" href="${esc(href)}">${esc(linkLabel)} <span aria-hidden="true">&rarr;</span></a>` : `<span></span>`) + `<span class="pagecraft-flip-return" aria-hidden="true">&#8634; Flip back</span></div></div></div></div>`;
+      }).join("");
+      return `<div ${at()} ${cx("pagecraft-flip")}${ratioStyle} data-flip data-flip-trigger="${trigger}"${o.edit ? " data-flip-edit" : ""}>${cards}</div>`;
+    }
     case "chapters": {
       const ratio = cssRatio(p.frameRatio);
       const ratioStyle = ratio ? ` style="--ch-ratio:${esc(ratio)}"` : "";
@@ -18592,7 +19618,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-reel/.test(body) ? REEL_JS : ""}${/data-grow/.test(body) ? GROW_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${/data-audio/.test(body) ? AUDIO_JS : ""}${/data-countdown/.test(body) ? COUNTDOWN_JS : ""}${/data-filter-group/.test(body) ? FILTER_JS : ""}${/data-compare/.test(body) ? COMPARE_JS : ""}${/data-hotspot/.test(body) ? HOTSPOT_JS : ""}${/data-strips/.test(body) ? STRIPS_JS : ""}${/data-switcher/.test(body) ? SWITCHER_JS : ""}${/data-exhibit/.test(body) ? EXHIBIT_JS : ""}${/data-scrolly/.test(body) ? SCROLLY_JS : ""}${/data-clocks/.test(body) ? CLOCKS_JS : ""}${/data-roster/.test(body) ? ROSTER_JS : ""}${/data-tiers/.test(body) ? TIERS_JS : ""}${/data-qapills/.test(body) ? QAPILLS_JS : ""}${/data-chapters/.test(body) ? CHAPTERS_JS : ""}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ""}${/data-reel/.test(body) ? REEL_JS : ""}${/data-grow/.test(body) ? GROW_JS : ""}${/data-deck/.test(body) ? DECK_JS : ""}${/data-metrics/.test(body) ? METRICS_JS : ""}${/data-spotlight/.test(body) ? SPOTLIGHT_JS : ""}${/data-terminal/.test(body) ? TERMINAL_JS : ""}${/data-tilt/.test(body) ? TILT_JS : ""}${/data-flip/.test(body) ? FLIP_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -19093,6 +20119,8 @@ var __CORE = {
   COUNTDOWN_JS,
   COUNTS,
   CRC_T,
+  DECK_CSS,
+  DECK_JS,
   DEF,
   DEFAULT_COLS,
   DEV_KEY,
@@ -19108,6 +20136,8 @@ var __CORE = {
   FILTER_CSS,
   FILTER_JS,
   FILTER_OPS,
+  FLIP_CSS,
+  FLIP_JS,
   FLOATING_SECTION_CSS,
   FONT_BASE,
   FONT_SUBSETS,
@@ -19129,6 +20159,8 @@ var __CORE = {
   LIGHTBOX_FAILURE_CSS,
   LINK_TARGET,
   MARQUEE_CSS,
+  METRICS_CSS,
+  METRICS_JS,
   MIN_COL,
   MQ,
   N,
@@ -19166,6 +20198,8 @@ var __CORE = {
   SLOTPICKER_CSS,
   SLOTPICKER_JS,
   SLOT_LABEL,
+  SPOTLIGHT_CSS,
+  SPOTLIGHT_JS,
   SRCSET_W,
   STATES,
   STRIPS_CSS,
@@ -19176,9 +20210,13 @@ var __CORE = {
   SWITCHER_JS,
   TABS_JS,
   TEMPLATES,
+  TERMINAL_CSS,
+  TERMINAL_JS,
   TEXT_SLOTS,
   TIERS_CSS,
   TIERS_JS,
+  TILT_CSS,
+  TILT_JS,
   TIMELINE_CSS,
   TRANSITIONS,
   TS_TYPES,
@@ -25613,7 +26651,13 @@ var PC_UI = (() => {
         ["exhibit", "Exhibit index"],
         ["arches", "Fanned arches"],
         ["reel", "Reel slider"],
-        ["grow", "Grow carousel"]
+        ["grow", "Grow carousel"],
+        ["deck", "Card deck"],
+        ["metrics", "Odometer metrics"],
+        ["spotlight", "Spotlight cards"],
+        ["terminal", "Command terminal"],
+        ["tilt", "3D tilt cards"],
+        ["flip", "3D flip cards"]
       ]
     },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
@@ -25633,7 +26677,13 @@ var PC_UI = (() => {
     exhibit: "A project list that previews an image on hover.",
     arches: "Up to five photos in a decorative fan of arches.",
     reel: "A 3D coverflow of portrait reels; with video, only the active reel plays.",
-    grow: "An endless card strip where the hovered card grows and its neighbours part evenly."
+    grow: "An endless card strip where the hovered card grows and its neighbours part evenly.",
+    deck: "A swipeable stack of tilted cards that peel off and cycle to the back.",
+    metrics: "Scroll-triggered KPI counters with rolling odometer digits.",
+    spotlight: "A feature card grid with a cursor-following radial border and surface glow.",
+    terminal: "A tabbed command terminal with live typing output and one-click copy.",
+    tilt: "Visual cards that tilt in 3D with a cursor-tracking specular glare sweep.",
+    flip: "Front-and-back 3D cards that flip on click or hover to reveal details."
   };
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
   var QUICK_ADD_LIMIT = 7;
@@ -25681,6 +26731,12 @@ var PC_UI = (() => {
     arches: "fanned arc collage arch showcase triptych wellness hero",
     reel: "reel slider 3d coverflow carousel portrait video stories",
     grow: "grow carousel hover strip cards endless marquee ambient backdrop",
+    deck: "card deck swipe stack tilted cards peel gallery shuffle",
+    metrics: "odometer metrics stats counter kpi numbers rolling digits",
+    spotlight: "spotlight feature cards bento grid cursor glow hover radial",
+    terminal: "command terminal cli shell console typewriter copy snippet",
+    tilt: "3d tilt cards perspective glare holographic showcase hover",
+    flip: "3d flip cards front back reveal rotate interactive",
     chapters: "cinematic frame chapters story progress showcase",
     slotpicker: "booking appointment reservation session time slot form request",
     list: "collection cms dynamic"
@@ -35845,6 +36901,398 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ]
       }
     },
+    deck: {
+      label: "Card deck",
+      icon: "deck",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          ratio: "4 / 5",
+          arrows: 1,
+          deckCards: [
+            { tag: "01 \xB7 Architecture", title: "Basalt & Cedar", src: "", alt: "Card 1" },
+            { tag: "02 \xB7 Daylight", title: "Clerestory Light", src: "", alt: "Card 2" },
+            { tag: "03 \xB7 Material", title: "Raw Flax Linen", src: "", alt: "Card 3" },
+            { tag: "04 \xB7 Ritual", title: "Thermal Plunge", src: "", alt: "Card 4" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--dk-card-w": "320px",
+            "--dk-radius": "18px",
+            "--dk-bg": "#181A20",
+            "--dk-ink": "#FFFFFF",
+            "--dk-accent": cvar("brand"),
+            "--dk-btn-bg": cvar("surface"),
+            "--dk-btn-ink": cvar("ink"),
+            "--dk-line": cvar("line")
+          },
+          t: {},
+          m: { "--dk-card-w": "280px" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "select", k: "ratio", label: "Card ratio", opts: [["4 / 5", "4:5 portrait"], ["3 / 4", "3:4 portrait"], ["1 / 1", "Square"], ["4 / 3", "4:3 landscape"]] },
+          { t: "toggle", k: "arrows", label: "Show controls" },
+          {
+            t: "qa",
+            k: "deckCards",
+            label: "Deck cards",
+            addLabel: "Add card",
+            rowFields: [
+              { k: "tag", label: "Eyebrow tag", ph: "01 \xB7 Chapter", def: "" },
+              { k: "title", label: "Title", ph: "Card headline", def: "New card" },
+              { k: "src", label: "Photo", ph: "asset:photo", def: "", img: 1 },
+              { k: "alt", label: "Alt text", ph: "Describe the photo", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--dk-card-w", label: "Card width", layout: "inline", r: 1, units: U.size },
+          { t: "unit", c: "--dk-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--dk-bg", label: "Card backdrop", r: 1, layout: "inline" },
+          { t: "color", c: "--dk-ink", label: "Caption colour", r: 1, layout: "inline" },
+          { t: "color", c: "--dk-accent", label: "Tag accent", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    metrics: {
+      label: "Odometer metrics",
+      icon: "metrics",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          stats: [
+            { prefix: "", value: "99.8", suffix: "%", label: "Uptime SLA", detail: "Verified across edge regions." },
+            { prefix: "$", value: "4.2", suffix: "M", label: "Annual savings", detail: "Measured across client teams." },
+            { prefix: "", value: "140", suffix: "+", label: "Studios shipped", detail: "Static HTML with zero lock-in." }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--mt-cols": "3",
+            "--mt-gap": "18px",
+            "--mt-radius": "14px",
+            "--mt-bg": cvar("surface"),
+            "--mt-line": cvar("line"),
+            "--mt-accent": cvar("ink"),
+            "--mt-ink": cvar("ink"),
+            "--mt-muted": cvar("muted")
+          },
+          t: { "--mt-cols": "2" },
+          m: { "--mt-cols": "1" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "unit", c: "--mt-cols", label: "Columns", r: 1, min: 1, max: 6, integer: 1, units: [""] },
+          {
+            t: "qa",
+            k: "stats",
+            label: "Metrics",
+            addLabel: "Add metric",
+            rowFields: [
+              { k: "prefix", label: "Prefix", ph: "$ or ~", def: "" },
+              { k: "value", label: "Number", ph: "120", def: "100" },
+              { k: "suffix", label: "Suffix", ph: "+, %, k, M", def: "" },
+              { k: "label", label: "Label", ph: "Metric title", def: "New metric" },
+              { k: "detail", label: "Caption", ph: "Optional footnote", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--mt-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+          { t: "unit", c: "--mt-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--mt-bg", label: "Card fill", r: 1, layout: "inline" },
+          { t: "color", c: "--mt-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "color", c: "--mt-accent", label: "Number colour", r: 1, layout: "inline" },
+          { t: "color", c: "--mt-ink", label: "Label colour", r: 1, layout: "inline" },
+          { t: "color", c: "--mt-muted", label: "Caption colour", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    spotlight: {
+      label: "Spotlight cards",
+      icon: "spotlight",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          tiles: [
+            { tag: "Zero runtime bloat", title: "Static HTML export", detail: "Every page compiles to clean, self-contained HTML and CSS with no framework runtime.", href: "", linkLabel: "" },
+            { tag: "Design tokens", title: "Shared styles & variants", detail: "Update a single token or component definition and every instance stays in sync.", href: "", linkLabel: "" },
+            { tag: "Edge ready", title: "Instant global publish", detail: "Deploy immutable signed releases directly to Cloud or WordPress in one click.", href: "", linkLabel: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--sp-cols": "3",
+            "--sp-gap": "18px",
+            "--sp-radius": "18px",
+            "--sp-bg": "#111318",
+            "--sp-line": "rgba(255,255,255,.1)",
+            "--sp-ink": "#F4F5F7",
+            "--sp-muted": "#9AA3B2",
+            "--sp-accent": "#38BDF8",
+            "--sp-glow": "rgba(56,189,248,.92)",
+            "--sp-sheen": "rgba(56,189,248,.18)"
+          },
+          t: { "--sp-cols": "3" },
+          m: { "--sp-cols": "1" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "unit", c: "--sp-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+          {
+            t: "qa",
+            k: "tiles",
+            label: "Cards",
+            addLabel: "Add card",
+            rowFields: [
+              { k: "tag", label: "Eyebrow tag", ph: "Feature category", def: "" },
+              { k: "title", label: "Title", ph: "Card headline", def: "New feature" },
+              { k: "detail", label: "Description", ph: "Short explanation", def: "", area: 1 },
+              { k: "href", label: "Link URL (optional)", ph: "https://...", def: "" },
+              { k: "linkLabel", label: "Link label", ph: "Learn more", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--sp-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+          { t: "unit", c: "--sp-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--sp-bg", label: "Card fill", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-ink", label: "Title colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-muted", label: "Body colour", r: 1, layout: "inline" },
+          { t: "color", c: "--sp-accent", label: "Accent & glow", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    terminal: {
+      label: "Command terminal",
+      icon: "terminal",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          title: "pagecraft-cli \u2014 zsh",
+          commands: [
+            {
+              label: "Install",
+              cmd: "npx create-pagecraft@latest studio-site",
+              output: "\u2713 Created studio-site in 1.2s\n\u2713 Installed static compiler & tokens\n\u2192 Ready: cd studio-site && npm run dev",
+              note: "Zero framework runtime \u2014 outputs clean HTML & CSS."
+            },
+            {
+              label: "Build",
+              cmd: "npm run build -- --target=static",
+              output: "\u2713 Compiled 14 pages & 22 assets\n\u2713 Tree-shook widget CSS (8.4 KB gzipped)\n\u2713 Verified 0 broken links",
+              note: "Every page ships only the CSS and scripts it actually uses."
+            },
+            {
+              label: "Deploy",
+              cmd: "npx pagecraft deploy --prod",
+              output: "\u2713 Signed immutable release v2.4.1\n\u2713 Propagated to 38 edge regions in 410ms\n\u2713 Live at https://studio.itspagecraft.com",
+              note: "Instant rollback to any previous signed release."
+            }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tm-radius": "16px",
+            "--tm-bg": "#0D1016",
+            "--tm-line": "rgba(255,255,255,.11)",
+            "--tm-ink": "#E6EBF2",
+            "--tm-muted": "#8B95A5",
+            "--tm-accent": "#34D399"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "title", label: "Window title", ph: "terminal \u2014 zsh" },
+          {
+            t: "qa",
+            k: "commands",
+            label: "Commands",
+            addLabel: "Add command",
+            rowFields: [
+              { k: "label", label: "Tab label", ph: "Install", def: "Step" },
+              { k: "cmd", label: "Command", ph: "npm install ...", def: "npm run dev" },
+              { k: "output", label: "Output lines", ph: "One line per output row", def: "\u2713 Done", area: 1 },
+              { k: "note", label: "Footer note", ph: "Optional hint below terminal", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--tm-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--tm-bg", label: "Surface", r: 1, layout: "inline" },
+          { t: "color", c: "--tm-line", label: "Border line", r: 1, layout: "inline" },
+          { t: "color", c: "--tm-ink", label: "Text colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tm-muted", label: "Output colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tm-accent", label: "Prompt & success", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    tilt: {
+      label: "3D tilt cards",
+      icon: "tilt",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          ratio: "4 / 5",
+          tiltCards: [
+            { tag: "01 \xB7 Craft", title: "Cedar Courtyard", detail: "Hand-milled timber eaves framing the morning light.", src: PH, alt: "Cedar Courtyard" },
+            { tag: "02 \xB7 Material", title: "Basalt Basin", detail: "Thermal stone carved in a single continuous pour.", src: PH, alt: "Basalt Basin" },
+            { tag: "03 \xB7 Atmosphere", title: "Linen Pavilion", detail: "Acoustic plaster walls with quiet garden sightlines.", src: PH, alt: "Linen Pavilion" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tl-cols": "3",
+            "--tl-gap": "20px",
+            "--tl-radius": "18px",
+            "--tl-bg": "#12151C",
+            "--tl-line": "rgba(255,255,255,.12)"
+          },
+          t: { "--tl-cols": "3" },
+          m: { "--tl-cols": "1" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "unit", c: "--tl-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+          { t: "select", k: "ratio", label: "Card aspect", opts: [["3 / 4", "Portrait 3:4"], ["4 / 5", "Portrait 4:5"], ["1 / 1", "Square 1:1"], ["4 / 3", "Landscape 4:3"]] },
+          {
+            t: "qa",
+            k: "tiltCards",
+            label: "Cards",
+            addLabel: "Add card",
+            rowFields: [
+              { k: "src", label: "Image", img: 1, def: "" },
+              { k: "tag", label: "Badge tag", ph: "01 \xB7 Craft", def: "" },
+              { k: "title", label: "Title", ph: "Card title", def: "New card" },
+              { k: "detail", label: "Caption", ph: "Short caption", def: "", area: 1 },
+              { k: "alt", label: "Alt text", ph: "Describe image", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--tl-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+          { t: "unit", c: "--tl-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--tl-bg", label: "Card backdrop", r: 1, layout: "inline" },
+          { t: "color", c: "--tl-line", label: "Border line", r: 1, layout: "inline" }
+        ]
+      }
+    },
+    flip: {
+      label: "3D flip cards",
+      icon: "flip",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          trigger: "click",
+          ratio: "4 / 5",
+          flipCards: [
+            {
+              tag: "Architecture",
+              title: "Thermal Pavilion",
+              frontNote: "Tap to inspect specs",
+              backTitle: "Materials & footprint",
+              detail: "420 m\xB2 of local basalt, untreated hinoki cedar, and radiant floor heating fed by natural spring water.",
+              href: "#pavilion",
+              linkLabel: "View floor plan",
+              src: PH,
+              alt: "Thermal Pavilion"
+            },
+            {
+              tag: "Hospitality",
+              title: "Quiet Rest Rooms",
+              frontNote: "Tap to inspect specs",
+              backTitle: "Designed for stillness",
+              detail: "Eight acoustic suites overlooking the cedar grove with woven flax drapery and zero ambient glare.",
+              href: "#suites",
+              linkLabel: "Explore suites",
+              src: PH,
+              alt: "Quiet Rest Rooms"
+            },
+            {
+              tag: "Botanical",
+              title: "Evening Tisane Bar",
+              frontNote: "Tap to inspect specs",
+              backTitle: "Seasonal infusions",
+              detail: "Wild-harvested mountain herbs steeped to order beside the central river-stone hearth.",
+              href: "#tisane",
+              linkLabel: "See menu",
+              src: PH,
+              alt: "Evening Tisane Bar"
+            }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--fl-cols": "3",
+            "--fl-gap": "18px",
+            "--fl-radius": "18px",
+            "--fl-front-bg": "#13161D",
+            "--fl-back-bg": "#FFFFFF",
+            "--fl-ink": "#18181B",
+            "--fl-muted": "#52525B",
+            "--fl-line": "rgba(0,0,0,.1)",
+            "--fl-accent": "#2563EB"
+          },
+          t: { "--fl-cols": "3" },
+          m: { "--fl-cols": "1" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "unit", c: "--fl-cols", label: "Columns", r: 1, min: 1, max: 4, integer: 1, units: [""] },
+          { t: "pick", k: "trigger", label: "Flip on", opts: [["click", "Click / Tap"], ["hover", "Hover"]] },
+          { t: "select", k: "ratio", label: "Card aspect", opts: [["3 / 4", "Portrait 3:4"], ["4 / 5", "Portrait 4:5"], ["1 / 1", "Square 1:1"], ["4 / 3", "Landscape 4:3"]] },
+          {
+            t: "qa",
+            k: "flipCards",
+            label: "Cards",
+            addLabel: "Add card",
+            rowFields: [
+              { k: "src", label: "Front image", img: 1, def: "" },
+              { k: "tag", label: "Eyebrow tag", ph: "Category", def: "" },
+              { k: "title", label: "Front title", ph: "Card headline", def: "New card" },
+              { k: "frontNote", label: "Front hint", ph: "Tap to flip", def: "Tap to flip" },
+              { k: "backTitle", label: "Back heading", ph: "Back face headline", def: "Details" },
+              { k: "detail", label: "Back description", ph: "Full explanation shown after flip", def: "", area: 1 },
+              { k: "href", label: "Link URL (optional)", ph: "https://...", def: "" },
+              { k: "linkLabel", label: "Link label", ph: "Learn more", def: "" },
+              { k: "alt", label: "Alt text", ph: "Describe front image", def: "" }
+            ]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--fl-gap", label: "Card gap", layout: "inline", r: 1, units: U.space },
+          { t: "unit", c: "--fl-radius", label: "Corner radius", layout: "inline", r: 1, units: U.radius },
+          { t: "color", c: "--fl-front-bg", label: "Front fill", r: 1, layout: "inline" },
+          { t: "color", c: "--fl-back-bg", label: "Back fill", r: 1, layout: "inline" },
+          { t: "color", c: "--fl-ink", label: "Back title", r: 1, layout: "inline" },
+          { t: "color", c: "--fl-muted", label: "Back body", r: 1, layout: "inline" },
+          { t: "color", c: "--fl-accent", label: "Accent", r: 1, layout: "inline" }
+        ]
+      }
+    },
     chapters: {
       label: "Chapter frame",
       icon: "chapters",
@@ -39795,6 +41243,12 @@ function runPreviewRuntime(html, editing = false) {
     [/data-slotpicker/.test(html), SLOTPICKER_JS],
     [/data-reel/.test(html), REEL_JS],
     [/data-grow/.test(html), GROW_JS],
+    [/data-deck/.test(html), DECK_JS],
+    [/data-metrics/.test(html), METRICS_JS],
+    [/data-spotlight/.test(html), SPOTLIGHT_JS],
+    [/data-terminal/.test(html), TERMINAL_JS],
+    [/data-tilt/.test(html), TILT_JS],
+    [/data-flip/.test(html), FLIP_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {

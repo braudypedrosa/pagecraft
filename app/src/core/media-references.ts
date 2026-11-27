@@ -56,6 +56,12 @@ export function mediaReferences(document: Doc): MediaReference[] {
     });
     if (node.type === 'grow' && Array.isArray(props.cards)) props.cards.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'cards', j, 'src'], where));
+    if (node.type === 'deck' && Array.isArray(props.deckCards)) props.deckCards.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'deckCards', j, 'src'], where));
+    if (node.type === 'tilt' && Array.isArray(props.tiltCards)) props.tiltCards.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'tiltCards', j, 'src'], where));
+    if (node.type === 'flip' && Array.isArray(props.flipCards)) props.flipCards.forEach((item: any, j: number) =>
+      scan(item?.src, [...base, 'props', 'flipCards', j, 'src'], where));
     if (node.type === 'chapters' && Array.isArray(props.chapters)) props.chapters.forEach((item: any, j: number) =>
       scan(item?.src, [...base, 'props', 'chapters', j, 'src'], where));
     const definition = document.meta.components?.find(def => def.id === node.use);

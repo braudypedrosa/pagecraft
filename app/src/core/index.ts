@@ -37,7 +37,9 @@ import {
   PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS,
   EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS,
   ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS,
-  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS
+  ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS,
+  DECK_CSS, DECK_JS, METRICS_CSS, METRICS_JS, SPOTLIGHT_CSS, SPOTLIGHT_JS,
+  TERMINAL_CSS, TERMINAL_JS, TILT_CSS, TILT_JS, FLIP_CSS, FLIP_JS
 } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
@@ -2197,6 +2199,317 @@ const DEF: Record<string, WidgetDef> = {
     }
   },
 
+  deck: {
+    label: 'Card deck', icon: 'deck', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '4 / 5',
+        arrows: 1,
+        deckCards: [
+          { tag: '01 · Architecture', title: 'Basalt & Cedar', src: '', alt: 'Card 1' },
+          { tag: '02 · Daylight', title: 'Clerestory Light', src: '', alt: 'Card 2' },
+          { tag: '03 · Material', title: 'Raw Flax Linen', src: '', alt: 'Card 3' },
+          { tag: '04 · Ritual', title: 'Thermal Plunge', src: '', alt: 'Card 4' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--dk-card-w': '320px', '--dk-radius': '18px',
+          '--dk-bg': '#181A20', '--dk-ink': '#FFFFFF', '--dk-accent': cvar('brand'),
+          '--dk-btn-bg': cvar('surface'), '--dk-btn-ink': cvar('ink'), '--dk-line': cvar('line')
+        },
+        t: {}, m: { '--dk-card-w': '280px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'select', k: 'ratio', label: 'Card ratio', opts: [['4 / 5', '4:5 portrait'], ['3 / 4', '3:4 portrait'], ['1 / 1', 'Square'], ['4 / 3', '4:3 landscape']] },
+        { t: 'toggle', k: 'arrows', label: 'Show controls' },
+        {
+          t: 'qa', k: 'deckCards', label: 'Deck cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'tag', label: 'Eyebrow tag', ph: '01 · Chapter', def: '' },
+            { k: 'title', label: 'Title', ph: 'Card headline', def: 'New card' },
+            { k: 'src', label: 'Photo', ph: 'asset:photo', def: '', img: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe the photo', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--dk-card-w', label: 'Card width', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--dk-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--dk-bg', label: 'Card backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--dk-ink', label: 'Caption colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--dk-accent', label: 'Tag accent', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  metrics: {
+    label: 'Odometer metrics', icon: 'metrics', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        stats: [
+          { prefix: '', value: '99.8', suffix: '%', label: 'Uptime SLA', detail: 'Verified across edge regions.' },
+          { prefix: '$', value: '4.2', suffix: 'M', label: 'Annual savings', detail: 'Measured across client teams.' },
+          { prefix: '', value: '140', suffix: '+', label: 'Studios shipped', detail: 'Static HTML with zero lock-in.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--mt-cols': '3', '--mt-gap': '18px', '--mt-radius': '14px',
+          '--mt-bg': cvar('surface'), '--mt-line': cvar('line'),
+          '--mt-accent': cvar('ink'), '--mt-ink': cvar('ink'), '--mt-muted': cvar('muted')
+        },
+        t: { '--mt-cols': '2' }, m: { '--mt-cols': '1' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', c: '--mt-cols', label: 'Columns', r: 1, min: 1, max: 6, integer: 1, units: [''] },
+        {
+          t: 'qa', k: 'stats', label: 'Metrics', addLabel: 'Add metric',
+          rowFields: [
+            { k: 'prefix', label: 'Prefix', ph: '$ or ~', def: '' },
+            { k: 'value', label: 'Number', ph: '120', def: '100' },
+            { k: 'suffix', label: 'Suffix', ph: '+, %, k, M', def: '' },
+            { k: 'label', label: 'Label', ph: 'Metric title', def: 'New metric' },
+            { k: 'detail', label: 'Caption', ph: 'Optional footnote', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--mt-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--mt-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--mt-bg', label: 'Card fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--mt-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'color', c: '--mt-accent', label: 'Number colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--mt-ink', label: 'Label colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--mt-muted', label: 'Caption colour', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  spotlight: {
+    label: 'Spotlight cards', icon: 'spotlight', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        tiles: [
+          { tag: 'Zero runtime bloat', title: 'Static HTML export', detail: 'Every page compiles to clean, self-contained HTML and CSS with no framework runtime.', href: '', linkLabel: '' },
+          { tag: 'Design tokens', title: 'Shared styles & variants', detail: 'Update a single token or component definition and every instance stays in sync.', href: '', linkLabel: '' },
+          { tag: 'Edge ready', title: 'Instant global publish', detail: 'Deploy immutable signed releases directly to Cloud or WordPress in one click.', href: '', linkLabel: '' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--sp-cols': '3', '--sp-gap': '18px', '--sp-radius': '18px',
+          '--sp-bg': '#111318', '--sp-line': 'rgba(255,255,255,.1)',
+          '--sp-ink': '#F4F5F7', '--sp-muted': '#9AA3B2',
+          '--sp-accent': '#38BDF8', '--sp-glow': 'rgba(56,189,248,.92)', '--sp-sheen': 'rgba(56,189,248,.18)'
+        },
+        t: { '--sp-cols': '3' }, m: { '--sp-cols': '1' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', c: '--sp-cols', label: 'Columns', r: 1, min: 1, max: 4, integer: 1, units: [''] },
+        {
+          t: 'qa', k: 'tiles', label: 'Cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'tag', label: 'Eyebrow tag', ph: 'Feature category', def: '' },
+            { k: 'title', label: 'Title', ph: 'Card headline', def: 'New feature' },
+            { k: 'detail', label: 'Description', ph: 'Short explanation', def: '', area: 1 },
+            { k: 'href', label: 'Link URL (optional)', ph: 'https://...', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Learn more', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--sp-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--sp-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--sp-bg', label: 'Card fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-ink', label: 'Title colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-muted', label: 'Body colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--sp-accent', label: 'Accent & glow', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  terminal: {
+    label: 'Command terminal', icon: 'terminal', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        title: 'pagecraft-cli — zsh',
+        commands: [
+          {
+            label: 'Install',
+            cmd: 'npx create-pagecraft@latest studio-site',
+            output: '✓ Created studio-site in 1.2s\n✓ Installed static compiler & tokens\n→ Ready: cd studio-site && npm run dev',
+            note: 'Zero framework runtime — outputs clean HTML & CSS.'
+          },
+          {
+            label: 'Build',
+            cmd: 'npm run build -- --target=static',
+            output: '✓ Compiled 14 pages & 22 assets\n✓ Tree-shook widget CSS (8.4 KB gzipped)\n✓ Verified 0 broken links',
+            note: 'Every page ships only the CSS and scripts it actually uses.'
+          },
+          {
+            label: 'Deploy',
+            cmd: 'npx pagecraft deploy --prod',
+            output: '✓ Signed immutable release v2.4.1\n✓ Propagated to 38 edge regions in 410ms\n✓ Live at https://studio.itspagecraft.com',
+            note: 'Instant rollback to any previous signed release.'
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tm-radius': '16px', '--tm-bg': '#0D1016',
+          '--tm-line': 'rgba(255,255,255,.11)', '--tm-ink': '#E6EBF2',
+          '--tm-muted': '#8B95A5', '--tm-accent': '#34D399'
+        },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'title', label: 'Window title', ph: 'terminal — zsh' },
+        {
+          t: 'qa', k: 'commands', label: 'Commands', addLabel: 'Add command',
+          rowFields: [
+            { k: 'label', label: 'Tab label', ph: 'Install', def: 'Step' },
+            { k: 'cmd', label: 'Command', ph: 'npm install ...', def: 'npm run dev' },
+            { k: 'output', label: 'Output lines', ph: 'One line per output row', def: '✓ Done', area: 1 },
+            { k: 'note', label: 'Footer note', ph: 'Optional hint below terminal', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--tm-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--tm-bg', label: 'Surface', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tm-line', label: 'Border line', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tm-ink', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tm-muted', label: 'Output colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tm-accent', label: 'Prompt & success', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  tilt: {
+    label: '3D tilt cards', icon: 'tilt', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        ratio: '4 / 5',
+        tiltCards: [
+          { tag: '01 · Craft', title: 'Cedar Courtyard', detail: 'Hand-milled timber eaves framing the morning light.', src: PH, alt: 'Cedar Courtyard' },
+          { tag: '02 · Material', title: 'Basalt Basin', detail: 'Thermal stone carved in a single continuous pour.', src: PH, alt: 'Basalt Basin' },
+          { tag: '03 · Atmosphere', title: 'Linen Pavilion', detail: 'Acoustic plaster walls with quiet garden sightlines.', src: PH, alt: 'Linen Pavilion' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tl-cols': '3', '--tl-gap': '20px', '--tl-radius': '18px',
+          '--tl-bg': '#12151C', '--tl-line': 'rgba(255,255,255,.12)'
+        },
+        t: { '--tl-cols': '3' }, m: { '--tl-cols': '1' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', c: '--tl-cols', label: 'Columns', r: 1, min: 1, max: 4, integer: 1, units: [''] },
+        { t: 'select', k: 'ratio', label: 'Card aspect', opts: [['3 / 4', 'Portrait 3:4'], ['4 / 5', 'Portrait 4:5'], ['1 / 1', 'Square 1:1'], ['4 / 3', 'Landscape 4:3']] },
+        {
+          t: 'qa', k: 'tiltCards', label: 'Cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'src', label: 'Image', img: 1, def: '' },
+            { k: 'tag', label: 'Badge tag', ph: '01 · Craft', def: '' },
+            { k: 'title', label: 'Title', ph: 'Card title', def: 'New card' },
+            { k: 'detail', label: 'Caption', ph: 'Short caption', def: '', area: 1 },
+            { k: 'alt', label: 'Alt text', ph: 'Describe image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--tl-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--tl-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--tl-bg', label: 'Card backdrop', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tl-line', label: 'Border line', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
+  flip: {
+    label: '3D flip cards', icon: 'flip', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        trigger: 'click',
+        ratio: '4 / 5',
+        flipCards: [
+          {
+            tag: 'Architecture', title: 'Thermal Pavilion', frontNote: 'Tap to inspect specs',
+            backTitle: 'Materials & footprint', detail: '420 m² of local basalt, untreated hinoki cedar, and radiant floor heating fed by natural spring water.',
+            href: '#pavilion', linkLabel: 'View floor plan', src: PH, alt: 'Thermal Pavilion'
+          },
+          {
+            tag: 'Hospitality', title: 'Quiet Rest Rooms', frontNote: 'Tap to inspect specs',
+            backTitle: 'Designed for stillness', detail: 'Eight acoustic suites overlooking the cedar grove with woven flax drapery and zero ambient glare.',
+            href: '#suites', linkLabel: 'Explore suites', src: PH, alt: 'Quiet Rest Rooms'
+          },
+          {
+            tag: 'Botanical', title: 'Evening Tisane Bar', frontNote: 'Tap to inspect specs',
+            backTitle: 'Seasonal infusions', detail: 'Wild-harvested mountain herbs steeped to order beside the central river-stone hearth.',
+            href: '#tisane', linkLabel: 'See menu', src: PH, alt: 'Evening Tisane Bar'
+          }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--fl-cols': '3', '--fl-gap': '18px', '--fl-radius': '18px',
+          '--fl-front-bg': '#13161D', '--fl-back-bg': '#FFFFFF',
+          '--fl-ink': '#18181B', '--fl-muted': '#52525B',
+          '--fl-line': 'rgba(0,0,0,.1)', '--fl-accent': '#2563EB'
+        },
+        t: { '--fl-cols': '3' }, m: { '--fl-cols': '1' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'unit', c: '--fl-cols', label: 'Columns', r: 1, min: 1, max: 4, integer: 1, units: [''] },
+        { t: 'pick', k: 'trigger', label: 'Flip on', opts: [['click', 'Click / Tap'], ['hover', 'Hover']] },
+        { t: 'select', k: 'ratio', label: 'Card aspect', opts: [['3 / 4', 'Portrait 3:4'], ['4 / 5', 'Portrait 4:5'], ['1 / 1', 'Square 1:1'], ['4 / 3', 'Landscape 4:3']] },
+        {
+          t: 'qa', k: 'flipCards', label: 'Cards', addLabel: 'Add card',
+          rowFields: [
+            { k: 'src', label: 'Front image', img: 1, def: '' },
+            { k: 'tag', label: 'Eyebrow tag', ph: 'Category', def: '' },
+            { k: 'title', label: 'Front title', ph: 'Card headline', def: 'New card' },
+            { k: 'frontNote', label: 'Front hint', ph: 'Tap to flip', def: 'Tap to flip' },
+            { k: 'backTitle', label: 'Back heading', ph: 'Back face headline', def: 'Details' },
+            { k: 'detail', label: 'Back description', ph: 'Full explanation shown after flip', def: '', area: 1 },
+            { k: 'href', label: 'Link URL (optional)', ph: 'https://...', def: '' },
+            { k: 'linkLabel', label: 'Link label', ph: 'Learn more', def: '' },
+            { k: 'alt', label: 'Alt text', ph: 'Describe front image', def: '' }
+          ]
+        }
+      ],
+      style: [
+        { t: 'unit', c: '--fl-gap', label: 'Card gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--fl-radius', label: 'Corner radius', layout: 'inline', r: 1, units: U.radius },
+        { t: 'color', c: '--fl-front-bg', label: 'Front fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fl-back-bg', label: 'Back fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fl-ink', label: 'Back title', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fl-muted', label: 'Back body', r: 1, layout: 'inline' },
+        { t: 'color', c: '--fl-accent', label: 'Accent', r: 1, layout: 'inline' }
+      ]
+    }
+  },
+
   chapters: {
     label: 'Chapter frame', icon: 'chapters', level: 4,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
@@ -2948,6 +3261,12 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'arches') return `Arches · ${((n.props.items as any[]) || []).length} frame${((n.props.items as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'reel') return `Reel slider · ${((n.props.reels as any[]) || []).length} reel${((n.props.reels as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'grow') return `Grow carousel · ${((n.props.cards as any[]) || []).length} card${((n.props.cards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'deck') return `Card deck · ${((n.props.deckCards as any[]) || []).length} card${((n.props.deckCards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'metrics') return `Odometer metrics · ${((n.props.stats as any[]) || []).length} stat${((n.props.stats as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'spotlight') return `Spotlight cards · ${((n.props.tiles as any[]) || []).length} card${((n.props.tiles as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'terminal') return `Command terminal · ${((n.props.commands as any[]) || []).length} tab${((n.props.commands as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'tilt') return `3D tilt cards · ${((n.props.tiltCards as any[]) || []).length} card${((n.props.tiltCards as any[]) || []).length === 1 ? '' : 's'}`;
+  if (n.type === 'flip') return `3D flip cards · ${((n.props.flipCards as any[]) || []).length} card${((n.props.flipCards as any[]) || []).length === 1 ? '' : 's'}`;
   if (n.type === 'chapters') return `Chapters · ${((n.props.chapters as any[]) || []).length} scene${((n.props.chapters as any[]) || []).length === 1 ? '' : 's'}`;
   return d.label;
 };
@@ -6184,6 +6503,12 @@ const TEXT_SLOTS = {
   arches: [['items', 'alt', 'caption']],
   reel: [['reels', 'title', 'alt']],
   grow: [['cards', 'title', 'subtitle', 'alt']],
+  deck: [['deckCards', 'tag', 'title', 'alt']],
+  metrics: [['stats', 'prefix', 'value', 'suffix', 'label', 'detail']],
+  spotlight: [['tiles', 'tag', 'title', 'detail', 'linkLabel']],
+  terminal: ['title', ['commands', 'label', 'cmd', 'output', 'note']],
+  tilt: [['tiltCards', 'tag', 'title', 'detail', 'alt']],
+  flip: [['flipCards', 'tag', 'title', 'frontNote', 'backTitle', 'detail', 'linkLabel', 'alt']],
   chapters: [['chapters', 'chapterTitle', 'chapterSub', 'overlayText', 'alt']],
   slotpicker: ['currencySymbol', 'submit', 'aria', 'success', 'note', 'summaryTitle', 'passHeading', 'guestHeading', 'slotHeading', 'contactHeading', 'serviceLabel', 'guestLabel', 'timeLabel', 'totalLabel', 'perGuestLabel', 'fixedLabel', ['passes', 'passName', 'passMeta', 'unitPrice'], ['slots', 'time'], ['fields', 'label', 'ph']],
 };
@@ -6241,6 +6566,9 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   arches: [['items', 'src']],
   reel: [['reels', 'src', 'poster']],
   grow: [['cards', 'src']],
+  deck: [['deckCards', 'src']],
+  tilt: [['tiltCards', 'src']],
+  flip: [['flipCards', 'src']],
   chapters: [['chapters', 'src']]
 };
 
@@ -10661,7 +10989,7 @@ const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
 
 function extraWidgetsUsed(lists: PcNode[][]) {
   let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
-  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, reel = false, grow = false;
+  let floating = false, compare = false, timeline = false, progress = false, hotspot = false, strips = false, switcher = false, exhibit = false, scrolly = false, clocks = false, roster = false, tiers = false, qapills = false, dockbar = false, arches = false, chapters = false, slotpicker = false, reel = false, grow = false, deck = false, metrics = false, spotlight = false, terminal = false, tilt = false, flip = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'section' && (node.props.floating || node.bind?.floating)) floating = true;
@@ -10687,14 +11015,20 @@ function extraWidgetsUsed(lists: PcNode[][]) {
     else if (node.type === 'slotpicker') slotpicker = true;
     else if (node.type === 'reel') reel = true;
     else if (node.type === 'grow') grow = true;
+    else if (node.type === 'deck') deck = true;
+    else if (node.type === 'metrics') metrics = true;
+    else if (node.type === 'spotlight') spotlight = true;
+    else if (node.type === 'terminal') terminal = true;
+    else if (node.type === 'tilt') tilt = true;
+    else if (node.type === 'flip') flip = true;
     else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, reel, grow };
+  return { audio, countdown, marquee, filter, videoLightbox, floating, compare, timeline, progress, hotspot, strips, switcher, exhibit, scrolly, clocks, roster, tiers, qapills, dockbar, arches, chapters, slotpicker, reel, grow, deck, metrics, spotlight, terminal, tilt, flip };
 }
 
 function extraWidgetCss(used: {
   audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean;
-  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; reel?: boolean; grow?: boolean;
+  floating?: boolean; compare?: boolean; timeline?: boolean; progress?: boolean; hotspot?: boolean; strips?: boolean; switcher?: boolean; exhibit?: boolean; scrolly?: boolean; clocks?: boolean; roster?: boolean; tiers?: boolean; qapills?: boolean; dockbar?: boolean; arches?: boolean; chapters?: boolean; slotpicker?: boolean; reel?: boolean; grow?: boolean; deck?: boolean; metrics?: boolean; spotlight?: boolean; terminal?: boolean; tilt?: boolean; flip?: boolean;
 }) {
   return (used.floating ? `\n${FLOATING_SECTION_CSS}` : '')
     + (used.audio ? `\n${AUDIO_CSS}` : '')
@@ -10719,6 +11053,12 @@ function extraWidgetCss(used: {
     + (used.slotpicker ? `\n${SLOTPICKER_CSS}` : '')
     + (used.reel ? `\n${REEL_CSS}` : '')
     + (used.grow ? `\n${GROW_CSS}` : '')
+    + (used.deck ? `\n${DECK_CSS}` : '')
+    + (used.metrics ? `\n${METRICS_CSS}` : '')
+    + (used.spotlight ? `\n${SPOTLIGHT_CSS}` : '')
+    + (used.terminal ? `\n${TERMINAL_CSS}` : '')
+    + (used.tilt ? `\n${TILT_CSS}` : '')
+    + (used.flip ? `\n${FLIP_CSS}` : '')
     + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
@@ -10771,6 +11111,12 @@ function wordpressStylesFor(pg: Page) {
         slotpicker: pageExtra.slotpicker && !globalExtra.slotpicker,
         reel: pageExtra.reel && !globalExtra.reel,
         grow: pageExtra.grow && !globalExtra.grow,
+        deck: pageExtra.deck && !globalExtra.deck,
+        metrics: pageExtra.metrics && !globalExtra.metrics,
+        spotlight: pageExtra.spotlight && !globalExtra.spotlight,
+        terminal: pageExtra.terminal && !globalExtra.terminal,
+        tilt: pageExtra.tilt && !globalExtra.tilt,
+        flip: pageExtra.flip && !globalExtra.flip,
         videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
@@ -12851,6 +13197,181 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         + `<div class="pagecraft-grow-track">${primary}${clones}</div>`
         + `</div>`;
     }
+    case 'deck': {
+      const items = (Array.isArray(p.deckCards) ? p.deckCards as any[] : []).filter(Boolean);
+      const ratio = cssRatio(p.ratio) || '4 / 5';
+      const showArrows = p.arrows !== 0 && items.length > 1;
+      const cards = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const title = String(it.title || '').trim();
+        const tag = String(it.tag || '').trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        const depth = i <= 3 ? String(i) : 'back';
+        const cap = (title || tag)
+          ? `<span class="pagecraft-deck-scrim" aria-hidden="true"></span><figcaption class="pagecraft-deck-cap">`
+            + (tag ? `<span class="pagecraft-deck-tag">${esc(tag)}</span>` : '')
+            + (title ? `<span class="pagecraft-deck-title">${esc(title)}</span>` : '')
+            + `</figcaption>`
+          : '';
+        return `<figure class="pagecraft-deck-card" data-depth="${depth}" aria-hidden="${i === 0 ? 'false' : 'true'}">`
+          + `<img class="pagecraft-deck-img" src="${src}" alt="${alt}"${dim} decoding="async" draggable="false">`
+          + cap
+          + `</figure>`;
+      }).join('');
+      const prevSvg = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5"/></svg>';
+      const nextSvg = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>';
+      const controls = showArrows
+        ? `<div class="pagecraft-deck-controls">`
+          + `<button type="button" class="pagecraft-deck-btn" data-deck-prev aria-label="Previous card">${prevSvg}</button>`
+          + `<span class="pagecraft-deck-count" data-deck-count aria-live="polite">1 / ${items.length}</span>`
+          + `<button type="button" class="pagecraft-deck-btn" data-deck-next aria-label="Next card">${nextSvg}</button>`
+          + `</div>`
+        : '';
+      return `<div ${at()} ${cx('pagecraft-deck')} data-deck${o.edit ? ' data-deck-edit' : ''} tabindex="0" role="region" aria-roledescription="carousel" aria-label="Card deck" style="--dk-ratio:${esc(ratio)}">`
+        + `<div class="pagecraft-deck-stage">${cards}</div>`
+        + controls
+        + `</div>`;
+    }
+    case 'metrics': {
+      const items = (Array.isArray(p.stats) ? p.stats as any[] : []).filter(Boolean);
+      const digits = '<span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>';
+      const cards = items.map(it => {
+        const prefix = String(it.prefix || '');
+        const rawVal = String(it.value || '0');
+        const suffix = String(it.suffix || '');
+        const label = String(it.label || '');
+        const detail = String(it.detail || '');
+        const spoken = `${prefix}${rawVal}${suffix}`;
+        let dIdx = 0;
+        const glyphs = Array.from(rawVal).map(ch => {
+          if (ch >= '0' && ch <= '9') {
+            const dur = (0.82 + dIdx * 0.09).toFixed(2);
+            dIdx++;
+            return `<span class="pagecraft-metric-drum"><span class="pagecraft-metric-reel" style="--mt-d:${ch};--mt-dur:${dur}s">${digits}</span></span>`;
+          }
+          return `<span>${esc(ch)}</span>`;
+        }).join('');
+        return `<div class="pagecraft-metric-card">`
+          + `<div class="pagecraft-metric-val" aria-label="${esc(spoken)}">`
+          + (prefix ? `<span class="pagecraft-metric-affix" aria-hidden="true">${esc(prefix)}</span>` : '')
+          + `<span aria-hidden="true" style="display:inline-flex">${glyphs}</span>`
+          + (suffix ? `<span class="pagecraft-metric-affix" aria-hidden="true">${esc(suffix)}</span>` : '')
+          + `</div>`
+          + (label ? `<div class="pagecraft-metric-label">${esc(label)}</div>` : '')
+          + (detail ? `<p class="pagecraft-metric-detail">${esc(detail)}</p>` : '')
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-metrics')} data-metrics${o.edit ? ' data-metrics-edit' : ''}>${cards}</div>`;
+    }
+    case 'spotlight': {
+      const items = (Array.isArray(p.tiles) ? p.tiles as any[] : []).filter(Boolean);
+      const cards = items.map(it => {
+        const tag = String(it.tag || '').trim();
+        const title = String(it.title || '').trim();
+        const detail = String(it.detail || '').trim();
+        const href = safeUrl(String(it.href || ''));
+        const linkLabel = String(it.linkLabel || 'Learn more').trim();
+        return `<article class="pagecraft-spot-card">`
+          + `<span class="pagecraft-spot-grid" aria-hidden="true"></span>`
+          + (tag ? `<span class="pagecraft-spot-tag">${esc(tag)}</span>` : '')
+          + (title ? `<h3 class="pagecraft-spot-title">${esc(title)}</h3>` : '')
+          + (detail ? `<p class="pagecraft-spot-detail">${esc(detail)}</p>` : '')
+          + (href ? `<a class="pagecraft-spot-link" href="${esc(href)}">${esc(linkLabel)} <span aria-hidden="true">&rarr;</span></a>` : '')
+          + `</article>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-spotlight')} data-spotlight${o.edit ? ' data-spotlight-edit' : ''}>${cards}</div>`;
+    }
+    case 'terminal': {
+      const title = String(p.title || 'terminal — zsh').trim();
+      const items = (Array.isArray(p.commands) ? p.commands as any[] : []).filter(Boolean);
+      const baseId = domId();
+      const tabs = items.length > 1
+        ? `<div class="pagecraft-term-tabs" role="tablist" aria-label="Terminal commands">`
+          + items.map((it, i) => `<button type="button" class="pagecraft-term-tab" id="${baseId}-tm-t-${i}" role="tab" aria-controls="${baseId}-tm-p-${i}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}">${esc(String(it.label || `Step ${i + 1}`))}</button>`).join('')
+          + `</div>`
+        : '';
+      const panels = items.map((it, i) => {
+        const cmd = String(it.cmd || '').trim();
+        const lines = String(it.output || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const note = String(it.note || '').trim();
+        const outHtml = lines.length
+          ? `<ul class="pagecraft-term-out">${lines.map(line => `<li${/^[✓✔]/.test(line) ? ' class="pagecraft-term-line-ok"' : ''}>${esc(line)}</li>`).join('')}</ul>`
+          : '';
+        return `<div class="pagecraft-term-panel" id="${baseId}-tm-p-${i}" role="tabpanel" aria-labelledby="${baseId}-tm-t-${i}" data-cmd="${esc(cmd)}"${i === 0 ? '' : ' hidden'}>`
+          + `<div class="pagecraft-term-body">`
+          + `<p class="pagecraft-term-cmd"><span class="pagecraft-term-prompt" aria-hidden="true">$</span><span class="pagecraft-term-text">${esc(cmd)}</span><span class="pagecraft-term-caret" aria-hidden="true"></span></p>`
+          + outHtml
+          + `</div>`
+          + (note ? `<div class="pagecraft-term-note">${esc(note)}</div>` : '')
+          + `</div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-terminal')} data-terminal${o.edit ? ' data-terminal-edit' : ''}>`
+        + `<div class="pagecraft-term-bar"><span class="pagecraft-term-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="pagecraft-term-title">${esc(title)}</span><button type="button" class="pagecraft-term-copy" aria-label="Copy command">Copy</button></div>`
+        + tabs + panels + `</div>`;
+    }
+    case 'tilt': {
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--tl-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.tiltCards) ? p.tiltCards as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const src = esc(String(it.src || PH));
+        const title = String(it.title || '').trim();
+        const tag = String(it.tag || '').trim();
+        const detail = String(it.detail || '').trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<div class="pagecraft-tilt-wrap"><article class="pagecraft-tilt-card">`
+          + `<img class="pagecraft-tilt-img" src="${src}" alt="${alt}"${dim} decoding="async">`
+          + `<span class="pagecraft-tilt-scrim" aria-hidden="true"></span>`
+          + `<span class="pagecraft-tilt-glare" aria-hidden="true"></span>`
+          + `<div class="pagecraft-tilt-body">`
+          + (tag ? `<span class="pagecraft-tilt-tag">${esc(tag)}</span>` : '')
+          + (title ? `<h3 class="pagecraft-tilt-title">${esc(title)}</h3>` : '')
+          + (detail ? `<p class="pagecraft-tilt-detail">${esc(detail)}</p>` : '')
+          + `</div></article></div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-tilt')}${ratioStyle} data-tilt${o.edit ? ' data-tilt-edit' : ''}>${cards}</div>`;
+    }
+    case 'flip': {
+      const trigger = p.trigger === 'hover' ? 'hover' : 'click';
+      const ratio = cssRatio(p.ratio);
+      const ratioStyle = ratio ? ` style="--fl-ratio:${esc(ratio)}"` : '';
+      const items = (Array.isArray(p.flipCards) ? p.flipCards as any[] : []).filter(Boolean);
+      const cards = items.map((it, i) => {
+        const src = String(it.src || '').trim();
+        const tag = String(it.tag || '').trim();
+        const title = String(it.title || '').trim();
+        const frontNote = String(it.frontNote || (trigger === 'hover' ? 'Hover to flip' : 'Tap to flip')).trim();
+        const backTitle = String(it.backTitle || title).trim();
+        const detail = String(it.detail || '').trim();
+        const href = safeUrl(String(it.href || ''));
+        const linkLabel = String(it.linkLabel || 'Learn more').trim();
+        const alt = esc(String(it.alt || title || `Card ${i + 1}`));
+        const dim = (it.w && it.h) ? ` width="${parseInt(String(it.w), 10)}" height="${parseInt(String(it.h), 10)}"` : '';
+        return `<div class="pagecraft-flip-card" role="button" tabindex="0" aria-pressed="false" data-flipped="0">`
+          + `<div class="pagecraft-flip-inner">`
+          + `<div class="pagecraft-flip-face pagecraft-flip-front">`
+          + (src ? `<img class="pagecraft-flip-img" src="${esc(src)}" alt="${alt}"${dim} decoding="async"><span class="pagecraft-flip-scrim" aria-hidden="true"></span>` : '')
+          + `<div class="pagecraft-flip-front-body">`
+          + (tag ? `<span class="pagecraft-flip-tag">${esc(tag)}</span>` : '')
+          + (title ? `<h3 class="pagecraft-flip-title">${esc(title)}</h3>` : '')
+          + (frontNote ? `<span class="pagecraft-flip-hint">${esc(frontNote)} <span aria-hidden="true">&#8635;</span></span>` : '')
+          + `</div></div>`
+          + `<div class="pagecraft-flip-face pagecraft-flip-back">`
+          + `<div class="pagecraft-flip-back-top">`
+          + (tag ? `<span class="pagecraft-flip-back-tag">${esc(tag)}</span>` : '')
+          + (backTitle ? `<h3 class="pagecraft-flip-back-title">${esc(backTitle)}</h3>` : '')
+          + (detail ? `<p class="pagecraft-flip-detail">${esc(detail)}</p>` : '')
+          + `</div>`
+          + `<div class="pagecraft-flip-back-foot">`
+          + (href ? `<a class="pagecraft-flip-link" href="${esc(href)}">${esc(linkLabel)} <span aria-hidden="true">&rarr;</span></a>` : `<span></span>`)
+          + `<span class="pagecraft-flip-return" aria-hidden="true">&#8634; Flip back</span>`
+          + `</div></div>`
+          + `</div></div>`;
+      }).join('');
+      return `<div ${at()} ${cx('pagecraft-flip')}${ratioStyle} data-flip data-flip-trigger="${trigger}"${o.edit ? ' data-flip-edit' : ''}>${cards}</div>`;
+    }
     case 'chapters': {
       const ratio = cssRatio(p.frameRatio);
       const ratioStyle = ratio ? ` style="--ch-ratio:${esc(ratio)}"` : '';
@@ -13517,7 +14038,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-reel/.test(body) ? REEL_JS : ''}${/data-grow/.test(body) ? GROW_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${/data-compare/.test(body) ? COMPARE_JS : ''}${/data-hotspot/.test(body) ? HOTSPOT_JS : ''}${/data-strips/.test(body) ? STRIPS_JS : ''}${/data-switcher/.test(body) ? SWITCHER_JS : ''}${/data-exhibit/.test(body) ? EXHIBIT_JS : ''}${/data-scrolly/.test(body) ? SCROLLY_JS : ''}${/data-clocks/.test(body) ? CLOCKS_JS : ''}${/data-roster/.test(body) ? ROSTER_JS : ''}${/data-tiers/.test(body) ? TIERS_JS : ''}${/data-qapills/.test(body) ? QAPILLS_JS : ''}${/data-chapters/.test(body) ? CHAPTERS_JS : ''}${/data-slotpicker/.test(body) ? SLOTPICKER_JS : ''}${/data-reel/.test(body) ? REEL_JS : ''}${/data-grow/.test(body) ? GROW_JS : ''}${/data-deck/.test(body) ? DECK_JS : ''}${/data-metrics/.test(body) ? METRICS_JS : ''}${/data-spotlight/.test(body) ? SPOTLIGHT_JS : ''}${/data-terminal/.test(body) ? TERMINAL_JS : ''}${/data-tilt/.test(body) ? TILT_JS : ''}${/data-flip/.test(body) ? FLIP_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -14027,7 +14548,7 @@ export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   isFormType, formFieldsOf, formBlockProps, bookingTotal,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, IC_VIEW, icStroke, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, FLOATING_SECTION_CSS, COMPARE_CSS, COMPARE_JS, TIMELINE_CSS, PROGRESS_CSS, HOTSPOT_CSS, HOTSPOT_JS, STRIPS_CSS, STRIPS_JS, SWITCHER_CSS, SWITCHER_JS, EXHIBIT_CSS, EXHIBIT_JS, SCROLLY_CSS, SCROLLY_JS, CLOCKS_CSS, CLOCKS_JS, ROSTER_CSS, ROSTER_JS, TIERS_CSS, TIERS_JS, QAPILLS_CSS, QAPILLS_JS, DOCKBAR_CSS, ARCHES_CSS, CHAPTERS_CSS, CHAPTERS_JS, SLOTPICKER_CSS, SLOTPICKER_JS, REEL_CSS, REEL_JS, GROW_CSS, GROW_JS, DECK_CSS, DECK_JS, METRICS_CSS, METRICS_JS, SPOTLIGHT_CSS, SPOTLIGHT_JS, TERMINAL_CSS, TERMINAL_JS, TILT_CSS, TILT_JS, FLIP_CSS, FLIP_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };
