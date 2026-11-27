@@ -19,7 +19,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npm test
+      - run: npm run build && npm run build:editor-package
       - run: node tools/demo-site.mjs
       - run: python3 -m unittest discover -s tools/deploy -p 'test_*.py'
       - run: python3 tools/deploy/bundle.py "$GITHUB_SHA" "$GITHUB_REF_NAME" release.tar.gz
